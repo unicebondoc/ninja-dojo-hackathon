@@ -106,16 +106,24 @@ function PixelDojoStage({
   isRunning: boolean;
   latestLine?: DojoDialogue;
 }) {
+  const activeEffect = getBattleEffect(latestLine);
+
   return (
-    <div className="pixel-dojo mt-5 aspect-[16/11] min-h-[360px] overflow-hidden rounded-md border border-moon/15 bg-zinc-950/80">
+    <div className="pixel-dojo mt-5 aspect-[16/11] min-h-[420px] overflow-hidden rounded-md border border-moon/15 bg-zinc-950/80">
       <div className="pixel-dojo__wall" />
+      <div className="pixel-dojo__beam pixel-dojo__beam--top" />
+      <div className="pixel-dojo__beam pixel-dojo__beam--bottom" />
       <div className="pixel-dojo__mat" />
+      <div className="pixel-dojo__sparring-ring" />
       <div className="pixel-dojo__scroll">
         <span />
       </div>
+      <div className="pixel-dojo__weapon-rack pixel-dojo__weapon-rack--left" />
+      <div className="pixel-dojo__weapon-rack pixel-dojo__weapon-rack--right" />
       <div className="pixel-dojo__lantern pixel-dojo__lantern--left" />
       <div className="pixel-dojo__lantern pixel-dojo__lantern--right" />
       <div className="pixel-dojo__moon" data-visible={isComplete} />
+      <BattleEffect effect={activeEffect} />
       <div className="pixel-dojo__caption">
         {isComplete
           ? "moonrise shipped"
@@ -135,6 +143,23 @@ function PixelDojoStage({
           latestLine={latestLine}
         />
       ))}
+    </div>
+  );
+}
+
+function BattleEffect({ effect }: { effect: BattleEffectKind }) {
+  if (effect === "idle") {
+    return null;
+  }
+
+  return (
+    <div className="battle-layer" data-effect={effect}>
+      <span className="battle-slash battle-slash--one" />
+      <span className="battle-slash battle-slash--two" />
+      <span className="battle-shuriken battle-shuriken--one" />
+      <span className="battle-shuriken battle-shuriken--two" />
+      <span className="battle-impact battle-impact--one" />
+      <span className="battle-impact battle-impact--two" />
     </div>
   );
 }
@@ -175,6 +200,40 @@ const spriteAccent = {
   Meowts: "#f9a8d4"
 };
 
+type BattleEffectKind = "idle" | "plan" | "build" | "attack" | "review" | "deploy" | "judge";
+
+function getBattleEffect(line?: DojoDialogue): BattleEffectKind {
+  if (!line) {
+    return "idle";
+  }
+
+  if (line.speaker === "Renegade") {
+    return "attack";
+  }
+
+  if (line.speaker === "Miji") {
+    return "build";
+  }
+
+  if (line.speaker === "Sensei") {
+    return "review";
+  }
+
+  if (line.speaker === "Tester") {
+    return "deploy";
+  }
+
+  if (line.speaker === "Meowts") {
+    return "judge";
+  }
+
+  if (line.speaker === "Moji") {
+    return "plan";
+  }
+
+  return "idle";
+}
+
 function PixelCharacter({
   agent,
   index,
@@ -193,6 +252,7 @@ function PixelCharacter({
   const position = getCharacterPosition(agent, isComplete, isRunning, isSpeaking);
   const isActive = agent.status === "working" || isSpeaking;
   const isMeowts = agent.name === "Meowts";
+  const direction = position.x > 50 ? "left" : "right";
 
   return (
     <motion.div
@@ -202,6 +262,10 @@ function PixelCharacter({
         scale: isActive ? 1.08 : 1
       }}
       className="pixel-character"
+      data-active={isActive}
+      data-direction={direction}
+      data-meowts={isMeowts}
+      data-speaking={isSpeaking}
       initial={false}
       style={
         {
