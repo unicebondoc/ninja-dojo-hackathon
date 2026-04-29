@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
 import type { CSSProperties } from "react";
 import type { DojoAgent } from "@/lib/types";
 
@@ -32,9 +31,6 @@ export function DojoSprite({ agent, isSpeaking, x, y }: DojoSpriteProps) {
   const meta = spriteMeta[agent.name] ?? spriteMeta.Moji;
   const isWorking = agent.status === "working";
   const isComplete = agent.status === "complete";
-  const [sheetState, setSheetState] = useState<"loading" | "loaded" | "missing">(
-    "loading"
-  );
 
   return (
     <motion.div
@@ -47,7 +43,7 @@ export function DojoSprite({ agent, isSpeaking, x, y }: DojoSpriteProps) {
       className="dojo-sprite"
       data-complete={isComplete}
       data-speaking={isSpeaking}
-      data-sheet={sheetState === "loaded"}
+      data-sheet={false}
       data-status={agent.status}
       data-variant={meta.variant}
       style={
@@ -68,21 +64,6 @@ export function DojoSprite({ agent, isSpeaking, x, y }: DojoSpriteProps) {
     >
       <div className="dojo-sprite__shadow" />
       <div aria-hidden="true" className="dojo-sprite__image">
-        {sheetState !== "missing" ? (
-          <span className="dojo-sprite__sheet-frame">
-            <img
-              alt=""
-              onError={() => setSheetState("missing")}
-              onLoad={() => setSheetState("loaded")}
-              src="/assets/dojo/spritesheet.png"
-              style={
-                {
-                  "--sheet-index": meta.sheetIndex
-                } as CSSProperties
-              }
-            />
-          </span>
-        ) : null}
         <span className="dojo-sprite__head" />
         <span className="dojo-sprite__mask" />
         <span className="dojo-sprite__body" />

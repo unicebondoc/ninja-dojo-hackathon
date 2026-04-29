@@ -26,23 +26,23 @@ type BoardStation = {
 };
 
 const stations: Record<string, BoardStation> = {
-  Scroll: { label: "Scroll", x: 50, y: 45 },
-  Moji: { label: "MOJI / Plan", x: 26, y: 42 },
-  Miji: { label: "MIJI / Build", x: 42, y: 67 },
-  Renegade: { label: "RENEGADE / Attack", x: 69, y: 43 },
-  Sensei: { label: "SENSEI / Review", x: 60, y: 68 },
-  Tester: { label: "TESTER / Deploy", x: 28, y: 75 },
-  Meowts: { label: "MEOWTS / Judge", x: 78, y: 74 },
-  Moon: { label: "Moonrise", x: 84, y: 24 }
+  Scroll: { label: "Scroll", x: 50, y: 47 },
+  Moji: { label: "MOJI / Plan", x: 31, y: 49 },
+  Miji: { label: "MIJI / Build", x: 41, y: 66 },
+  Renegade: { label: "RENEGADE / Attack", x: 67, y: 52 },
+  Sensei: { label: "SENSEI / Review", x: 59, y: 70 },
+  Tester: { label: "TESTER / Deploy", x: 31, y: 74 },
+  Meowts: { label: "MEOWTS / Judge", x: 77, y: 76 },
+  Moon: { label: "Moonrise", x: 84, y: 27 }
 };
 
 const idlePositions: Record<string, BoardStation> = {
-  Moji: { label: "Moji", x: 17, y: 77 },
-  Miji: { label: "Miji", x: 32, y: 79 },
-  Renegade: { label: "Renegade", x: 74, y: 77 },
-  Sensei: { label: "Sensei", x: 58, y: 80 },
-  Tester: { label: "Tester", x: 43, y: 82 },
-  Meowts: { label: "Meowts", x: 86, y: 81 }
+  Moji: { label: "Moji", x: 22, y: 79 },
+  Miji: { label: "Miji", x: 36, y: 82 },
+  Renegade: { label: "Renegade", x: 67, y: 81 },
+  Sensei: { label: "Sensei", x: 52, y: 83 },
+  Tester: { label: "Tester", x: 43, y: 84 },
+  Meowts: { label: "Meowts", x: 80, y: 84 }
 };
 
 export function LiveDojo({

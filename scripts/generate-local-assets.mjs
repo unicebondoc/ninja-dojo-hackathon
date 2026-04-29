@@ -71,39 +71,78 @@ function dojoBackgroundSvg() {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1792 1024">
   <defs>
-    <radialGradient id="moonGlow" cx="78%" cy="18%" r="35%">
-      <stop offset="0%" stop-color="${palette.ivory}" stop-opacity="0.5"/>
-      <stop offset="38%" stop-color="${palette.gold}" stop-opacity="0.18"/>
+    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="moonGlow" cx="78%" cy="18%" r="38%">
+      <stop offset="0%" stop-color="${palette.ivory}" stop-opacity="0.78"/>
+      <stop offset="36%" stop-color="${palette.gold}" stop-opacity="0.18"/>
       <stop offset="100%" stop-color="${palette.ink}" stop-opacity="0"/>
     </radialGradient>
+    <linearGradient id="backWall" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#1d120d"/>
+      <stop offset="100%" stop-color="#080606"/>
+    </linearGradient>
     <linearGradient id="floor" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0%" stop-color="#120b07"/>
-      <stop offset="52%" stop-color="${palette.floor}"/>
+      <stop offset="0%" stop-color="#4b2814"/>
+      <stop offset="48%" stop-color="${palette.floor}"/>
       <stop offset="100%" stop-color="#0a0705"/>
+    </linearGradient>
+    <linearGradient id="tatami" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#4a2a14"/>
+      <stop offset="50%" stop-color="#221208"/>
+      <stop offset="100%" stop-color="#6b3a18"/>
     </linearGradient>
   </defs>
   <rect width="1792" height="1024" fill="${palette.ink}"/>
   <rect width="1792" height="1024" fill="url(#moonGlow)"/>
-  <rect x="106" y="110" width="1580" height="252" rx="12" fill="#16100c" stroke="#5d3219" stroke-width="10"/>
-  ${Array.from({ length: 13 }, (_, index) => {
-    const x = 150 + index * 120;
-    return `<path d="M${x} 116v238" stroke="${palette.gold}" stroke-opacity="0.2" stroke-width="5"/>`;
+  <rect x="0" y="0" width="1792" height="365" fill="#07080d"/>
+  ${Array.from({ length: 58 }, (_, index) => {
+    const x = (index * 97) % 1760 + 16;
+    const y = 24 + ((index * 53) % 220);
+    const r = 2 + (index % 3);
+    return `<circle cx="${x}" cy="${y}" r="${r}" fill="${palette.ivory}" opacity="${0.14 + (index % 4) * 0.06}"/>`;
   }).join("")}
-  <path d="M112 205h1568M112 285h1568" stroke="${palette.gold}" stroke-opacity="0.16" stroke-width="4"/>
-  <rect x="0" y="350" width="1792" height="674" fill="url(#floor)"/>
-  ${Array.from({ length: 18 }, (_, index) => {
-    const x = index * 112;
-    return `<path d="M${x} 350l${-170 + index * 16} 674" stroke="${palette.gold}" stroke-opacity="0.1" stroke-width="3"/>`;
+  <path d="M0 355h1792v52H0z" fill="#090505"/>
+  <rect x="92" y="118" width="1608" height="300" rx="18" fill="url(#backWall)" stroke="#6c3518" stroke-width="12"/>
+  <rect x="120" y="144" width="1548" height="246" rx="8" fill="#0d0908" stroke="${palette.gold}" stroke-opacity="0.18" stroke-width="4"/>
+  ${Array.from({ length: 15 }, (_, index) => {
+    const x = 150 + index * 104;
+    return `<rect x="${x}" y="148" width="7" height="238" fill="${palette.gold}" opacity="0.18"/>`;
   }).join("")}
-  ${Array.from({ length: 9 }, (_, index) => {
-    const y = 440 + index * 68;
-    return `<path d="M0 ${y}h1792" stroke="${palette.gold}" stroke-opacity="0.08" stroke-width="3"/>`;
+  <path d="M124 223h1538M124 305h1538" stroke="${palette.gold}" stroke-opacity="0.13" stroke-width="5"/>
+  <circle cx="1398" cy="238" r="116" fill="#07080d" stroke="${palette.gold}" stroke-opacity="0.24" stroke-width="8"/>
+  <circle cx="1398" cy="238" r="82" fill="${palette.gold}" opacity="0.86" filter="url(#softGlow)"/>
+  <path d="M1338 238h120M1398 178v120" stroke="#7b4a20" stroke-opacity="0.32" stroke-width="6"/>
+  <path d="M1630 142c-38 28-69 64-98 108M1688 132c-65 56-106 123-128 204" stroke="#f9a8d4" stroke-opacity="0.48" stroke-width="8" stroke-linecap="round"/>
+  ${Array.from({ length: 30 }, (_, index) => {
+    const x = 1510 + ((index * 41) % 190);
+    const y = 128 + ((index * 67) % 230);
+    return `<ellipse cx="${x}" cy="${y}" rx="9" ry="5" fill="#f9a8d4" opacity="${0.38 + (index % 4) * 0.08}" transform="rotate(${index * 23} ${x} ${y})"/>`;
   }).join("")}
-  <ellipse cx="896" cy="688" rx="520" ry="210" fill="none" stroke="${palette.gold}" stroke-opacity="0.24" stroke-width="9" stroke-dasharray="26 22"/>
-  <circle cx="1390" cy="164" r="94" fill="${palette.gold}" opacity="0.72"/>
-  <rect x="216" y="178" width="56" height="102" rx="28" fill="${palette.red}" opacity="0.7" stroke="${palette.gold}" stroke-opacity="0.35" stroke-width="7"/>
-  <rect x="1520" y="178" width="56" height="102" rx="28" fill="${palette.red}" opacity="0.7" stroke="${palette.gold}" stroke-opacity="0.35" stroke-width="7"/>
-  <path d="M0 0h1792v1024H0z" fill="none" stroke="#000" stroke-opacity="0.55" stroke-width="48"/>
+  <rect x="0" y="390" width="1792" height="634" fill="url(#floor)"/>
+  <path d="M90 914L446 438h900l356 476Z" fill="url(#tatami)" stroke="${palette.gold}" stroke-opacity="0.24" stroke-width="10"/>
+  ${Array.from({ length: 11 }, (_, index) => {
+    const t = index / 10;
+    const x1 = 90 + t * 356;
+    const x2 = 1702 - t * 356;
+    return `<path d="M${x1} 914L${446 + t * 900} 438M${x2} 914L${446 + t * 900} 438" stroke="${palette.gold}" stroke-opacity="0.11" stroke-width="5"/>`;
+  }).join("")}
+  ${Array.from({ length: 8 }, (_, index) => {
+    const y = 500 + index * 58;
+    const inset = (y - 438) * 0.34;
+    return `<path d="M${446 - inset} ${y}h${900 + inset * 2}" stroke="${palette.gold}" stroke-opacity="0.09" stroke-width="5"/>`;
+  }).join("")}
+  <ellipse cx="896" cy="704" rx="470" ry="190" fill="none" stroke="${palette.gold}" stroke-opacity="0.25" stroke-width="10" stroke-dasharray="20 18"/>
+  <ellipse cx="896" cy="704" rx="320" ry="124" fill="#050506" opacity="0.18"/>
+  <g filter="url(#softGlow)">
+    <rect x="212" y="194" width="54" height="112" rx="27" fill="${palette.red}" opacity="0.82" stroke="${palette.gold}" stroke-opacity="0.36" stroke-width="7"/>
+    <rect x="305" y="194" width="42" height="88" rx="21" fill="#b91c1c" opacity="0.72" stroke="${palette.gold}" stroke-opacity="0.26" stroke-width="6"/>
+    <rect x="1518" y="194" width="54" height="112" rx="27" fill="${palette.red}" opacity="0.82" stroke="${palette.gold}" stroke-opacity="0.36" stroke-width="7"/>
+  </g>
+  <path d="M0 0h1792v1024H0z" fill="none" stroke="#000" stroke-opacity="0.64" stroke-width="54"/>
+  <path d="M46 46h1700v932H46z" fill="none" stroke="${palette.gold}" stroke-opacity="0.09" stroke-width="6"/>
 </svg>`;
 }
 
