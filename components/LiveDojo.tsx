@@ -1,13 +1,5 @@
 "use client";
 
-import {
-  Cat,
-  Eye,
-  Hammer,
-  Rocket,
-  ScrollText,
-  ShieldAlert
-} from "lucide-react";
 import { motion } from "framer-motion";
 import type { DojoAgent, DojoDialogue } from "@/lib/types";
 
@@ -18,22 +10,14 @@ type LiveDojoProps = {
   isRunning: boolean;
 };
 
-const icons = {
-  Moji: ScrollText,
-  Miji: Hammer,
-  Renegade: ShieldAlert,
-  Sensei: Eye,
-  Tester: Rocket,
-  Meowts: Cat
-};
-
 export function LiveDojo({
   agents,
   dialogue,
   isComplete,
   isRunning
 }: LiveDojoProps) {
-  const latestSpeaker = dialogue.at(-1)?.speaker;
+  const latestLine = dialogue.at(-1);
+  const latestSpeaker = latestLine?.speaker;
   const visibleDialogue = dialogue.slice(-6);
 
   return (
@@ -58,16 +42,12 @@ export function LiveDojo({
           </span>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          {agents.map((agent, index) => (
-            <DojoAvatar
-              agent={agent}
-              index={index}
-              isSpeaking={latestSpeaker === agent.name}
-              key={agent.name}
-            />
-          ))}
-        </div>
+        <PixelDojoStage
+          agents={agents}
+          isComplete={isComplete}
+          isRunning={isRunning}
+          latestLine={latestLine}
+        />
 
         <div className="mt-5 rounded-md border border-moon/15 bg-zinc-950/70 p-4">
           <div className="flex items-center justify-between gap-3">
@@ -115,63 +95,171 @@ export function LiveDojo({
   );
 }
 
-function DojoAvatar({
+function PixelDojoStage({
+  agents,
+  isComplete,
+  isRunning,
+  latestLine
+}: {
+  agents: DojoAgent[];
+  isComplete: boolean;
+  isRunning: boolean;
+  latestLine?: DojoDialogue;
+}) {
+  return (
+    <div className="pixel-dojo mt-5 aspect-[16/11] min-h-[360px] overflow-hidden rounded-md border border-moon/15 bg-zinc-950/80">
+      <div className="pixel-dojo__wall" />
+      <div className="pixel-dojo__mat" />
+      <div className="pixel-dojo__scroll">
+        <span />
+      </div>
+      <div className="pixel-dojo__lantern pixel-dojo__lantern--left" />
+      <div className="pixel-dojo__lantern pixel-dojo__lantern--right" />
+      <div className="pixel-dojo__moon" data-visible={isComplete} />
+      <div className="pixel-dojo__caption">
+        {isComplete
+          ? "moonrise shipped"
+          : isRunning
+            ? "live run in motion"
+            : "press launch to wake the dojo"}
+      </div>
+
+      {agents.map((agent, index) => (
+        <PixelCharacter
+          agent={agent}
+          index={index}
+          isComplete={isComplete}
+          isRunning={isRunning}
+          isSpeaking={latestLine?.speaker === agent.name}
+          key={agent.name}
+          latestLine={latestLine}
+        />
+      ))}
+    </div>
+  );
+}
+
+const homePositions = {
+  Moji: { x: 20, y: 30 },
+  Miji: { x: 35, y: 76 },
+  Renegade: { x: 80, y: 34 },
+  Sensei: { x: 67, y: 76 },
+  Tester: { x: 16, y: 70 },
+  Meowts: { x: 85, y: 72 }
+};
+
+const councilPositions = {
+  Moji: { x: 36, y: 39 },
+  Miji: { x: 45, y: 64 },
+  Renegade: { x: 62, y: 42 },
+  Sensei: { x: 56, y: 67 },
+  Tester: { x: 31, y: 62 },
+  Meowts: { x: 72, y: 58 }
+};
+
+const shippedPositions = {
+  Moji: { x: 31, y: 38 },
+  Miji: { x: 43, y: 63 },
+  Renegade: { x: 60, y: 38 },
+  Sensei: { x: 54, y: 68 },
+  Tester: { x: 24, y: 62 },
+  Meowts: { x: 75, y: 47 }
+};
+
+const spriteAccent = {
+  Moji: "#f6e7b1",
+  Miji: "#dc2626",
+  Renegade: "#f97316",
+  Sensei: "#a7f3d0",
+  Tester: "#93c5fd",
+  Meowts: "#f9a8d4"
+};
+
+function PixelCharacter({
   agent,
   index,
-  isSpeaking
+  isComplete,
+  isRunning,
+  isSpeaking,
+  latestLine
 }: {
   agent: DojoAgent;
   index: number;
+  isComplete: boolean;
+  isRunning: boolean;
   isSpeaking: boolean;
+  latestLine?: DojoDialogue;
 }) {
-  const Icon = icons[agent.name as keyof typeof icons] ?? ScrollText;
+  const position = getCharacterPosition(agent, isComplete, isRunning, isSpeaking);
   const isActive = agent.status === "working" || isSpeaking;
-  const isComplete = agent.status === "complete";
+  const isMeowts = agent.name === "Meowts";
 
   return (
     <motion.div
       animate={{
-        scale: isActive ? 1.04 : 1,
-        y: isActive ? -2 : 0
+        left: `${position.x}%`,
+        top: `${position.y}%`,
+        scale: isActive ? 1.08 : 1
       }}
-      className={[
-        "relative overflow-hidden rounded-md border bg-zinc-950/75 p-3 transition",
-        isActive
-          ? "border-blood/80 shadow-blood"
-          : isComplete
-            ? "border-moon/35"
-            : "border-white/10"
-      ].join(" ")}
-      transition={{ duration: 0.25 }}
+      className="pixel-character"
+      initial={false}
+      style={
+        {
+          "--sprite-accent":
+            spriteAccent[agent.name as keyof typeof spriteAccent] ?? "#dc2626",
+          zIndex: Math.round(position.y)
+        } as React.CSSProperties
+      }
+      transition={{ duration: 0.75, ease: "easeInOut" }}
     >
-      <div className="flex items-center gap-3">
-        <div
-          className={[
-            "grid h-11 w-11 place-items-center rounded-md border",
-            agent.name === "Meowts"
-              ? "border-moon/40 bg-moon/10 text-moon"
-              : "border-blood/35 bg-blood/10 text-red-100"
-          ].join(" ")}
+      {isSpeaking && latestLine ? (
+        <motion.div
+          animate={{ opacity: 1, y: 0 }}
+          className="pixel-speech"
+          initial={{ opacity: 0, y: 6 }}
+          transition={{ duration: 0.2 }}
         >
-          <Icon className="h-5 w-5" />
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-black text-white">{agent.name}</p>
-          <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">
-            {agent.role}
-          </p>
-        </div>
+          {latestLine.message}
+        </motion.div>
+      ) : null}
+      <div
+        className={[
+          "pixel-sprite-wrap",
+          isActive ? "pixel-sprite-wrap--active" : "",
+          isMeowts ? "pixel-sprite-wrap--cat" : ""
+        ].join(" ")}
+      >
+        <div
+          className={isMeowts ? "pixel-cat-sprite" : "pixel-ninja-sprite"}
+          data-complete={agent.status === "complete"}
+        />
+        <span className="pixel-shadow" />
       </div>
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-          {agent.status}
-        </span>
-        <span className="text-xs text-zinc-700">
-          {String(index + 1).padStart(2, "0")}
-        </span>
+      <div className="pixel-nameplate">
+        <span>{agent.name}</span>
+        <span>{String(index + 1).padStart(2, "0")}</span>
       </div>
     </motion.div>
   );
+}
+
+function getCharacterPosition(
+  agent: DojoAgent,
+  isComplete: boolean,
+  isRunning: boolean,
+  isSpeaking: boolean
+) {
+  const name = agent.name as keyof typeof homePositions;
+
+  if (isComplete) {
+    return shippedPositions[name] ?? homePositions[name];
+  }
+
+  if (isRunning && (agent.status !== "idle" || isSpeaking)) {
+    return councilPositions[name] ?? homePositions[name];
+  }
+
+  return homePositions[name];
 }
 
 function formatTime(value: string) {
