@@ -2,6 +2,12 @@
 
 These prompts are for GPT Image 2 generation. They create original Ninja Dojo assets only. WorldX was used as broad visual inspiration for a live-world/game feel; no WorldX code, sprites, maps, filenames, layouts, images, or assets are copied.
 
+The repo also includes a local generator that creates original PNG assets without an OpenAI API key:
+
+```bash
+npm run generate:local-assets
+```
+
 Run generation when `OPENAI_API_KEY` is configured:
 
 ```bash

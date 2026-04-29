@@ -54,13 +54,20 @@ The current local demo is cached-first and stage-safe. It does not require Teleg
 
 Ninja Dojo uses original visual direction and asset prompts. WorldX was not copied; it was used only as broad inspiration for a live-world/game feel.
 
+- Local generated asset script: `scripts/generate-local-assets.mjs`
 - GPT Image 2 generation script: `scripts/generate-assets.mjs`
 - Prompt pack: `public/assets/dojo/README.md`
 - Target output folder: `public/assets/dojo/`
-- Expected generated files: `dojo-background.png`, `spritesheet.png`, `scroll.png`, `moon.png`, `katana-slash.png`
+- Current generated files: `dojo-background.png`, `spritesheet.png`, `scroll.png`, `moon.png`, `katana-slash.png`
 - Fallback: CSS/SVG sprites, moon, scroll, dojo room, and slash VFX keep the app working when generated assets are unavailable.
 
-Generate assets when `OPENAI_API_KEY` is configured:
+Generate local original PNG assets without an API key:
+
+```bash
+npm run generate:local-assets
+```
+
+Generate GPT Image 2 assets when `OPENAI_API_KEY` is configured:
 
 ```bash
 npm run generate:assets
