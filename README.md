@@ -4,6 +4,20 @@
 
 Ninja Dojo is a visual command center for solo builders coordinating parallel Codex workflows. The hackathon MVP is a cached-first stage demo: enter one product scroll, watch the dojo route work through specialized AI ninjas, then open the shipped preview.
 
+## What was built during the hackathon
+
+Built on-site at OpenAI Codex Hackathon Sydney:
+
+- Cached-first Next.js demo app
+- Scroll → Panels → Moon Ninja Dojo dashboard
+- `/demo/oracle` shipped page
+- `AGENTS.md` Dojo Law
+- Six Codex Skills in `.codex/skills`
+- Cached `/api/train` endpoint
+- Stage-safe fallback with no Telegram/Vercel/WebSocket dependency
+
+This MVP was built during the hackathon. It does not depend on Telegram, Vercel, Supabase, or WebSockets for the stage demo.
+
 ## Demo Flow
 
 1. Scroll received: “Build a landing page for a magical oracle deck with a waitlist CTA.”
