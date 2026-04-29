@@ -1,0 +1,165 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  background: #050506;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(220, 38, 38, 0.14), transparent 26rem),
+    radial-gradient(circle at 80% 18%, rgba(246, 231, 177, 0.08), transparent 22rem),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 36px),
+    #050506;
+  color: #f8fafc;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(220, 38, 38, 0.55);
+  color: white;
+}
+
+.ink-wash {
+  position: relative;
+  overflow: hidden;
+}
+
+.ink-wash::before {
+  position: absolute;
+  inset: -25%;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(255, 255, 255, 0.05), transparent 32%),
+    radial-gradient(ellipse at 70% 18%, rgba(220, 38, 38, 0.1), transparent 22%),
+    radial-gradient(ellipse at 52% 80%, rgba(201, 168, 78, 0.07), transparent 28%);
+  filter: blur(16px);
+  opacity: 0.85;
+}
+
+.dojo-grid {
+  background-image:
+    linear-gradient(rgba(246, 231, 177, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(246, 231, 177, 0.05) 1px, transparent 1px);
+  background-size: 68px 68px;
+  mask-image: linear-gradient(to bottom, transparent, black 12%, black 82%, transparent);
+}
+
+.falling-petals {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.petal {
+  position: absolute;
+  top: -12%;
+  width: 10px;
+  height: 16px;
+  border-radius: 10px 2px 10px 2px;
+  background: linear-gradient(135deg, rgba(255, 207, 224, 0.95), rgba(220, 38, 38, 0.42));
+  opacity: 0.45;
+  transform: rotate(20deg);
+  animation: petal-fall var(--fall-duration, 14s) linear infinite;
+  animation-delay: var(--fall-delay, 0s);
+}
+
+@keyframes petal-fall {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+  }
+
+  45% {
+    transform: translate3d(42px, 52vh, 0) rotate(170deg);
+  }
+
+  100% {
+    transform: translate3d(-26px, 112vh, 0) rotate(340deg);
+  }
+}
+
+.shoji-pattern {
+  background:
+    linear-gradient(rgba(246, 231, 177, 0.13), rgba(246, 231, 177, 0.13)) 0 29% / 100% 1px no-repeat,
+    linear-gradient(rgba(246, 231, 177, 0.1), rgba(246, 231, 177, 0.1)) 0 68% / 100% 1px no-repeat,
+    linear-gradient(90deg, rgba(246, 231, 177, 0.11), rgba(246, 231, 177, 0.11)) 50% 0 / 1px 100% no-repeat,
+    linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02));
+}
+
+.katana-slash {
+  position: absolute;
+  inset: 10% -18%;
+  pointer-events: none;
+  opacity: 0;
+  transform: rotate(-15deg) translateX(-115%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), rgba(220, 38, 38, 0.9), transparent);
+  height: 2px;
+  filter: drop-shadow(0 0 14px rgba(220, 38, 38, 0.95));
+}
+
+.katana-slash[data-complete="true"] {
+  animation: katana-slash 900ms cubic-bezier(0.18, 0.86, 0.32, 1.08) 1;
+}
+
+@keyframes katana-slash {
+  0% {
+    opacity: 0;
+    transform: rotate(-15deg) translateX(-115%);
+  }
+
+  18%,
+  55% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: rotate(-15deg) translateX(115%);
+  }
+}
+
+.moon-rise {
+  animation: moon-rise 1800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes moon-rise {
+  from {
+    opacity: 0;
+    transform: translateY(58px) scale(0.82);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.oracle-stars {
+  background-image:
+    radial-gradient(circle, rgba(246, 231, 177, 0.85) 0 1px, transparent 1.5px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.65) 0 1px, transparent 1.5px);
+  background-position: 0 0, 33px 45px;
+  background-size: 92px 92px, 118px 118px;
+}
