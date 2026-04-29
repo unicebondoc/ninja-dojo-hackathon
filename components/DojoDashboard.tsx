@@ -2,12 +2,20 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { ArtifactPacket } from "@/components/ArtifactPacket";
 import { MoonDeploy } from "@/components/MoonDeploy";
 import { MeowtsRoast } from "@/components/MeowtsRoast";
+import { RunArchive } from "@/components/RunArchive";
 import { ScrollInput } from "@/components/ScrollInput";
 import { ShojiPanel } from "@/components/ShojiPanel";
 import { demoOutput } from "@/lib/demo-output";
-import type { AgentStatus, DojoAgent } from "@/lib/types";
+import {
+  completeDojoRun,
+  createDojoRun,
+  defaultArtifacts
+} from "@/lib/run-factory";
+import { loadStoredRuns, saveStoredRun } from "@/lib/run-storage";
+import type { AgentStatus, DojoAgent, DojoRun } from "@/lib/types";
 
 type TimelineStep = {
   at: number;
@@ -28,15 +36,27 @@ const timeline: TimelineStep[] = [
   { at: 8800, agentIndexes: [5], status: "complete" }
 ];
 
-const initialAgents: DojoAgent[] = demoOutput.agents.map((agent) => ({
-  ...agent,
-  status: "idle",
-  output: ""
-}));
+const initialRun: DojoRun = {
+  ...demoOutput,
+  id: "scroll-cached-demo",
+  createdAt: "2026-04-29T00:00:00.000Z",
+  source: "cached",
+  artifacts: defaultArtifacts
+};
+
+function getIdleAgents(run: DojoRun): DojoAgent[] {
+  return run.agents.map((agent) => ({
+    ...agent,
+    status: "idle",
+    output: ""
+  }));
+}
 
 export function DojoDashboard() {
   const [scroll, setScroll] = useState(demoOutput.scroll);
-  const [agents, setAgents] = useState<DojoAgent[]>(initialAgents);
+  const [currentRun, setCurrentRun] = useState<DojoRun>(initialRun);
+  const [agents, setAgents] = useState<DojoAgent[]>(getIdleAgents(initialRun));
+  const [storedRuns, setStoredRuns] = useState<DojoRun[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [panelsOpen, setPanelsOpen] = useState(false);
@@ -48,18 +68,23 @@ export function DojoDashboard() {
   );
 
   useEffect(() => {
+    setStoredRuns(loadStoredRuns());
+
     return () => {
       timers.current.forEach(clearTimeout);
     };
   }, []);
 
-  function runCachedScroll() {
+  async function runCachedScroll() {
     timers.current.forEach(clearTimeout);
     timers.current = [];
+    const run = await createRunFromScroll(scroll);
+
+    setCurrentRun(run);
     setIsRunning(true);
     setIsComplete(false);
     setPanelsOpen(false);
-    setAgents(initialAgents);
+    setAgents(getIdleAgents(run));
 
     timers.current.push(
       setTimeout(() => {
@@ -75,7 +100,7 @@ export function DojoDashboard() {
               return agent;
             }
 
-            const source = demoOutput.agents[index];
+            const source = run.agents[index];
             return {
               ...agent,
               status: step.status,
@@ -89,11 +114,26 @@ export function DojoDashboard() {
 
     timers.current.push(
       setTimeout(() => {
-        setAgents(demoOutput.agents);
+        const completedRun = completeDojoRun(run);
+        setCurrentRun(completedRun);
+        setAgents(completedRun.agents);
         setIsRunning(false);
         setIsComplete(true);
+        saveStoredRun(completedRun);
+        setStoredRuns(loadStoredRuns());
       }, 9800)
     );
+  }
+
+  function loadRun(run: DojoRun) {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+    setScroll(run.scroll);
+    setCurrentRun(run);
+    setAgents(run.agents);
+    setIsRunning(false);
+    setIsComplete(run.status === "shipped");
+    setPanelsOpen(true);
   }
 
   return (
@@ -141,13 +181,21 @@ export function DojoDashboard() {
 
         <MeowtsRoast
           isVisible={isComplete}
-          roast={demoOutput.meowtsRoast}
+          roast={currentRun.meowtsRoast}
         />
 
         <MoonDeploy
           isVisible={isComplete}
-          previewPath={demoOutput.previewPath}
-          verdict={demoOutput.verdict}
+          previewPath={currentRun.previewPath}
+          verdict={currentRun.verdict}
+        />
+
+        <ArtifactPacket isComplete={isComplete} run={currentRun} />
+
+        <RunArchive
+          activeRunId={currentRun.id}
+          onSelect={loadRun}
+          runs={storedRuns}
         />
       </div>
 
@@ -165,4 +213,24 @@ export function DojoDashboard() {
       </div>
     </section>
   );
+}
+
+async function createRunFromScroll(scroll: string): Promise<DojoRun> {
+  try {
+    const response = await fetch("/api/train", {
+      body: JSON.stringify({ scroll }),
+      headers: {
+        "Content-Type": "application/json"
+      },
+      method: "POST"
+    });
+
+    if (!response.ok) {
+      throw new Error("Cached run request failed");
+    }
+
+    return (await response.json()) as DojoRun;
+  } catch {
+    return createDojoRun(scroll);
+  }
 }

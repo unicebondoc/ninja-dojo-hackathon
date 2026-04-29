@@ -39,6 +39,18 @@ This MVP was built during the hackathon. It does not depend on Telegram, Vercel,
 - Future live App Server or WebSocket streaming can hydrate the same UI, but the demo never depends on it.
 - Future worktree orchestration can plug into the same agent roles without changing the stage path.
 
+## End-to-End Local Workflow
+
+Ninja Dojo now runs as a local-first command loop:
+
+1. The dashboard submits the scroll to `/api/train`.
+2. The API returns a cached `DojoRun` with agent outputs, artifact packets, preview path, and verdict.
+3. The UI animates Moji, Miji, Renegade, Sensei, Tester, and Meowts through the scroll → panels → moon sequence.
+4. Completed runs are saved in browser localStorage so they can be replayed from the run archive.
+5. The artifact packet shows the plan, build notes, attack findings, architecture review, deploy check, and final judgment.
+
+This keeps the product demo complete without pretending live orchestration exists yet. The next real integration point is replacing `lib/run-factory.ts` with an adapter that can launch isolated worktrees while preserving the same `DojoRun` shape.
+
 ## How To Run
 
 ```bash

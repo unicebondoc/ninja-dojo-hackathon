@@ -1,7 +1,7 @@
 "use client";
 
 import { ExternalLink } from "lucide-react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type MoonDeployProps = {
   isVisible: boolean;
@@ -10,8 +10,6 @@ type MoonDeployProps = {
 };
 
 export function MoonDeploy({ isVisible, previewPath, verdict }: MoonDeployProps) {
-  const router = useRouter();
-
   return (
     <div className="relative min-h-64 overflow-hidden rounded-lg border border-white/10 bg-black/55 p-6 shadow-shoji">
       <div className="absolute inset-0 bg-gradient-to-t from-blood/16 via-transparent to-moon/8" />
@@ -35,20 +33,25 @@ export function MoonDeploy({ isVisible, previewPath, verdict }: MoonDeployProps)
             {isVisible ? verdict : "Awaiting final judgment"}
           </h2>
         </div>
-        <button
+        <Link
+          aria-disabled={!isVisible}
           className={[
             "inline-flex w-full items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] transition sm:w-fit",
             isVisible
               ? "bg-moon text-zinc-950 hover:bg-white"
               : "cursor-not-allowed bg-zinc-800 text-zinc-500"
           ].join(" ")}
-          disabled={!isVisible}
-          onClick={() => router.push(previewPath)}
-          type="button"
+          href={previewPath}
+          onClick={(event) => {
+            if (!isVisible) {
+              event.preventDefault();
+            }
+          }}
+          tabIndex={isVisible ? undefined : -1}
         >
           <ExternalLink className="h-4 w-4" />
           Open shipped page
-        </button>
+        </Link>
       </div>
     </div>
   );
