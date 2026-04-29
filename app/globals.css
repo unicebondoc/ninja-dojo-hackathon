@@ -164,60 +164,521 @@ textarea {
   background-size: 92px 92px, 118px 118px;
 }
 
-.three-dojo-shell {
+.anime-dojo-shell {
   position: relative;
-  min-height: 520px;
+  min-height: 560px;
   overflow: hidden;
-  border: 1px solid rgba(246, 231, 177, 0.22);
+  border: 1px solid rgba(246, 231, 177, 0.24);
   border-radius: 8px;
   background:
-    radial-gradient(circle at 50% 20%, rgba(246, 231, 177, 0.16), transparent 24rem),
-    radial-gradient(circle at 74% 40%, rgba(220, 38, 38, 0.18), transparent 16rem),
-    #030304;
+    radial-gradient(circle at 70% 18%, rgba(246, 231, 177, 0.18), transparent 16rem),
+    radial-gradient(circle at 38% 58%, rgba(220, 38, 38, 0.18), transparent 20rem),
+    linear-gradient(180deg, #07070a 0%, #050506 56%, #090604 100%);
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-    inset 0 -70px 120px rgba(0, 0, 0, 0.45),
-    0 28px 90px rgba(0, 0, 0, 0.5);
+    inset 0 -80px 120px rgba(0, 0, 0, 0.55),
+    0 30px 90px rgba(0, 0, 0, 0.52);
+  isolation: isolate;
 }
 
-.three-dojo-shell canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-height: 520px;
-}
-
-.three-dojo-shell::before {
+.anime-dojo-shell::before {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 40;
   pointer-events: none;
   content: "";
   background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.5), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.5)),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 38%, rgba(0, 0, 0, 0.36));
+    linear-gradient(90deg, rgba(0, 0, 0, 0.58), transparent 16%, transparent 84%, rgba(0, 0, 0, 0.58)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 42%, rgba(0, 0, 0, 0.42));
 }
 
-.three-dojo-shell::after {
+.anime-dojo-shell::after {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 41;
   pointer-events: none;
   content: "";
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: 44px 44px;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 4px),
+    radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.38));
   mix-blend-mode: screen;
-  opacity: 0.22;
+  opacity: 0.34;
 }
 
-.three-dojo-hud {
+.anime-dojo-sky {
+  position: absolute;
+  inset: 0 0 52%;
+  z-index: 1;
+  background:
+    radial-gradient(circle at 28% 25%, rgba(220, 38, 38, 0.15), transparent 14rem),
+    linear-gradient(180deg, rgba(11, 11, 16, 0.94), rgba(18, 12, 12, 0.72));
+}
+
+.anime-dojo-moon {
+  position: absolute;
+  right: 12%;
+  top: 34px;
+  width: 118px;
+  height: 118px;
+  border: 5px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 42% 36%, #fff9dd 0 12%, #f6e7b1 46%, #c69c45 100%);
+  box-shadow:
+    0 0 50px rgba(246, 231, 177, 0.54),
+    0 0 120px rgba(246, 231, 177, 0.22);
+}
+
+.anime-dojo-wall {
+  position: absolute;
+  inset: 18% 0 auto;
+  z-index: 3;
+  height: 30%;
+  border-top: 8px solid rgba(57, 25, 14, 0.96);
+  border-bottom: 8px solid rgba(57, 25, 14, 0.96);
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.45), transparent 12%, transparent 88%, rgba(0, 0, 0, 0.45)),
+    repeating-linear-gradient(90deg, rgba(246, 231, 177, 0.2) 0 3px, transparent 3px 96px),
+    linear-gradient(rgba(246, 231, 177, 0.12), rgba(246, 231, 177, 0.12)) 0 36% / 100% 2px no-repeat,
+    linear-gradient(rgba(246, 231, 177, 0.1), rgba(246, 231, 177, 0.1)) 0 72% / 100% 2px no-repeat,
+    linear-gradient(180deg, #281a11, #0e0b08);
+}
+
+.anime-dojo-lantern {
+  position: absolute;
+  top: 20%;
+  width: 32px;
+  height: 54px;
+  border: 3px solid rgba(246, 231, 177, 0.58);
+  border-radius: 16px 16px 10px 10px;
+  background:
+    linear-gradient(90deg, transparent 40%, rgba(246, 231, 177, 0.22) 40% 58%, transparent 58%),
+    #b91c1c;
+  box-shadow:
+    0 0 28px rgba(220, 38, 38, 0.72),
+    0 18px 34px rgba(220, 38, 38, 0.24);
+  animation: anime-lantern 1.6s steps(2, jump-none) infinite;
+}
+
+.anime-dojo-lantern--left {
+  left: 10%;
+}
+
+.anime-dojo-lantern--right {
+  right: 10%;
+}
+
+.anime-dojo-scroll {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  display: grid;
+  width: 118px;
+  height: 72px;
+  place-items: center;
+  border: 5px solid #5d2d12;
+  border-radius: 6px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.24), transparent 28%),
+    #e6ca7a;
+  color: #5d1b13;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.18em;
+  box-shadow:
+    0 14px 0 rgba(0, 0, 0, 0.32),
+    0 0 28px rgba(246, 231, 177, 0.22);
+  transform: translate(-50%, -50%) rotate(-1deg);
+}
+
+.anime-dojo-floor {
+  position: absolute;
+  inset: 44% 0 0;
+  z-index: 2;
+  background:
+    linear-gradient(90deg, rgba(246, 231, 177, 0.1) 2px, transparent 2px),
+    linear-gradient(rgba(246, 231, 177, 0.08) 2px, transparent 2px),
+    linear-gradient(180deg, rgba(68, 43, 19, 0.96), rgba(12, 8, 5, 0.98));
+  background-size: 72px 72px;
+  transform: perspective(520px) rotateX(56deg) scaleY(1.7);
+  transform-origin: center top;
+}
+
+.anime-dojo-ring {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  width: 38%;
+  height: 30%;
+  border: 4px dashed rgba(246, 231, 177, 0.32);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.anime-hero-card {
+  position: absolute;
+  left: 4%;
+  bottom: 0;
+  z-index: 22;
+  width: min(260px, 38vw);
+  pointer-events: none;
+}
+
+.anime-hero-image {
+  display: block;
+  width: 100%;
+  border: 1px solid rgba(246, 231, 177, 0.28);
+  border-radius: 8px 8px 0 0;
+  object-fit: cover;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.6),
+    0 0 46px rgba(220, 38, 38, 0.22);
+}
+
+.anime-hero-label {
+  border: 1px solid rgba(246, 231, 177, 0.28);
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+  background: rgba(5, 5, 6, 0.9);
+  padding: 10px 12px;
+}
+
+.anime-hero-label span,
+.anime-dojo-hud span {
+  color: #f6e7b1;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.anime-hero-label strong {
+  display: block;
+  margin-top: 4px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.anime-agent-layer,
+.anime-battle-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.anime-agent-layer {
+  z-index: 25;
+}
+
+.anime-agent {
+  position: absolute;
+  width: 126px;
+  margin-left: -63px;
+  margin-top: -78px;
+  text-align: center;
+  filter: drop-shadow(0 16px 18px rgba(0, 0, 0, 0.5));
+}
+
+.anime-agent-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  width: 76px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.46);
+  transform: translateX(-50%);
+}
+
+.anime-agent-body {
+  position: relative;
+  width: 72px;
+  height: 98px;
+  margin: 0 auto;
+  transform-origin: center bottom;
+  animation: anime-idle 1.4s ease-in-out infinite;
+}
+
+.anime-agent[data-active="true"] .anime-agent-body {
+  animation: anime-ready 620ms ease-in-out infinite;
+}
+
+.anime-agent-hair {
+  position: absolute;
+  left: 11px;
+  top: 1px;
+  width: 50px;
+  height: 54px;
+  border-radius: 26px 26px 18px 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 38%),
+    #08080b;
+}
+
+.anime-agent-face {
+  position: absolute;
+  left: 15px;
+  top: 18px;
+  width: 42px;
+  height: 38px;
+  border: 3px solid rgba(0, 0, 0, 0.45);
+  border-radius: 46% 46% 48% 48%;
+  background: #f2bf9e;
+}
+
+.anime-agent[data-face="masked"] .anime-agent-face,
+.anime-agent[data-face="tester"] .anime-agent-face {
+  background:
+    linear-gradient(var(--agent-accent), var(--agent-accent)) 0 15px / 100% 10px no-repeat,
+    #f2bf9e;
+}
+
+.anime-agent[data-face="sensei"] .anime-agent-hair {
+  background:
+    linear-gradient(135deg, #f4f4f5, #71717a);
+}
+
+.anime-agent[data-face="cat"] .anime-agent-hair {
+  top: 16px;
+  height: 42px;
+  border-radius: 50% 50% 44% 44%;
+  background: var(--agent-accent);
+}
+
+.anime-agent[data-face="cat"] .anime-agent-hair::before,
+.anime-agent[data-face="cat"] .anime-agent-hair::after {
+  position: absolute;
+  top: -8px;
+  width: 18px;
+  height: 18px;
+  content: "";
+  background: var(--agent-accent);
+  transform: rotate(45deg);
+}
+
+.anime-agent[data-face="cat"] .anime-agent-hair::before {
+  left: 2px;
+}
+
+.anime-agent[data-face="cat"] .anime-agent-hair::after {
+  right: 2px;
+}
+
+.anime-agent-eye {
+  position: absolute;
+  top: 13px;
+  width: 8px;
+  height: 11px;
+  border-radius: 50%;
+  background: #15151b;
+  box-shadow: inset 2px 1px 0 #f6e7b1;
+}
+
+.anime-agent-eye--left {
+  left: 9px;
+}
+
+.anime-agent-eye--right {
+  right: 9px;
+}
+
+.anime-agent-mouth {
+  position: absolute;
+  left: 50%;
+  bottom: 7px;
+  width: 13px;
+  height: 5px;
+  border-bottom: 2px solid #9f3a3a;
+  border-radius: 999px;
+  transform: translateX(-50%);
+}
+
+.anime-agent-scarf {
+  position: absolute;
+  left: 9px;
+  top: 52px;
+  width: 54px;
+  height: 15px;
+  border-radius: 10px 3px 12px 3px;
+  background: var(--agent-accent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--agent-accent), transparent 56%);
+}
+
+.anime-agent-body::after {
+  position: absolute;
+  left: 17px;
+  bottom: 0;
+  width: 38px;
+  height: 42px;
+  border-radius: 14px 14px 8px 8px;
+  content: "";
+  background:
+    linear-gradient(var(--agent-accent), var(--agent-accent)) 50% 0 / 8px 100% no-repeat,
+    linear-gradient(135deg, #202028, #07070a);
+}
+
+.anime-agent-blade {
+  position: absolute;
+  right: -20px;
+  top: 52px;
+  width: 62px;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #9ca3af, #fff, transparent);
+  opacity: 0.82;
+  transform: rotate(-24deg);
+  transform-origin: left center;
+}
+
+.anime-agent[data-active="true"] .anime-agent-blade,
+.anime-agent[data-complete="true"] .anime-agent-blade {
+  animation: anime-blade-flash 520ms ease-in-out infinite;
+}
+
+.anime-agent-nameplate {
+  position: relative;
+  z-index: 2;
+  width: fit-content;
+  max-width: 126px;
+  margin: -2px auto 0;
+  border: 1px solid rgba(246, 231, 177, 0.3);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.76);
+  padding: 5px 8px;
+}
+
+.anime-agent-nameplate strong,
+.anime-agent-nameplate span {
+  display: block;
+  white-space: nowrap;
+}
+
+.anime-agent-nameplate strong {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.anime-agent-nameplate span {
+  margin-top: 2px;
+  color: color-mix(in srgb, var(--agent-accent), white 20%);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.anime-speech-burst {
+  position: absolute;
+  left: 50%;
+  top: -30px;
+  z-index: 5;
+  border: 2px solid rgba(246, 231, 177, 0.9);
+  border-radius: 999px;
+  background: rgba(220, 38, 38, 0.92);
+  padding: 4px 8px;
+  color: white;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+  transform: translateX(-50%);
+  box-shadow: 0 0 24px rgba(220, 38, 38, 0.45);
+}
+
+.anime-battle-layer {
+  z-index: 31;
+}
+
+.anime-battle-slash,
+.anime-shuriken,
+.anime-impact {
+  position: absolute;
+  opacity: 0;
+}
+
+.anime-battle-layer[data-effect="attack"] .anime-battle-slash,
+.anime-battle-layer[data-effect="review"] .anime-battle-slash,
+.anime-battle-layer[data-effect="judge"] .anime-battle-slash {
+  opacity: 1;
+}
+
+.anime-battle-slash {
+  left: 45%;
+  top: 49%;
+  width: 260px;
+  height: 9px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #fff, #dc2626, transparent);
+  filter:
+    drop-shadow(0 0 12px rgba(255, 255, 255, 0.8))
+    drop-shadow(0 0 20px rgba(220, 38, 38, 0.95));
+  transform: rotate(-24deg) translateX(-90px);
+  animation: anime-slash 780ms cubic-bezier(0.18, 0.86, 0.32, 1.08) infinite;
+}
+
+.anime-battle-slash--two {
+  top: 60%;
+  transform: rotate(22deg) translateX(58px);
+  animation-delay: 180ms;
+}
+
+.anime-battle-layer[data-effect="attack"] .anime-shuriken,
+.anime-battle-layer[data-effect="deploy"] .anime-shuriken,
+.anime-battle-layer[data-effect="judge"] .anime-shuriken {
+  opacity: 1;
+}
+
+.anime-shuriken {
+  left: 75%;
+  top: 40%;
+  width: 28px;
+  height: 28px;
+  background:
+    linear-gradient(45deg, transparent 0 34%, #f8fafc 34% 66%, transparent 66%),
+    linear-gradient(-45deg, transparent 0 34%, #f8fafc 34% 66%, transparent 66%);
+  filter: drop-shadow(0 0 9px rgba(246, 231, 177, 0.9));
+  animation: anime-shuriken 900ms linear infinite;
+}
+
+.anime-shuriken--two {
+  left: 24%;
+  top: 62%;
+  animation-delay: 260ms;
+}
+
+.anime-battle-layer[data-effect="build"] .anime-impact,
+.anime-battle-layer[data-effect="plan"] .anime-impact,
+.anime-battle-layer[data-effect="judge"] .anime-impact {
+  opacity: 1;
+}
+
+.anime-impact {
+  width: 88px;
+  height: 88px;
+  border: 3px solid rgba(246, 231, 177, 0.72);
+  border-radius: 999px;
+  box-shadow: 0 0 35px rgba(220, 38, 38, 0.42);
+  animation: anime-impact 1s ease-out infinite;
+}
+
+.anime-impact--one {
+  left: 43%;
+  top: 42%;
+}
+
+.anime-impact--two {
+  left: 56%;
+  top: 56%;
+  animation-delay: 240ms;
+}
+
+.anime-dojo-hud {
   position: absolute;
   left: 16px;
   right: 16px;
   top: 16px;
-  z-index: 4;
+  z-index: 45;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -226,44 +687,70 @@ textarea {
   pointer-events: none;
 }
 
-.three-dojo-hud span {
-  border: 1px solid rgba(246, 231, 177, 0.26);
-  background: rgba(0, 0, 0, 0.62);
+.anime-dojo-hud span {
+  border: 1px solid rgba(246, 231, 177, 0.28);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.66);
   padding: 7px 10px;
-  color: #f6e7b1;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
   text-shadow: 0 2px 0 rgba(0, 0, 0, 0.45);
 }
 
-.three-dojo-shell[data-effect="attack"] .three-dojo-hud span:last-child,
-.three-dojo-shell[data-effect="review"] .three-dojo-hud span:last-child,
-.three-dojo-shell[data-effect="judge"] .three-dojo-hud span:last-child {
+.anime-dojo-shell[data-effect="attack"] .anime-dojo-hud span:last-child,
+.anime-dojo-shell[data-effect="review"] .anime-dojo-hud span:last-child,
+.anime-dojo-shell[data-effect="judge"] .anime-dojo-hud span:last-child {
   border-color: rgba(220, 38, 38, 0.68);
   color: #fecaca;
   box-shadow: 0 0 24px rgba(220, 38, 38, 0.35);
 }
 
-.three-dialogue-card {
+.anime-dialogue-card {
   position: absolute;
   left: 50%;
   bottom: 18px;
-  z-index: 5;
-  width: min(520px, calc(100% - 32px));
-  border: 2px solid rgba(246, 231, 177, 0.72);
+  z-index: 46;
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 12px;
+  width: min(620px, calc(100% - 32px));
+  border: 2px solid rgba(246, 231, 177, 0.78);
   border-radius: 8px;
-  background: rgba(5, 5, 6, 0.86);
+  background:
+    linear-gradient(90deg, rgba(220, 38, 38, 0.16), transparent 38%),
+    rgba(5, 5, 6, 0.9);
   padding: 12px 14px;
   box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.45),
+    0 18px 40px rgba(0, 0, 0, 0.52),
     0 0 30px rgba(246, 231, 177, 0.12);
   transform: translateX(-50%);
   pointer-events: none;
 }
 
-.three-dialogue-card strong {
+.anime-dialogue-portrait {
+  position: relative;
+  overflow: hidden;
+  width: 58px;
+  height: 58px;
+  border: 1px solid rgba(246, 231, 177, 0.42);
+  border-radius: 6px;
+  background:
+    linear-gradient(#08080b, #08080b) 50% 10px / 42px 36px no-repeat,
+    linear-gradient(#f2bf9e, #f2bf9e) 50% 20px / 34px 30px no-repeat,
+    radial-gradient(circle at 50% 28%, rgba(220, 38, 38, 0.6), transparent 55%),
+    #111116;
+}
+
+.anime-dialogue-portrait span {
+  position: absolute;
+  left: 17px;
+  top: 30px;
+  width: 6px;
+  height: 7px;
+  border-radius: 50%;
+  background: #111116;
+  box-shadow: 18px 0 0 #111116;
+}
+
+.anime-dialogue-card strong {
   display: block;
   color: #f6e7b1;
   font-size: 12px;
@@ -272,7 +759,7 @@ textarea {
   text-transform: uppercase;
 }
 
-.three-dialogue-card span {
+.anime-dialogue-card span {
   display: block;
   margin-top: 6px;
   color: #f8fafc;
@@ -281,13 +768,127 @@ textarea {
   line-height: 1.5;
 }
 
-@media (max-width: 640px) {
-  .three-dojo-shell,
-  .three-dojo-shell canvas {
-    min-height: 430px;
+@keyframes anime-lantern {
+  0%,
+  100% {
+    filter: brightness(0.92);
   }
 
-  .three-dialogue-card span {
+  50% {
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes anime-idle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-3px) rotate(1deg);
+  }
+}
+
+@keyframes anime-ready {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+@keyframes anime-blade-flash {
+  0%,
+  100% {
+    opacity: 0.66;
+    transform: rotate(-24deg) translateX(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: rotate(-24deg) translateX(9px);
+  }
+}
+
+@keyframes anime-slash {
+  0% {
+    opacity: 0;
+    transform: rotate(-24deg) translateX(-150px) scaleX(0.7);
+  }
+
+  30%,
+  62% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: rotate(-24deg) translateX(150px) scaleX(1.1);
+  }
+}
+
+@keyframes anime-shuriken {
+  0% {
+    transform: translate3d(-60px, -20px, 0) rotate(0deg);
+  }
+
+  100% {
+    transform: translate3d(110px, 38px, 0) rotate(540deg);
+  }
+}
+
+@keyframes anime-impact {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  35% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.25);
+  }
+}
+
+@media (max-width: 760px) {
+  .anime-dojo-shell {
+    min-height: 620px;
+  }
+
+  .anime-hero-card {
+    left: 50%;
+    bottom: 172px;
+    width: 180px;
+    opacity: 0.82;
+    transform: translateX(-50%);
+  }
+
+  .anime-agent {
+    width: 104px;
+    margin-left: -52px;
+  }
+
+  .anime-agent-body {
+    transform: scale(0.82);
+  }
+
+  .anime-dialogue-card {
+    grid-template-columns: 46px 1fr;
+  }
+
+  .anime-dialogue-portrait {
+    width: 46px;
+    height: 46px;
+  }
+
+  .anime-dialogue-card span {
     font-size: 12px;
   }
 }

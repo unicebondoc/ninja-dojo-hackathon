@@ -10,7 +10,7 @@ Ninja Dojo is becoming a live operations layer for AI software work:
 
 - Start a run from a product scroll.
 - Stream agent dialogue and status changes into the UI.
-- Watch agents move through a stylized 3D anime dojo with katanas, shuriken, lighting, and combat-review effects.
+- Watch agents move through a 2D anime dojo with a female ninja lead, visible character faces, katanas, shuriken, moonlight, and combat-review effects.
 - Preserve artifacts from each role: plan, build notes, attack findings, review, deploy checks, and judgment.
 - Open the shipped preview when the run passes.
 - Keep the interface memorable enough to understand at a glance, but structured enough to become a real work dashboard.

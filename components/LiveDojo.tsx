@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ThreeDojoStage } from "@/components/ThreeDojoStage";
+import { AnimeDojoStage } from "@/components/AnimeDojoStage";
 import type { DojoAgent, DojoDialogue } from "@/lib/types";
 
 type LiveDojoProps = {
@@ -43,7 +43,7 @@ export function LiveDojo({
           </span>
         </div>
 
-        <ThreeDojoStage
+        <AnimeDojoStage
           agents={agents}
           isComplete={isComplete}
           isRunning={isRunning}
