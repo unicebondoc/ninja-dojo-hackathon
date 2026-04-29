@@ -39,7 +39,10 @@ export function ArtifactPacket({ run, isComplete }: ArtifactPacketProps) {
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <PacketStat label="Run" value={run.id.replace("scroll-", "#")} />
         <PacketStat label="Preview" value={run.previewPath} />
-        <PacketStat label="Services" value="0 required" />
+        <PacketStat
+          label="Backend"
+          value={run.streamPath ? "SSE live" : "cached"}
+        />
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">

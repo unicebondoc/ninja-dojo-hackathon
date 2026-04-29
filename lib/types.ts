@@ -36,5 +36,35 @@ export type DojoRun = DojoDemoOutput & {
   id: string;
   createdAt: string;
   completedAt?: string;
-  source: "cached" | "live-stub";
+  source: "cached" | "local-live" | "live-stub";
+  streamPath?: string;
+};
+
+export type DojoDialogue = {
+  id: string;
+  speaker: string;
+  role: string;
+  message: string;
+  createdAt: string;
+};
+
+export type DojoRunEventType =
+  | "run_started"
+  | "agent_started"
+  | "agent_message"
+  | "agent_completed"
+  | "artifact_ready"
+  | "run_completed"
+  | "run_failed";
+
+export type DojoRunEvent = {
+  id: string;
+  type: DojoRunEventType;
+  at: number;
+  runId: string;
+  agentName?: string;
+  role?: string;
+  message?: string;
+  artifactKind?: DojoArtifactKind;
+  run?: DojoRun;
 };

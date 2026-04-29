@@ -1,65 +1,59 @@
 # Ninja Dojo
 
-**One scroll in. Five Codex worktrees out.**
+**One scroll in. Live ninjas out. One shipped result.**
 
-Ninja Dojo is a visual command center for solo builders coordinating parallel Codex workflows. The hackathon MVP is a cached-first stage demo: enter one product scroll, watch the dojo route work through specialized AI ninjas, then open the shipped preview.
+Ninja Dojo is a commercial AI command center for solo builders coordinating parallel Codex-style workflows. A builder writes one product scroll, then watches specialized agents plan, build, attack, review, deploy, and judge the result in a live dojo.
 
-## What was built during the hackathon
+## Product Direction
 
-Built on-site at OpenAI Codex Hackathon Sydney:
+Ninja Dojo is becoming a live operations layer for AI software work:
 
-- Cached-first Next.js demo app
-- Scroll → Panels → Moon Ninja Dojo dashboard
-- `/demo/oracle` shipped page
-- `AGENTS.md` Dojo Law
-- Six Codex Skills in `.codex/skills`
-- Cached `/api/train` endpoint
-- Stage-safe fallback with no Telegram/Vercel/WebSocket dependency
+- Start a run from a product scroll.
+- Stream agent dialogue and status changes into the UI.
+- Preserve artifacts from each role: plan, build notes, attack findings, review, deploy checks, and judgment.
+- Open the shipped preview when the run passes.
+- Keep the interface memorable enough to understand at a glance, but structured enough to become a real work dashboard.
 
-This MVP was built during the hackathon. It does not depend on Telegram, Vercel, Supabase, or WebSockets for the stage demo.
+The current app ships a local-live backend first. It does not depend on external services for development, but the route structure is ready for database persistence, auth, Codex orchestration, and hosted deployment.
 
-## Demo Flow
+## Live Backend
 
-1. Scroll received: “Build a landing page for a magical oracle deck with a waitlist CTA.”
-2. Shoji panels open and the ninja agents activate.
-3. Moji plans.
-4. Miji builds.
-5. Renegade attacks the result.
-6. Sensei reviews architecture.
-7. Tester prepares the preview.
-8. Meowts judges.
-9. The moon rises on success.
-10. Open the shipped page at `/demo/oracle`.
+The current backend is implemented with Next.js route handlers:
 
-## Codex-Native Pieces
+- `POST /api/runs` creates a local-live `DojoRun`.
+- `GET /api/runs/[runId]/events` streams run events over Server-Sent Events.
+- `GET /api/train` remains as a cached compatibility endpoint.
 
-- `AGENTS.md` defines the Dojo Law and stage-demo constraints.
-- Six local Codex Skills live in `.codex/skills/*`.
-- The MVP uses a cached-first demo path through `lib/demo-output.ts` and `public/demo-output.json`.
-- Future live App Server or WebSocket streaming can hydrate the same UI, but the demo never depends on it.
-- Future worktree orchestration can plug into the same agent roles without changing the stage path.
+The frontend consumes the stream with `EventSource`, updates ninja status panels in real time, renders the live dojo conversation, persists completed runs in browser localStorage, and keeps the artifact packet available after completion.
 
-## End-to-End Local Workflow
+## Commercial Roadmap
 
-Ninja Dojo now runs as a local-first command loop:
+The next production adapters should preserve the current `DojoRun` and `DojoRunEvent` shape:
 
-1. The dashboard submits the scroll to `/api/train`.
-2. The API returns a cached `DojoRun` with agent outputs, artifact packets, preview path, and verdict.
-3. The UI animates Moji, Miji, Renegade, Sensei, Tester, and Meowts through the scroll → panels → moon sequence.
-4. Completed runs are saved in browser localStorage so they can be replayed from the run archive.
-5. The artifact packet shows the plan, build notes, attack findings, architecture review, deploy check, and final judgment.
+- Database: Postgres for runs, events, artifacts, users, and team workspaces.
+- Auth: account login, workspace membership, and run ownership.
+- Codex orchestration: replace the local event factory with real worktree execution.
+- Deployments: connect Tester to preview deploy providers.
+- Billing: add plans only after the core run loop is valuable.
+- Observability: event logs, run replay, error recovery, and agent quality metrics.
 
-This keeps the product demo complete without pretending live orchestration exists yet. The next real integration point is replacing `lib/run-factory.ts` with an adapter that can launch isolated worktrees while preserving the same `DojoRun` shape.
-
-## How To Run
+## How To Run Locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`, click **Run cached scroll**, then open the shipped preview at `/demo/oracle`.
+Open `http://localhost:3000`, write a scroll, click **Launch live dojo**, then watch the agents talk to each other and complete the run. The shipped preview is available at `/demo/oracle`.
 
-## Stage Demo Fallback Notes
+## Optional Environment
 
-The demo does not require Telegram, Supabase, Vercel, Codex App Server, WebSocket, auth, payments, or any external service. If live orchestration fails in a future version, render `public/demo-output.json` and keep the audience on the scroll → panels → moon path.
+No environment variables are required for the current local-live product. Use `.env.example` as the future production contract for database, Codex, and deployment adapters.
+
+## Current Routes
+
+- `/` live Ninja Dojo dashboard
+- `/demo/oracle` sample shipped product page
+- `/api/runs` run creation API
+- `/api/runs/[runId]/events` SSE run stream
+- `/api/train` cached compatibility API

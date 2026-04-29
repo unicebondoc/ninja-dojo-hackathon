@@ -2,10 +2,10 @@
 
 ## Product
 
-Ninja Dojo is a visual command center for solo builders to coordinate parallel Codex workflows.
+Ninja Dojo is a commercial AI command center for solo builders to coordinate parallel Codex-style workflows.
 
 Claim:
-One scroll in. Five Codex worktrees out. One shipped result.
+One scroll in. Live ninjas out. One shipped result.
 
 ## Dojo Law
 
@@ -23,11 +23,11 @@ Every scroll follows the way of the ninja:
 - No ninja ships untested code.
 - No ninja merges without review.
 - No ninja builds without a scroll.
-- Prefer cached demo reliability over live integration risk.
-- The stage demo must never depend on Telegram, Vercel, or WebSocket.
-- If live Codex fails, render public/demo-output.json.
+- Prefer local-live reliability before external integration risk.
+- The core product must work locally before it depends on hosted services.
+- If live orchestration fails, render a replayable local run with clear failure state.
 - Keep the UI dark, sharp, and memorable.
-- Do not overbuild. Ship the scroll → panels → moon path first.
+- Do not overbuild. Ship the scroll → live dojo → panels → moon path first.
 
 ## Demo Scroll
 
@@ -36,6 +36,6 @@ Build a landing page for a magical oracle deck with a waitlist CTA.
 ## Pitch
 
 I am a solo builder. Codex gives me parallel workers, but I needed a command center.
-Ninja Dojo is that command center: one scroll in, five Codex worktrees out.
+Ninja Dojo is that command center: one scroll in, live ninjas out.
 Moji plans, Miji builds, Renegade attacks, Sensei reviews, Tester deploys, and Meowts judges.
 The scroll becomes a shipped page. The moon rises when it passes.

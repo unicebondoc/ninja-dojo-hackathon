@@ -22,10 +22,10 @@ export default function Home() {
         <header className="flex flex-col gap-8 pt-8 lg:pt-14">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
             <div className="text-sm font-semibold uppercase tracking-[0.32em] text-gold">
-              Codex Hackathon MVP
+              Live AI command center
             </div>
             <div className="rounded-full border border-blood/50 bg-blood/10 px-4 py-2 text-sm text-red-100 shadow-blood">
-              Cached-first demo
+              Backend streaming enabled
             </div>
           </div>
 
@@ -35,12 +35,13 @@ export default function Home() {
                 Ninja Dojo
               </h1>
               <p className="mt-5 max-w-3xl text-3xl font-semibold text-moon sm:text-4xl">
-                One scroll in. Five Codex worktrees out.
+                One scroll in. Live ninjas out.
               </p>
             </div>
             <p className="max-w-2xl text-lg leading-8 text-zinc-300 sm:text-xl">
-              Where solo builders coordinate AI ninjas to plan, build, attack,
-              review, deploy, and judge.
+              A commercial operations floor where solo builders coordinate
+              agent teams to plan, build, attack, review, deploy, and judge in
+              real time.
             </p>
           </div>
         </header>

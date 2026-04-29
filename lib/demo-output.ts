@@ -29,13 +29,13 @@ export const demoOutput: DojoDemoOutput = {
       role: "Review",
       status: "complete",
       output:
-        "Architecture approved. Single route, clean Tailwind, no external dependencies."
+        "Architecture approved. Live SSE backend, clean Tailwind, adapter-ready orchestration."
     },
     {
       name: "Tester",
       role: "Deploy",
       status: "complete",
-      output: "Build passed. Preview ready at /demo/oracle."
+      output: "Build passed. Live stream and preview ready at /demo/oracle."
     },
     {
       name: "Meowts",
