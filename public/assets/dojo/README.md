@@ -20,13 +20,13 @@ Expected generated files:
 - `public/assets/dojo/spritesheet.png`
 - `public/assets/dojo/scroll.png`
 - `public/assets/dojo/moon.png`
-- `public/assets/dojo/katana-slash.png`
+- `public/assets/dojo/slash.png`
 
 If generation is unavailable, the app uses CSS/SVG fallback sprites and effects.
 
 ## Dojo Background Prompt
 
-“Top-down 2D game background of a dark ninja dojo interior at night, tatami grid floor, shoji walls, warm lanterns, moonlight window, subtle red accents, cinematic pixel-art inspired but high resolution, empty center floor for characters, no text, no logos, 16:9.”
+“High-resolution 2D pixel-art inspired game background of a dark ninja dojo interior at night, cinematic top-down/isometric hybrid, wooden dojo floor, tatami grid lines, shoji walls, warm lanterns, cherry blossoms outside, circular moon window on right side, empty central floor for characters, black/red/ivory/gold palette, polished indie game UI quality, no text, no logos, 16:9 composition.”
 
 ## Base Sprite Prompt
 
@@ -34,7 +34,7 @@ If generation is unavailable, the app uses CSS/SVG fallback sprites and effects.
 
 ## Spritesheet Prompt
 
-“Single transparent PNG spritesheet with six small chibi game sprites in one row: Moji with gold headband and small scroll, Miji with red scarf and builder tool, Renegade with red flame accent and twin blades, Sensei in white and gray robe calm pose, Tester with blue accent and checklist tool, Meowts small cat ninja with gold and pink accent. Consistent scale, same lighting, same camera angle, front-facing/top-down-isometric hybrid, dark ninja dojo style, no text, no logo, transparent background.”
+“Transparent PNG spritesheet, one row of six small chibi/pixel-art game sprites, consistent scale and lighting, top-down/isometric hybrid, dark ninja dojo theme, no text, no logos. Characters left to right: Moji with gold headband and scroll, Miji with red scarf and builder tool, Renegade with red flame accent and twin blades, Sensei with white-gray robe and calm pose, Tester with blue accent and checklist/tool, Meowts as a small ninja cat with pink/gold accent. Polished readable game sprites.”
 
 ## Sprite Variants
 
@@ -47,12 +47,12 @@ If generation is unavailable, the app uses CSS/SVG fallback sprites and effects.
 
 ## Scroll Prompt
 
-“Parchment scroll game item, transparent background, warm ivory paper, red ribbon, 2D game asset, no text.”
+“Transparent PNG 2D game item, parchment scroll with red ribbon, warm ivory paper, polished pixel-art inspired game asset, no text, no logo.”
 
 ## Moon Prompt
 
-“Glowing full moon game UI asset, transparent background, warm ivory glow, soft bloom, no text.”
+“Transparent PNG glowing full moon game UI asset, warm ivory gold glow, soft bloom, polished pixel-art inspired, no text, no logo.”
 
 ## Slash Prompt
 
-“Red katana slash VFX, transparent background, diagonal energy stroke, 2D game effect, no text.”
+“Transparent PNG red katana slash VFX, diagonal energy stroke, polished 2D game effect, no text, no logo.”

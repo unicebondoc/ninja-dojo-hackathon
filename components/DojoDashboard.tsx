@@ -1,27 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { ArtifactPacket } from "@/components/ArtifactPacket";
 import { LiveDojo } from "@/components/LiveDojo";
-import { MoonDeploy } from "@/components/MoonDeploy";
-import { MeowtsRoast } from "@/components/MeowtsRoast";
-import { RunArchive } from "@/components/RunArchive";
-import { ScrollInput } from "@/components/ScrollInput";
 import { ShojiPanel } from "@/components/ShojiPanel";
 import { demoOutput } from "@/lib/demo-output";
-import {
-  completeDojoRun,
-  createLiveDojoRun,
-  defaultArtifacts
-} from "@/lib/run-factory";
-import { loadStoredRuns, saveStoredRun } from "@/lib/run-storage";
-import type {
-  DojoAgent,
-  DojoDialogue,
-  DojoRun,
-  DojoRunEvent
-} from "@/lib/types";
+import { defaultArtifacts } from "@/lib/run-factory";
+import type { DojoAgent, DojoDialogue, DojoRun } from "@/lib/types";
 
 const initialRun: DojoRun = {
   ...demoOutput,
@@ -31,257 +16,188 @@ const initialRun: DojoRun = {
   artifacts: defaultArtifacts
 };
 
-function getIdleAgents(run: DojoRun): DojoAgent[] {
-  return run.agents.map((agent) => ({
+const timeline = [
+  {
+    at: 0,
+    speaker: "Dojo",
+    role: "Scroll",
+    message: "00:00 Scroll received."
+  },
+  {
+    at: 1000,
+    speaker: "Moji",
+    role: "Plan",
+    message: "00:01 Moji is writing the plan..."
+  },
+  {
+    at: 3000,
+    speaker: "Miji",
+    role: "Build",
+    message: "00:03 Miji is building..."
+  },
+  {
+    at: 6000,
+    speaker: "Renegade",
+    role: "Attack",
+    message: "00:06 Renegade is attacking..."
+  },
+  {
+    at: 9000,
+    speaker: "Sensei",
+    role: "Review",
+    message: "00:09 Sensei is reviewing..."
+  },
+  {
+    at: 11000,
+    speaker: "Tester",
+    role: "Deploy",
+    message: "00:11 Tester is running checks..."
+  },
+  {
+    at: 13000,
+    speaker: "Meowts",
+    role: "Judge",
+    message: "00:13 Meowts is judging..."
+  },
+  {
+    at: 15000,
+    speaker: "Dojo",
+    role: "Moonrise",
+    message: "00:15 The moon rises. The build is complete."
+  }
+];
+
+function getIdleAgents(): DojoAgent[] {
+  return demoOutput.agents.map((agent) => ({
     ...agent,
     status: "idle",
     output: ""
   }));
 }
 
+function completeAgent(agent: DojoAgent): DojoAgent {
+  const demoAgent = demoOutput.agents.find((item) => item.name === agent.name);
+
+  return {
+    ...agent,
+    status: "complete",
+    output: demoAgent?.output ?? agent.output
+  };
+}
+
 export function DojoDashboard() {
-  const [scroll, setScroll] = useState(demoOutput.scroll);
-  const [currentRun, setCurrentRun] = useState<DojoRun>(initialRun);
-  const [agents, setAgents] = useState<DojoAgent[]>(getIdleAgents(initialRun));
-  const [storedRuns, setStoredRuns] = useState<DojoRun[]>([]);
+  const [agents, setAgents] = useState<DojoAgent[]>(getIdleAgents);
   const [dialogue, setDialogue] = useState<DojoDialogue[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
-  const [panelsOpen, setPanelsOpen] = useState(false);
-  const eventSourceRef = useRef<EventSource | null>(null);
-
-  const activeCount = useMemo(
-    () => agents.filter((agent) => agent.status !== "idle").length,
-    [agents]
-  );
+  const timersRef = useRef<number[]>([]);
 
   useEffect(() => {
-    setStoredRuns(loadStoredRuns());
-
-    return () => {
-      eventSourceRef.current?.close();
-    };
+    return () => clearTimers();
   }, []);
 
-  async function runCachedScroll() {
-    eventSourceRef.current?.close();
-    const run = await createLiveRunFromScroll(scroll);
+  function clearTimers() {
+    timersRef.current.forEach((timer) => window.clearTimeout(timer));
+    timersRef.current = [];
+  }
 
-    setCurrentRun(run);
+  function resetDojo() {
+    clearTimers();
+    setAgents(getIdleAgents());
+    setDialogue([]);
+    setIsRunning(false);
+    setIsComplete(false);
+  }
+
+  function sendScroll() {
+    clearTimers();
+    setAgents(getIdleAgents());
+    setDialogue([]);
     setIsRunning(true);
     setIsComplete(false);
-    setPanelsOpen(false);
-    setAgents(getIdleAgents(run));
-    setDialogue([]);
 
-    const source = new EventSource(run.streamPath ?? "/api/train");
-    eventSourceRef.current = source;
+    timeline.forEach((item) => {
+      const timer = window.setTimeout(() => {
+        setDialogue((current) =>
+          [
+            ...current,
+            {
+              id: `cached-${item.at}`,
+              speaker: item.speaker,
+              role: item.role,
+              message: item.message,
+              createdAt: new Date().toISOString()
+            }
+          ].slice(-24)
+        );
 
-    source.addEventListener("dojo", (message) => {
-      const event = JSON.parse(
-        (message as MessageEvent<string>).data
-      ) as DojoRunEvent;
-      applyRunEvent(event, run);
-    });
-
-    source.addEventListener("done", () => {
-      source.close();
-    });
-
-    source.onerror = () => {
-      source.close();
-      setIsRunning(false);
-    };
-  }
-
-  function loadRun(run: DojoRun) {
-    eventSourceRef.current?.close();
-    setScroll(run.scroll);
-    setCurrentRun(run);
-    setAgents(run.agents);
-    setIsRunning(false);
-    setIsComplete(run.status === "shipped");
-    setPanelsOpen(true);
-    setDialogue([
-      {
-        id: `${run.id}-loaded`,
-        speaker: "Dojo",
-        role: "Archive",
-        message: "Loaded a completed run from this browser.",
-        createdAt: new Date().toISOString()
-      }
-    ]);
-  }
-
-  function applyRunEvent(event: DojoRunEvent, run: DojoRun) {
-    if (event.type === "run_started") {
-      setPanelsOpen(true);
-    }
-
-    const eventMessage = event.message;
-
-    if (eventMessage) {
-      setDialogue((current) =>
-        [
-          ...current,
-          {
-            id: event.id,
-            speaker: event.agentName ?? "Dojo",
-            role: event.role ?? "Backend",
-            message: eventMessage,
-            createdAt: new Date().toISOString()
-          }
-        ].slice(-24)
-      );
-    }
-
-    if (event.type === "agent_started" || event.type === "agent_message") {
-      setAgents((current) =>
-        current.map((agent) =>
-          agent.name === event.agentName
-            ? {
-                ...agent,
-                status: "working",
-                output: event.message ?? "Working..."
+        if (item.speaker !== "Dojo") {
+          setAgents((current) =>
+            current.map((agent) => {
+              if (agent.name === item.speaker) {
+                return {
+                  ...agent,
+                  status: "working",
+                  output: item.message
+                };
               }
-            : agent
-        )
-      );
-    }
 
-    if (event.type === "agent_completed") {
-      setAgents((current) =>
-        current.map((agent) =>
-          agent.name === event.agentName
-            ? {
-                ...agent,
-                status: "complete",
-                output: event.message ?? agent.output
-              }
-            : agent
-        )
-      );
-    }
+              return agent.status === "working" ? completeAgent(agent) : agent;
+            })
+          );
+        }
 
-    if (event.type === "run_completed") {
-      const completedRun = event.run ?? completeDojoRun(run);
-      setCurrentRun(completedRun);
-      setAgents(completedRun.agents);
-      setIsRunning(false);
-      setIsComplete(true);
-      saveStoredRun(completedRun);
-      setStoredRuns(loadStoredRuns());
-      eventSourceRef.current?.close();
-    }
+        if (item.role === "Moonrise") {
+          setAgents((current) => current.map(completeAgent));
+          setIsRunning(false);
+          setIsComplete(true);
+        }
+      }, item.at);
+
+      timersRef.current.push(timer);
+    });
   }
+
+  const currentRun: DojoRun = {
+    ...initialRun,
+    status: isComplete ? "shipped" : isRunning ? "running" : "queued",
+    agents: isComplete ? demoOutput.agents : agents
+  };
 
   return (
-    <section className="flex flex-col gap-5 pb-10">
+    <section className="flex flex-col gap-8 pb-10">
       <LiveDojo
         agents={agents}
         dialogue={dialogue}
         isComplete={isComplete}
         isRunning={isRunning}
-        onRun={runCachedScroll}
+        onReset={resetDojo}
+        onRun={sendScroll}
         previewPath={currentRun.previewPath}
-        scroll={scroll}
+        scroll={demoOutput.scroll}
       />
 
-      <div className="grid gap-5 lg:grid-cols-[0.82fr_1.18fr]">
-        <div className="flex flex-col gap-5">
-        <ScrollInput
-          isRunning={isRunning}
-          onChange={setScroll}
-          onRun={runCachedScroll}
-          value={scroll}
-        />
-
-        <motion.div
-          animate={{ opacity: panelsOpen ? 1 : 0.72 }}
-          className="overflow-hidden rounded-lg border border-white/10 bg-black/45 p-5 shadow-shoji"
-        >
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-gold">
-            Shoji gate
-          </p>
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            {[0, 1, 2, 3].map((panel) => (
-              <motion.div
-                animate={{
-                  x: panelsOpen ? (panel % 2 === 0 ? -10 : 10) : 0,
-                  opacity: panelsOpen ? 0.68 : 1
-                }}
-                className="h-24 rounded-md border border-moon/15 bg-gradient-to-br from-moon/10 to-white/[0.03]"
-                key={panel}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+      <section className="artifact-section">
+        <div className="artifact-section__header">
+          <p>Artifact Packet</p>
+          <h2>Proof from the completed dojo run</h2>
+        </div>
+        <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          <ArtifactPacket isComplete={isComplete} run={currentRun} />
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {agents.map((agent, index) => (
+              <ShojiPanel
+                index={index}
+                key={agent.name}
+                name={agent.name}
+                output={agent.output}
+                role={agent.role}
+                status={agent.status}
               />
             ))}
           </div>
-          <div className="mt-5 flex items-center justify-between gap-4">
-            <span className="text-sm text-zinc-400">
-              {activeCount}/6 ninjas activated
-            </span>
-            <span className="h-2 flex-1 rounded-full bg-white/10">
-              <span
-                className="block h-2 rounded-full bg-blood transition-all duration-500"
-                style={{ width: `${(activeCount / 6) * 100}%` }}
-              />
-            </span>
-          </div>
-        </motion.div>
-
-        <MeowtsRoast
-          isVisible={isComplete}
-          roast={currentRun.meowtsRoast}
-        />
-
-        <MoonDeploy
-          isVisible={isComplete}
-          previewPath={currentRun.previewPath}
-          verdict={currentRun.verdict}
-        />
-
-        <ArtifactPacket isComplete={isComplete} run={currentRun} />
-
-        <RunArchive
-          activeRunId={currentRun.id}
-          onSelect={loadRun}
-          runs={storedRuns}
-        />
         </div>
-
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {agents.map((agent, index) => (
-            <ShojiPanel
-              index={index}
-              key={agent.name}
-              name={agent.name}
-              output={agent.output}
-              role={agent.role}
-              status={agent.status}
-            />
-          ))}
-        </div>
-      </div>
+      </section>
     </section>
   );
-}
-
-async function createLiveRunFromScroll(scroll: string): Promise<DojoRun> {
-  try {
-    const response = await fetch("/api/runs", {
-      body: JSON.stringify({ scroll }),
-      headers: {
-        "Content-Type": "application/json"
-      },
-      method: "POST"
-    });
-
-    if (!response.ok) {
-      throw new Error("Live run request failed");
-    }
-
-    return (await response.json()) as DojoRun;
-  } catch {
-    return createLiveDojoRun(scroll);
-  }
 }

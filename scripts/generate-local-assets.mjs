@@ -46,7 +46,7 @@ async function main() {
       height: 512
     },
     {
-      name: "katana-slash.png",
+      name: "slash.png",
       svg: slashSvg(),
       width: 1024,
       height: 512

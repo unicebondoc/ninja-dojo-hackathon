@@ -13,13 +13,13 @@ export function DojoEventLog({ dialogue }: DojoEventLogProps) {
   return (
     <aside className="dojo-event-log">
       <div className="dojo-event-log__header">
-        <span>Event log</span>
+        <span>Dojo Comms</span>
         <i />
       </div>
       <div className="dojo-event-log__body">
         {visibleDialogue.length === 0 ? (
           <p className="dojo-event-log__empty">
-            Awaiting scroll. The floor is quiet.
+            Drop the scroll. The ninjas will move when the run begins.
           </p>
         ) : (
           visibleDialogue.map((line) => (

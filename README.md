@@ -8,7 +8,7 @@
 ![Codex Skills](https://img.shields.io/badge/Codex-Skills-dc2626)
 ![Hackathon MVP](https://img.shields.io/badge/Hackathon-MVP-7f1d1d)
 
-Ninja Dojo is a visual command center for solo builders coordinating Codex-style agent workflows. A builder writes one product scroll, then watches specialized agents plan, build, attack, review, deploy, and judge the result inside a cinematic dojo.
+Ninja Dojo is a visual command center for solo builders coordinating Codex-style agent workflows. A builder sends one product scroll, then watches specialized agents plan, build, attack, review, deploy, and judge the result inside a live 2D dojo simulation.
 
 Inspired by world-simulation interfaces like [WorldX](https://github.com/YGYOOO/WorldX), but built for Codex agent workflows. WorldX was used as visual inspiration only; no code, assets, images, text, or exact UI were copied.
 
@@ -19,6 +19,21 @@ Inspired by world-simulation interfaces like [WorldX](https://github.com/YGYOOO/
 ```text
 public/demo/ninja-dojo-loop.gif
 ```
+
+## What was built during the hackathon
+
+Built on-site at OpenAI Codex Hackathon Sydney:
+
+- Cached-first Next.js demo app
+- Scroll → Panels → Moon Ninja Dojo dashboard
+- Live dojo simulation UI with moving workers, event log, progress rail, and moonrise status
+- `/demo/oracle` shipped page
+- `AGENTS.md` Dojo Law
+- Six Codex Skills in `.codex/skills`
+- Cached `/api/train` endpoint
+- Stage-safe fallback with no Telegram/Vercel/WebSocket dependency
+
+This MVP does not depend on Telegram, Vercel, Supabase, or WebSockets for the stage-safe demo.
 
 ## Demo Flow
 
@@ -41,8 +56,8 @@ The current local demo is cached-first and stage-safe. It does not require Teleg
 ## Features
 
 - Game-like dark dojo homepage with Scroll → Panels → Moon storytelling.
-- Live 2D dojo board with moving chibi agents, moonlight, shuriken, katana effects, stations, progress, and event log.
-- Local-live backend with Server-Sent Events for agent status and dialogue.
+- Live 2D dojo board with moving chibi agents, moonlight, katana effects, stations, progress, and event log.
+- Cached-first run timeline that works without live services.
 - Six named agent roles: Moji, Miji, Renegade, Sensei, Tester, and Meowts.
 - Shoji status panels that show idle, working, complete, and failed states.
 - Artifact packet for plan, build notes, attack findings, review, deploy checks, and final judgment.
@@ -50,15 +65,15 @@ The current local demo is cached-first and stage-safe. It does not require Teleg
 - `/demo/oracle` shipped-page preview for the sample scroll.
 - `AGENTS.md` Dojo Law plus six Codex Skills in `.codex/skills`.
 
-## Original Visual Assets
+## Visual Assets
 
-Ninja Dojo uses original visual direction and asset prompts. WorldX was not copied; it was used only as broad inspiration for a live-world/game feel.
+The dojo background, sprites, scroll, moon, and slash effects are original generated assets for Ninja Dojo. WorldX was used only as broad inspiration for a live AI-world interface; no WorldX code, sprites, maps, filenames, layouts, images, text, or assets are copied.
 
 - Local generated asset script: `scripts/generate-local-assets.mjs`
 - GPT Image 2 generation script: `scripts/generate-assets.mjs`
 - Prompt pack: `public/assets/dojo/README.md`
 - Target output folder: `public/assets/dojo/`
-- Current generated files: `dojo-background.png`, `spritesheet.png`, `scroll.png`, `moon.png`, `katana-slash.png`
+- Current generated files: `dojo-background.png`, `spritesheet.png`, `scroll.png`, `moon.png`, `slash.png`
 - Fallback: CSS/SVG sprites, moon, scroll, dojo room, and slash VFX keep the app working when generated assets are unavailable.
 
 Generate local original PNG assets without an API key:
@@ -138,15 +153,15 @@ Ninja Dojo is becoming a live operations layer for AI software work:
 - Open the shipped preview when the run passes.
 - Keep the interface memorable enough to understand at a glance, but structured enough to become a real work dashboard.
 
-## Live Backend
+## Cached-First Runtime
 
-The current backend is implemented with Next.js route handlers:
+The primary demo path runs from cached local data and browser timers, so the homepage remains stage-safe without live services. The repo also keeps lightweight Next.js route handlers for compatibility and future adapters:
 
 - `POST /api/runs` creates a local-live `DojoRun`.
 - `GET /api/runs/[runId]/events` streams run events over Server-Sent Events.
 - `GET /api/train` remains as a cached compatibility endpoint.
 
-The frontend consumes the stream with `EventSource`, updates ninja status panels in real time, renders the live dojo conversation, persists completed runs in browser `localStorage`, and keeps the artifact packet available after completion.
+The commercial direction can replace local/cached events with real orchestration later, while preserving the current `DojoRun` and `DojoRunEvent` shapes.
 
 ## How To Run Locally
 
@@ -155,7 +170,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`, write a scroll, click **Launch live dojo**, then watch the agents talk to each other and complete the run. The shipped preview is available at `/demo/oracle`.
+Open `http://localhost:3000`, click **Send Scroll**, then watch the agents talk to each other and complete the run. The shipped preview is available at `/demo/oracle`.
 
 ## Current Routes
 
