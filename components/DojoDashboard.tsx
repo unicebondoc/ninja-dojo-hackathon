@@ -176,20 +176,24 @@ export function DojoDashboard() {
   }
 
   return (
-    <section className="grid gap-5 pb-10 lg:grid-cols-[0.82fr_1.18fr]">
-      <div className="flex flex-col gap-5">
+    <section className="flex flex-col gap-5 pb-10">
+      <LiveDojo
+        agents={agents}
+        dialogue={dialogue}
+        isComplete={isComplete}
+        isRunning={isRunning}
+        onRun={runCachedScroll}
+        previewPath={currentRun.previewPath}
+        scroll={scroll}
+      />
+
+      <div className="grid gap-5 lg:grid-cols-[0.82fr_1.18fr]">
+        <div className="flex flex-col gap-5">
         <ScrollInput
           isRunning={isRunning}
           onChange={setScroll}
           onRun={runCachedScroll}
           value={scroll}
-        />
-
-        <LiveDojo
-          agents={agents}
-          dialogue={dialogue}
-          isComplete={isComplete}
-          isRunning={isRunning}
         />
 
         <motion.div
@@ -243,19 +247,20 @@ export function DojoDashboard() {
           onSelect={loadRun}
           runs={storedRuns}
         />
-      </div>
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {agents.map((agent, index) => (
-          <ShojiPanel
-            index={index}
-            key={agent.name}
-            name={agent.name}
-            output={agent.output}
-            role={agent.role}
-            status={agent.status}
-          />
-        ))}
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {agents.map((agent, index) => (
+            <ShojiPanel
+              index={index}
+              key={agent.name}
+              name={agent.name}
+              output={agent.output}
+              role={agent.role}
+              status={agent.status}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

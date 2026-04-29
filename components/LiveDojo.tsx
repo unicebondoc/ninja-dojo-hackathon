@@ -1,7 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { AnimeDojoStage } from "@/components/AnimeDojoStage";
+import Link from "next/link";
+import { ExternalLink, Play } from "lucide-react";
+import { DojoEventLog } from "@/components/DojoEventLog";
+import { DojoProgress } from "@/components/DojoProgress";
+import { DojoSprite } from "@/components/DojoSprite";
 import type { DojoAgent, DojoDialogue } from "@/lib/types";
 
 type LiveDojoProps = {
@@ -9,102 +12,165 @@ type LiveDojoProps = {
   dialogue: DojoDialogue[];
   isComplete: boolean;
   isRunning: boolean;
+  onRun?: () => void;
+  previewPath?: string;
+  scroll?: string;
+};
+
+type BoardStation = {
+  label: string;
+  x: number;
+  y: number;
+};
+
+const stations: Record<string, BoardStation> = {
+  Scroll: { label: "Scroll", x: 50, y: 42 },
+  Moji: { label: "Moji plans", x: 22, y: 44 },
+  Miji: { label: "Miji builds", x: 38, y: 66 },
+  Renegade: { label: "Renegade attacks", x: 68, y: 45 },
+  Sensei: { label: "Sensei reviews", x: 58, y: 69 },
+  Tester: { label: "Tester deploys", x: 25, y: 76 },
+  Meowts: { label: "Meowts judges", x: 78, y: 74 },
+  Moon: { label: "Moonrise", x: 84, y: 25 }
+};
+
+const idlePositions: Record<string, BoardStation> = {
+  Moji: { label: "Moji", x: 15, y: 74 },
+  Miji: { label: "Miji", x: 28, y: 78 },
+  Renegade: { label: "Renegade", x: 73, y: 76 },
+  Sensei: { label: "Sensei", x: 60, y: 80 },
+  Tester: { label: "Tester", x: 39, y: 82 },
+  Meowts: { label: "Meowts", x: 86, y: 82 }
 };
 
 export function LiveDojo({
   agents,
   dialogue,
   isComplete,
-  isRunning
+  isRunning,
+  onRun,
+  previewPath = "/demo/oracle",
+  scroll
 }: LiveDojoProps) {
   const latestLine = dialogue.at(-1);
-  const latestSpeaker = latestLine?.speaker;
-  const visibleDialogue = dialogue.slice(-6);
+  const speaker = latestLine?.speaker;
+  const statusLabel = isComplete
+    ? "Moonrise: shipped"
+    : isRunning
+      ? "Live run in progress"
+      : "Ready for scroll";
 
   return (
-    <div className="relative overflow-hidden rounded-lg border border-white/10 bg-black/55 p-5 shadow-shoji">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(246,231,177,0.12),transparent_28rem),linear-gradient(180deg,rgba(220,38,38,0.08),transparent)]" />
-      <div className="relative z-10">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-gold">
-              Live dojo
-            </p>
-            <h2 className="mt-2 text-2xl font-black text-white">
-              {isComplete
-                ? "Council complete"
-                : isRunning
-                  ? "Ninjas are talking"
-                  : "Ready to open the floor"}
-            </h2>
-          </div>
-          <span className="rounded-full border border-blood/40 bg-blood/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-red-100 shadow-blood">
-            SSE live stream
-          </span>
+    <section className="live-game-shell" aria-label="Live Ninja Dojo game board">
+      <div className="live-game-shell__topbar">
+        <div>
+          <p>Live Dojo World</p>
+          <h2>{statusLabel}</h2>
         </div>
-
-        <AnimeDojoStage
-          agents={agents}
-          isComplete={isComplete}
-          isRunning={isRunning}
-          latestLine={latestLine}
-        />
-
-        <div className="mt-5 rounded-md border border-moon/15 bg-zinc-950/70 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">
-              Dojo comms
-            </p>
-            <span className="h-2 w-2 rounded-full bg-blood shadow-blood" />
-          </div>
-          <div className="mt-4 space-y-3">
-            {visibleDialogue.length === 0 ? (
-              <p className="text-sm leading-6 text-zinc-500">
-                Start a scroll and the council will narrate the run in real
-                time.
-              </p>
-            ) : (
-              visibleDialogue.map((line) => (
-                <motion.div
-                  animate={{ opacity: 1, y: 0 }}
-                  className="rounded-md border border-white/10 bg-black/45 p-3"
-                  initial={{ opacity: 0, y: 8 }}
-                  key={line.id}
-                  transition={{ duration: 0.25 }}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-black text-white">
-                      {line.speaker}
-                      <span className="ml-2 text-xs font-bold uppercase tracking-[0.16em] text-gold">
-                        {line.role}
-                      </span>
-                    </p>
-                    <time className="text-xs text-zinc-600">
-                      {formatTime(line.createdAt)}
-                    </time>
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-zinc-300">
-                    {line.message}
-                  </p>
-                </motion.div>
-              ))
-            )}
-          </div>
+        <div className="live-game-shell__actions">
+          {onRun ? (
+            <button disabled={isRunning} onClick={onRun} type="button">
+              <Play className="h-4 w-4" />
+              {isRunning ? "Running" : "Launch"}
+            </button>
+          ) : null}
+          <Link
+            aria-disabled={!isComplete}
+            className={!isComplete ? "is-disabled" : undefined}
+            href={previewPath}
+            tabIndex={!isComplete ? -1 : undefined}
+          >
+            <ExternalLink className="h-4 w-4" />
+            Open shipped page
+          </Link>
         </div>
       </div>
-    </div>
+
+      <div className="live-game-layout">
+        <div className="dojo-game-board" data-complete={isComplete} data-running={isRunning}>
+          <div className="dojo-game-board__asset-bg" />
+          <div className="dojo-game-board__fallback-bg" />
+          <div className="dojo-game-board__moon" />
+          <div className="dojo-game-board__scroll">
+            <span>{scroll || "Build a shipped page from this scroll."}</span>
+          </div>
+
+          <div className="dojo-game-board__path" aria-hidden="true">
+            {Object.entries(stations).map(([name, station]) => (
+              <i
+                key={name}
+                style={
+                  {
+                    "--station-x": `${station.x}%`,
+                    "--station-y": `${station.y}%`
+                  } as React.CSSProperties
+                }
+              />
+            ))}
+          </div>
+
+          <div className="dojo-game-board__stations">
+            {Object.entries(stations).map(([name, station]) => (
+              <span
+                key={name}
+                style={
+                  {
+                    "--station-x": `${station.x}%`,
+                    "--station-y": `${station.y}%`
+                  } as React.CSSProperties
+                }
+              >
+                {station.label}
+              </span>
+            ))}
+          </div>
+
+          <div className="dojo-game-board__sprites">
+            {agents.map((agent) => {
+              const isSpeaking = speaker === agent.name;
+              const target =
+                isComplete
+                  ? stations.Meowts
+                  : agent.status === "idle"
+                    ? idlePositions[agent.name]
+                    : stations[agent.name] ?? idlePositions[agent.name];
+
+              return (
+                <DojoSprite
+                  agent={agent}
+                  isSpeaking={isSpeaking}
+                  key={agent.name}
+                  x={target.x}
+                  y={target.y}
+                />
+              );
+            })}
+          </div>
+
+          <div className="dojo-game-board__slash" data-visible={isRunning && !isComplete} />
+
+          {latestLine ? (
+            <div className="dojo-game-board__speech">
+              <strong>{latestLine.speaker}</strong>
+              <span>{latestLine.message}</span>
+            </div>
+          ) : (
+            <div className="dojo-game-board__speech">
+              <strong>Dojo</strong>
+              <span>Drop the scroll. The ninjas will move when the run begins.</span>
+            </div>
+          )}
+        </div>
+
+        <div className="dojo-game-sidepanel">
+          <DojoProgress
+            agents={agents}
+            isComplete={isComplete}
+            isRunning={isRunning}
+          />
+          <DojoEventLog dialogue={dialogue} />
+        </div>
+      </div>
+    </section>
   );
-}
-
-function formatTime(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "now";
-  }
-
-  return date.toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit"
-  });
 }

@@ -1,16 +1,5 @@
 import { DojoDashboard } from "@/components/DojoDashboard";
 
-const sequence = [
-  "Scroll",
-  "Panels",
-  "Moji",
-  "Miji",
-  "Attack",
-  "Review",
-  "Deploy",
-  "Moon"
-];
-
 export default function Home() {
   return (
     <main className="ink-wash min-h-screen bg-ink text-white">
@@ -40,7 +29,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid items-center gap-8 lg:grid-cols-[0.78fr_1fr]">
+          <div className="max-w-5xl">
             <div className="max-w-4xl">
               <h1 className="max-w-4xl text-6xl font-black leading-none text-white sm:text-7xl lg:text-8xl">
                 Ninja Dojo
@@ -58,48 +47,6 @@ export default function Home() {
                     className="rounded-full border border-moon/20 bg-white/[0.04] px-3 py-2"
                     key={item}
                   >
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="hero-preview-card">
-              <div className="hero-preview-card__chrome">
-                <span />
-                <span />
-                <span />
-                <strong>Scroll → Panels → Moon</strong>
-              </div>
-              <div className="hero-preview-card__stage">
-                <div className="hero-preview-card__moon" />
-                <div className="hero-preview-card__scroll">
-                  <span>Build a magical oracle deck landing page.</span>
-                </div>
-                <div className="hero-preview-card__panels">
-                  {[0, 1, 2, 3].map((panel) => (
-                    <i key={panel} />
-                  ))}
-                </div>
-                <div className="hero-preview-card__agents">
-                  {["Moji", "Miji", "Renegade", "Sensei", "Tester", "Meowts"].map(
-                    (agent, index) => (
-                      <div
-                        className="hero-preview-card__agent"
-                        data-active={index < 4}
-                        key={agent}
-                        style={{ "--agent-index": index } as React.CSSProperties}
-                      >
-                        <span />
-                        <strong>{agent}</strong>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-              <div className="hero-preview-card__timeline">
-                {sequence.map((item, index) => (
-                  <span data-active={index < 6} key={item}>
                     {item}
                   </span>
                 ))}

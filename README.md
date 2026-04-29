@@ -40,8 +40,8 @@ The current local demo is cached-first and stage-safe. It does not require Teleg
 
 ## Features
 
-- Cinematic dark dojo homepage with Scroll → Panels → Moon storytelling.
-- 2D anime dojo simulation with a female ninja lead, visible agent faces, moonlight, shuriken, and katana effects.
+- Game-like dark dojo homepage with Scroll → Panels → Moon storytelling.
+- Live 2D dojo board with moving chibi agents, moonlight, shuriken, katana effects, stations, progress, and event log.
 - Local-live backend with Server-Sent Events for agent status and dialogue.
 - Six named agent roles: Moji, Miji, Renegade, Sensei, Tester, and Meowts.
 - Shoji status panels that show idle, working, complete, and failed states.
@@ -49,6 +49,24 @@ The current local demo is cached-first and stage-safe. It does not require Teleg
 - Cached `/api/train` compatibility endpoint for reliable demos.
 - `/demo/oracle` shipped-page preview for the sample scroll.
 - `AGENTS.md` Dojo Law plus six Codex Skills in `.codex/skills`.
+
+## Original Visual Assets
+
+Ninja Dojo uses original visual direction and asset prompts. WorldX was not copied; it was used only as broad inspiration for a live-world/game feel.
+
+- GPT Image 2 generation script: `scripts/generate-assets.mjs`
+- Prompt pack: `public/assets/dojo/README.md`
+- Target output folder: `public/assets/dojo/`
+- Expected generated files: `dojo-background.png`, `spritesheet.png`, `scroll.png`, `moon.png`, `katana-slash.png`
+- Fallback: CSS/SVG sprites, moon, scroll, dojo room, and slash VFX keep the app working when generated assets are unavailable.
+
+Generate assets when `OPENAI_API_KEY` is configured:
+
+```bash
+npm run generate:assets
+```
+
+The requested spritesheet is a single transparent PNG with six chibi game sprites in one row: Moji, Miji, Renegade, Sensei, Tester, and Meowts.
 
 ## Architecture
 
@@ -61,8 +79,9 @@ The current local demo is cached-first and stage-safe. It does not require Teleg
 ┌────────────────────────────────────────────────────────────┐
 │ Next.js App Router homepage                                │
 │ - Scroll input                                              │
-│ - Anime dojo simulation                                     │
+│ - Live 2D dojo game board                                   │
 │ - Shoji panels                                              │
+│ - Progress rail and event log                               │
 │ - Artifact packet                                           │
 └───────────────────────┬────────────────────────────────────┘
                         │ POST /api/runs
