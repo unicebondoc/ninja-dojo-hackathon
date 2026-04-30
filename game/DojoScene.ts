@@ -200,8 +200,10 @@ export function createDojoScene(Phaser: any) {
     private runMachine?: RunStateMachine;
     private save = loadSave();
     private eventCleanups: Array<() => void> = [];
+    private shippedStamp?: any;
     private scroll?: any;
     private slash?: any;
+    private stageWash?: any;
     private wallsGroup?: any;
 
     constructor() {
@@ -301,8 +303,8 @@ export function createDojoScene(Phaser: any) {
       this.scroll = this.add
         .image(scrollPos.x, scrollPos.y, "scroll")
         .setDisplaySize(110, 110)
-        .setAlpha(0.14)
-        .setDepth(2);
+        .setAlpha(0)
+        .setDepth(700);
 
       const moonPos = tilePoint(34, 4);
       this.moonBeam = this.add
@@ -312,20 +314,20 @@ export function createDojoScene(Phaser: any) {
           190, 320,
           70, 0
         ], 0xfff2b5, 0.07)
-        .setAlpha(0.42)
+        .setAlpha(0.22)
         .setBlendMode("ADD")
         .setDepth(3);
 
       this.moonGlow = this.add
         .ellipse(moonPos.x, moonPos.y, 190, 190, 0xfff2b5, 0.16)
-        .setAlpha(0.32)
+        .setAlpha(0.2)
         .setBlendMode("ADD")
         .setDepth(3.1);
 
       this.moon = this.add
         .image(moonPos.x, moonPos.y, "moon")
         .setDisplaySize(108, 108)
-        .setAlpha(0.32)
+        .setAlpha(0.26)
         .setBlendMode("ADD")
         .setDepth(3.2);
 
@@ -357,6 +359,13 @@ export function createDojoScene(Phaser: any) {
     }
 
     private createNightOverlay() {
+      this.stageWash = this.add
+        .rectangle(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 0xf6e7b1, 1)
+        .setOrigin(0)
+        .setAlpha(0)
+        .setBlendMode("ADD")
+        .setDepth(2.4);
+
       this.nightOverlay = this.add
         .rectangle(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 0x05060a, 0)
         .setOrigin(0)
@@ -420,8 +429,15 @@ export function createDojoScene(Phaser: any) {
 
     private resetActorsForRun(options: { startPatrol: boolean }) {
       this.tweens.killTweensOf(this.nightOverlay);
-      this.scroll?.setAlpha(0.14).setDisplaySize(110, 110).clearTint();
+      this.tweens.killTweensOf(this.stageWash);
+      this.tweens.killTweensOf(this.scroll);
+      this.scroll?.setAlpha(0).setDisplaySize(110, 110).setAngle(0).clearTint();
+      this.shippedStamp?.destroy();
+      this.shippedStamp = undefined;
+      this.stageWash?.setAlpha(0);
       this.nightOverlay?.setAlpha(0);
+      this.cameras.main.pan(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 450, "Sine.easeOut", true);
+      this.cameras.main.zoomTo(1, 450, "Sine.easeOut", true);
       this.actorMap.forEach((actor) => {
         this.cancelActorTimers(actor);
         this.tweens.killTweensOf(actor.container);
@@ -444,9 +460,9 @@ export function createDojoScene(Phaser: any) {
           this.startIdleLoop(actor, randomBetween(800, 2600));
         }
       });
-      this.moonBeam?.setAlpha(0.42);
-      this.moonGlow?.setAlpha(0.32).setScale(1);
-      this.moon?.setAlpha(0.32).clearTint().setDisplaySize(108, 108);
+      this.moonBeam?.setAlpha(0.22).setScale(1);
+      this.moonGlow?.setAlpha(0.2).setScale(1);
+      this.moon?.setAlpha(0.26).clearTint().setDisplaySize(108, 108);
       this.slash?.setAlpha(0);
     }
 
@@ -538,6 +554,10 @@ export function createDojoScene(Phaser: any) {
             scale: 1.45,
             targets: this.moonGlow
           });
+          this.playMoonrisePetals();
+          this.showShippedStamp();
+          this.cameras.main.pan(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 900, "Sine.easeOut", true);
+          this.cameras.main.zoomTo(1, 900, "Sine.easeOut", true);
           this.moon?.setTint(0xfff2b5);
         }),
         EventBus.on("run-reset", () => {
@@ -555,6 +575,7 @@ export function createDojoScene(Phaser: any) {
 
     private handleStageEvent(event: RunStageEvent) {
       this.tintNightForStage(event.stage);
+      this.setStageLighting(event.stage);
 
       if (!event.agent) {
         if (event.stage === "idle") {
@@ -583,6 +604,10 @@ export function createDojoScene(Phaser: any) {
         this.walkActorToWork(actor, event.stage);
         this.showFloatingBubble(actor, message);
         this.playTaskPulse(actor, event.stage === "attack" ? 0xdc2626 : 0xf6e7b1);
+        this.focusCamera(actor);
+        if (event.stage === "attack") {
+          this.cameras.main.shake(260, 0.006);
+        }
       });
 
       const reply = stageReplies[event.stage];
@@ -737,14 +762,33 @@ export function createDojoScene(Phaser: any) {
     }
 
     private revealScroll() {
-      this.scroll?.setAlpha(1).setDisplaySize(118, 118).setTint(0xfff2b5);
+      const scrollPos = tilePoint(20, 11);
+      const startPos = tilePoint(33, 2);
+      this.scroll
+        ?.setPosition(startPos.x, startPos.y)
+        .setAlpha(0)
+        .setAngle(-24)
+        .setDisplaySize(84, 84)
+        .setTint(0xfff2b5);
       this.tweens.add({
         alpha: 0.95,
         displayHeight: 138,
         displayWidth: 138,
-        duration: 420,
-        ease: "Back.Out",
-        targets: this.scroll
+        duration: 1500,
+        ease: "Cubic.Out",
+        targets: this.scroll,
+        angle: 0,
+        x: scrollPos.x,
+        y: scrollPos.y,
+        onComplete: () => {
+          this.tweens.add({
+            duration: 360,
+            ease: "Sine.InOut",
+            targets: this.scroll,
+            y: scrollPos.y - 8,
+            yoyo: true
+          });
+        }
       });
     }
 
@@ -857,6 +901,65 @@ export function createDojoScene(Phaser: any) {
       });
     }
 
+    private focusCamera(actor: ActorRuntime) {
+      this.cameras.main.pan(actor.container.x, actor.container.y, 700, "Sine.easeInOut", true);
+      this.cameras.main.zoomTo(1.045, 700, "Sine.easeInOut", true);
+    }
+
+    private playMoonrisePetals() {
+      const moonPos = tilePoint(34, 4);
+      Array.from({ length: 14 }, (_, index) => {
+        const petal = this.add
+          .image(moonPos.x + randomBetween(-90, 35), moonPos.y + randomBetween(12, 95), "petal")
+          .setDisplaySize(14 + randomBetween(0, 10), 14 + randomBetween(0, 10))
+          .setAlpha(0.8)
+          .setDepth(805);
+
+        this.tweens.add({
+          alpha: 0,
+          angle: randomBetween(-180, 240),
+          delay: index * 55,
+          duration: 1600 + randomBetween(0, 700),
+          ease: "Sine.Out",
+          targets: petal,
+          x: moonPos.x + randomBetween(-20, 75),
+          y: moonPos.y - randomBetween(20, 120),
+          onComplete: () => petal.destroy()
+        });
+      });
+    }
+
+    private showShippedStamp() {
+      this.shippedStamp?.destroy();
+      const stamp = this.add.container(WORLD_WIDTH / 2, WORLD_HEIGHT / 2 + 16).setDepth(820);
+      const bg = this.add
+        .rectangle(0, 0, 292, 82, 0x2a0505, 0.82)
+        .setStrokeStyle(4, 0xdc2626, 0.95)
+        .setAngle(-7);
+      const text = this.add
+        .text(0, 0, "SHIPPED", {
+          color: "#fff3d0",
+          fontFamily: "monospace",
+          fontSize: "42px",
+          fontStyle: "bold",
+          letterSpacing: 2,
+          resolution: 2
+        })
+        .setOrigin(0.5)
+        .setAngle(-7);
+      stamp.add([bg, text]);
+      stamp.setAlpha(0).setScale(1.6);
+      this.shippedStamp = stamp;
+
+      this.tweens.add({
+        alpha: 1,
+        duration: 520,
+        ease: "Back.Out",
+        scale: 1,
+        targets: stamp
+      });
+    }
+
     private updateActorDepth(actor: ActorRuntime) {
       actor.container.setDepth(Math.round(actor.container.y));
     }
@@ -878,6 +981,28 @@ export function createDojoScene(Phaser: any) {
         duration: 900,
         ease: "Sine.InOut",
         targets: this.nightOverlay
+      });
+    }
+
+    private setStageLighting(stage: RunStage) {
+      if (!this.stageWash) return;
+      const lighting: Record<RunStage, { alpha: number; color: number }> = {
+        attack: { alpha: 0.12, color: 0xdc2626 },
+        build: { alpha: 0.1, color: 0xb91c1c },
+        deploy: { alpha: 0.14, color: 0x67e8f9 },
+        idle: { alpha: 0, color: 0xf6e7b1 },
+        judge: { alpha: 0.16, color: 0xf6e7b1 },
+        moonrise: { alpha: 0.18, color: 0xfff2b5 },
+        plan: { alpha: 0.08, color: 0xf6e7b1 },
+        review: { alpha: 0.1, color: 0x93c5fd }
+      };
+      const next = lighting[stage];
+      this.stageWash.setFillStyle(next.color, 1);
+      this.tweens.add({
+        alpha: next.alpha,
+        duration: 700,
+        ease: "Sine.InOut",
+        targets: this.stageWash
       });
     }
   };

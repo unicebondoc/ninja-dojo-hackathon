@@ -29,7 +29,7 @@ export function MoonPanel({
       className="rpg-moon-panel"
       data-complete={isComplete}
       data-running={isRunning}
-      style={{ "--deploy-phase": phase } as CSSProperties}
+      style={{ "--deploy-clip": `${(1 - phase) * 100}%` } as CSSProperties}
     >
       <div className="rpg-panel-title">
         <span>Deploy Moon</span>
