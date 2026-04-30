@@ -5,6 +5,7 @@ import { ExternalLink, Play, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DojoEventLog } from "@/components/DojoEventLog";
 import { DojoProgress } from "@/components/DojoProgress";
+import { BrandLogo } from "@/components/BrandLogo";
 import { MoonPanel } from "@/components/MoonPanel";
 import { PhaserDojo, type PhaserDojoHandle } from "@/components/PhaserDojo";
 import { EventBus } from "@/game/events";
@@ -102,14 +103,16 @@ export function LiveDojo() {
 
   return (
     <section className="rpg-hero" aria-label="Live Ninja Dojo RPG interface">
+      <img
+        alt=""
+        aria-hidden="true"
+        className="rpg-hero__decor"
+        draggable={false}
+        src="/icons/decor-elements.png"
+      />
       <header className="rpg-hero__header">
         <div className="rpg-title-block">
-          <div className="rpg-logo-lockup">
-            <span className="rpg-logo-mark" aria-hidden="true">
-              <i />
-            </span>
-            <h1>NINJA DOJO</h1>
-          </div>
+          <BrandLogo />
           <p className="rpg-hero-kicker">One scroll in. Six ninjas ship it.</p>
           <span>
             Watch Moji, Miji, Maji, Meji, Muji, and Meowts plan, build, attack, review, deploy, and judge a product run in real time.
