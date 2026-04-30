@@ -1,6 +1,6 @@
-# 🥷 Ninja Dojo
+# Ninja Dojo
 
-> One scroll in. Five Codex worktrees out. One shipped result.
+> A live dojo for coordinating Codex-style agent workflows. One scroll in. Five Codex worktrees out. One shipped result.
 
 ![License MIT](https://img.shields.io/badge/license-MIT-f6e7b1)
 ![Next.js 15](https://img.shields.io/badge/Next.js-15-black)
@@ -67,7 +67,7 @@ Open `http://localhost:3000`, send the scroll, and watch the dojo go to work. Th
 What a first-time visitor sees:
 
 1. The dojo loads — six ninjas at their stations under a dark sky.
-2. Send the scroll, or walk to Moji and press Space.
+2. Send the scroll and watch the dojo go to work.
 3. Moji writes the plan. Miji starts building.
 4. Maji attacks the build. A katana slash flashes on screen.
 5. Meji reviews the architecture. Muji runs deploy checks.
@@ -81,7 +81,7 @@ The whole loop runs offline from cached data, so the demo never blocks on a netw
 - **Next.js 15** — App Router, route handlers, SSE.
 - **TypeScript 5** — strict mode across app, components, and game code.
 - **Tailwind CSS** — dark dojo theming and the RPG hero layout.
-- **Phaser 4** — 2D dojo simulation: tile world, player movement, NPC dialogue, run timeline.
+- **Phaser 4** — 2D dojo simulation: tile world, ninja movement, NPC dialogue, run timeline.
 - **OpenAI Codex** — `AGENTS.md` plus six Codex Skills shape the agent workflow.
 
 ## Routes

@@ -104,10 +104,9 @@ export function LiveDojo() {
     <section className="rpg-hero" aria-label="Live Ninja Dojo RPG interface">
       <header className="rpg-hero__header">
         <div className="rpg-title-block">
-          <p>NINJA DOJO</p>
-          <h1>One scroll in. Five Codex worktrees out. One shipped result.</h1>
+          <h1>NINJA DOJO</h1>
           <span>
-            Watch six AI ninjas plan, build, attack, review, deploy, and judge a product in real time.
+            One scroll in. Five Codex worktrees out. One shipped result. Watch six AI ninjas plan, build, attack, review, deploy, and judge a product in real time.
           </span>
         </div>
         <DojoProgress

@@ -61,8 +61,8 @@ const agentMeta: Record<AgentId, { busy: string; done: string; file: string; rol
 
 const actorDisplay = {
   height: 124,
-  walkHeight: 216,
-  walkWidth: 88,
+  walkHeight: 124,
+  walkWidth: 100,
   width: 100
 };
 
@@ -685,7 +685,7 @@ export function createDojoScene(Phaser: any) {
 
       actor.state = "walking";
       actor.sprite
-          .setTexture(`${actor.file}-walk`)
+        .setTexture(`${actor.file}-walk`)
         .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight)
         .play(`${actor.file}-walk-cycle`);
       this.updateActorDepth(actor);
