@@ -1,77 +1,82 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArtifactPacket } from "@/components/ArtifactPacket";
 import { LiveDojo } from "@/components/LiveDojo";
-import { ShojiPanel } from "@/components/ShojiPanel";
 import { demoOutput } from "@/lib/demo-output";
-import { defaultArtifacts } from "@/lib/run-factory";
-import type { DojoAgent, DojoDialogue, DojoRun } from "@/lib/types";
-
-const initialRun: DojoRun = {
-  ...demoOutput,
-  id: "scroll-cached-demo",
-  createdAt: "2026-04-29T00:00:00.000Z",
-  source: "cached",
-  artifacts: defaultArtifacts
-};
+import type { DojoAgent, DojoDialogue } from "@/lib/types";
 
 const timeline = [
   {
+    activeAgent: undefined,
     at: 0,
-    speaker: "Dojo",
+    message: "00:00 Scroll received.",
     role: "Scroll",
-    message: "00:00 Scroll received."
-  },
-  {
-    at: 1000,
-    speaker: "Moji",
-    role: "Plan",
-    message: "00:01 Moji is writing the plan..."
-  },
-  {
-    at: 3000,
-    speaker: "Miji",
-    role: "Build",
-    message: "00:03 Miji is building..."
-  },
-  {
-    at: 6000,
-    speaker: "Renegade",
-    role: "Attack",
-    message: "00:06 Renegade is attacking..."
-  },
-  {
-    at: 9000,
-    speaker: "Sensei",
-    role: "Review",
-    message: "00:09 Sensei is reviewing..."
-  },
-  {
-    at: 11000,
-    speaker: "Tester",
-    role: "Deploy",
-    message: "00:11 Tester is running checks..."
-  },
-  {
-    at: 13000,
-    speaker: "Meowts",
-    role: "Judge",
-    message: "00:13 Meowts is judging..."
-  },
-  {
-    at: 15000,
     speaker: "Dojo",
+    stage: 0
+  },
+  {
+    activeAgent: "Moji",
+    at: 1500,
+    message: "00:01 Moji is writing the plan...",
+    role: "Plan",
+    speaker: "Moji",
+    stage: 1
+  },
+  {
+    activeAgent: "Miji",
+    at: 3500,
+    message: "00:03 Miji is building...",
+    role: "Build",
+    speaker: "Miji",
+    stage: 2
+  },
+  {
+    activeAgent: "Renegade",
+    at: 6000,
+    message: "00:06 Renegade is attacking...",
+    role: "Attack",
+    speaker: "Renegade",
+    stage: 3
+  },
+  {
+    activeAgent: "Sensei",
+    at: 9000,
+    message: "00:09 Sensei is reviewing...",
+    role: "Review",
+    speaker: "Sensei",
+    stage: 4
+  },
+  {
+    activeAgent: "Tester",
+    at: 11000,
+    message: "00:11 Tester is running checks...",
+    role: "Deploy",
+    speaker: "Tester",
+    stage: 5
+  },
+  {
+    activeAgent: "Meowts",
+    at: 13000,
+    message: "00:13 Meowts is judging...",
+    role: "Judge",
+    speaker: "Meowts",
+    stage: 6
+  },
+  {
+    activeAgent: undefined,
+    at: 15000,
+    message: "00:15 The moon rises. The build is complete.",
     role: "Moonrise",
-    message: "00:15 The moon rises. The build is complete."
+    speaker: "Dojo",
+    stage: 7
   }
 ];
 
 function getIdleAgents(): DojoAgent[] {
   return demoOutput.agents.map((agent) => ({
     ...agent,
-    status: "idle",
-    output: ""
+    output: "",
+    status: "idle"
   }));
 }
 
@@ -80,16 +85,19 @@ function completeAgent(agent: DojoAgent): DojoAgent {
 
   return {
     ...agent,
-    status: "complete",
-    output: demoAgent?.output ?? agent.output
+    output: demoAgent?.output ?? agent.output,
+    status: "complete"
   };
 }
 
 export function DojoDashboard() {
   const [agents, setAgents] = useState<DojoAgent[]>(getIdleAgents);
+  const [currentStage, setCurrentStage] = useState(0);
   const [dialogue, setDialogue] = useState<DojoDialogue[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [showScroll, setShowScroll] = useState(false);
+  const [showSlash, setShowSlash] = useState(false);
   const timersRef = useRef<number[]>([]);
 
   useEffect(() => {
@@ -104,53 +112,77 @@ export function DojoDashboard() {
   function resetDojo() {
     clearTimers();
     setAgents(getIdleAgents());
+    setCurrentStage(0);
     setDialogue([]);
-    setIsRunning(false);
     setIsComplete(false);
+    setIsRunning(false);
+    setShowScroll(false);
+    setShowSlash(false);
+  }
+
+  function setAgentActivity(activeAgent?: string) {
+    setAgents((current) =>
+      current.map((agent) => {
+        if (agent.name === activeAgent) {
+          return {
+            ...agent,
+            output:
+              demoOutput.agents.find((item) => item.name === activeAgent)
+                ?.output ?? "",
+            status: "working"
+          };
+        }
+
+        return agent.status === "working" ? completeAgent(agent) : agent;
+      })
+    );
   }
 
   function sendScroll() {
     clearTimers();
     setAgents(getIdleAgents());
+    setCurrentStage(0);
     setDialogue([]);
-    setIsRunning(true);
     setIsComplete(false);
+    setIsRunning(true);
+    setShowScroll(false);
+    setShowSlash(false);
 
     timeline.forEach((item) => {
       const timer = window.setTimeout(() => {
+        setCurrentStage(item.stage);
         setDialogue((current) =>
           [
             ...current,
             {
+              createdAt: new Date().toISOString(),
               id: `cached-${item.at}`,
-              speaker: item.speaker,
-              role: item.role,
               message: item.message,
-              createdAt: new Date().toISOString()
+              role: item.role,
+              speaker: item.speaker
             }
           ].slice(-24)
         );
 
-        if (item.speaker !== "Dojo") {
-          setAgents((current) =>
-            current.map((agent) => {
-              if (agent.name === item.speaker) {
-                return {
-                  ...agent,
-                  status: "working",
-                  output: item.message
-                };
-              }
+        if (item.role === "Scroll") {
+          setShowScroll(true);
+        }
 
-              return agent.status === "working" ? completeAgent(agent) : agent;
-            })
-          );
+        if (item.activeAgent) {
+          setAgentActivity(item.activeAgent);
+        }
+
+        if (item.activeAgent === "Renegade") {
+          setShowSlash(true);
+          const slashTimer = window.setTimeout(() => setShowSlash(false), 1250);
+          timersRef.current.push(slashTimer);
         }
 
         if (item.role === "Moonrise") {
           setAgents((current) => current.map(completeAgent));
-          setIsRunning(false);
           setIsComplete(true);
+          setIsRunning(false);
+          setShowSlash(false);
         }
       }, item.at);
 
@@ -158,45 +190,41 @@ export function DojoDashboard() {
     });
   }
 
-  const currentRun: DojoRun = {
-    ...initialRun,
-    status: isComplete ? "shipped" : isRunning ? "running" : "queued",
-    agents: isComplete ? demoOutput.agents : agents
-  };
-
   return (
-    <section className="flex flex-col gap-8 pb-10">
+    <section className="rpg-page-shell">
       <LiveDojo
         agents={agents}
+        currentStage={currentStage}
         dialogue={dialogue}
         isComplete={isComplete}
         isRunning={isRunning}
         onReset={resetDojo}
         onRun={sendScroll}
-        previewPath={currentRun.previewPath}
-        scroll={demoOutput.scroll}
+        previewPath={demoOutput.previewPath}
+        showScroll={showScroll}
+        showSlash={showSlash}
       />
 
-      <section className="artifact-section">
-        <div className="artifact-section__header">
-          <p>Artifact Packet</p>
-          <h2>Proof from the completed dojo run</h2>
-        </div>
-        <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-          <ArtifactPacket isComplete={isComplete} run={currentRun} />
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {agents.map((agent, index) => (
-              <ShojiPanel
-                index={index}
-                key={agent.name}
-                name={agent.name}
-                output={agent.output}
-                role={agent.role}
-                status={agent.status}
-              />
-            ))}
-          </div>
-        </div>
+      <section className="rpg-info-grid">
+        <article>
+          <p>What happened in the dojo?</p>
+          <h2>The scroll became a shipped page.</h2>
+          <span>
+            The cached run moves from scroll intake through planning, building,
+            adversarial attack, architecture review, deployment checks, and
+            Meowts judgment before opening the oracle landing page.
+          </span>
+        </article>
+        <article>
+          <p>Codex-native proof</p>
+          <h2>Built around the way Codex actually works.</h2>
+          <span>
+            Ninja Dojo keeps AGENTS.md, six Codex Skills, and cached
+            /api/train output in the repo today, with room for future App
+            Server and worktree streaming when the live orchestration layer is
+            ready.
+          </span>
+        </article>
       </section>
     </section>
   );
