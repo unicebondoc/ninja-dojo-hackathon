@@ -108,7 +108,7 @@ export function LiveDojo() {
         aria-hidden="true"
         className="rpg-hero__decor"
         draggable={false}
-        src="/icons/decor-elements.png"
+        src="/icons/fantasy-brand-accents.png"
       />
       <header className="rpg-hero__header">
         <div className="rpg-title-block">

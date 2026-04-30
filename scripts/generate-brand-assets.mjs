@@ -5,249 +5,130 @@ import OpenAI from "openai";
 import sharp from "sharp";
 
 const MODEL = "gpt-image-2";
-const BUDGET_CAP_USD = 15;
-const MAX_IMAGES_PER_RUN = 18;
-const rawDir = path.join(process.cwd(), "public", "brand", "raw");
-const org = process.env.OPENAI_ORG_ID || process.env.OPENAI_ORGANIZATION;
+const outputRoots = {
+  backgrounds: path.join(process.cwd(), "public", "backgrounds"),
+  brand: path.join(process.cwd(), "public", "brand"),
+  icons: path.join(process.cwd(), "public", "icons")
+};
+const rawRoot = path.join(process.cwd(), "public", "brand", "raw");
+const organization = process.env.OPENAI_ORG_ID || process.env.OPENAI_ORGANIZATION;
 
 await loadLocalEnv();
 
-if (!process.env.OPENAI_API_KEY) {
-  console.error("OPENAI_API_KEY is required. No images were generated.");
-  process.exit(1);
-}
-
-const transparentPrefix =
-  "Final production transparent PNG asset on flat pure green chroma key background (#00FF00), centered, no extra background texture, no frame, no mockup, no watermark.";
-
-const palette =
-  "Palette: void black #050505, dojo charcoal #11100E, blood red #EF3434, lantern gold #E8C66A, scroll cream #F4E8C1, moonlight teal #78F0D4, muted ash #8B8982.";
-
-const fantasyDirection =
-  "Original cozy fantasy ninja RPG mood: moonlit village adventure, colorful lantern magic, friendly tactical RPG energy, handcrafted pixel-painterly charm, whimsical but premium, warm and inviting, not grim, not horror, not generic SaaS, no existing game or anime IP.";
-
 const assets = [
   {
-    filename: "public/brand/logo-mark.png",
+    filename: "ninja-cat-mark.png",
+    outputDir: outputRoots.brand,
+    rawDir: rawRoot,
     size: "1024x1024",
-    quality: "high",
+    quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${transparentPrefix} Premium Ninja Dojo logo mark featuring a heroic ninja cat mascot face with small hood, bright readable eyes, crescent moon halo, tiny shuriken ears, subtle dojo gate silhouette, lantern gold trim and moonlight teal glow, polished game product brand, charming fantasy ninja energy, not childish, not scary, no text, no letters, no watermark. ${fantasyDirection} ${palette}`
+    prompt:
+      "Final-production premium app logo mark on flat pure green chroma key background (#00FF00), centered white ninja cat mascot inspired by a moonlit fantasy tactical RPG, soft white fur, teal eyes, small pink hair tuft, black ninja hood, muted gold bell, tiny red scarf, crescent moon and subtle shuriken silhouette behind the cat, compact readable brand icon, polished game product identity, dark cozy fantasy ninja mood, black ivory muted gold blood red moonlight teal palette, no text, no letters, no logo frame, no existing game or anime IP."
   },
   {
-    filename: "public/brand/logo-lockup.png",
+    filename: "ninja-dojo-wordmark.png",
+    outputDir: outputRoots.brand,
+    rawDir: rawRoot,
     size: "1536x1024",
-    quality: "high",
+    quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${transparentPrefix} Premium horizontal brand lockup for a fantasy game product called Ninja Dojo. Left side: heroic ninja cat moon/shuriken mascot mark. Right side: large clean readable wordmark text exactly "NINJA DOJO" in custom fantasy arcade lettering, scroll cream letters with lantern gold edge and subtle blood red slash underline. No subtitle, no extra words, no mockup, no watermark. ${fantasyDirection} ${palette}`
+    trim: true,
+    prompt:
+      "Final-production fantasy game wordmark on flat pure green chroma key background (#00FF00), exact readable text: NINJA DOJO, only those two words, no mascot, no extra letters, no subtitle, no small text, no logo frame. Premium moonlit ninja RPG title lettering, ivory fill, muted gold bevel, thin dark outline, tiny blood red katana underline flourish, compact horizontal composition, transparent-ready asset, no existing game or anime IP."
   },
   {
-    filename: "public/backgrounds/moonlit-command-bg.png",
+    filename: "fantasy-dojo-landing-bg.png",
+    outputDir: outputRoots.backgrounds,
+    rawDir: path.join(outputRoots.backgrounds, "raw"),
     size: "1536x1024",
     quality: "high",
     background: "opaque",
     removeChroma: false,
-    prompt: `Final production fantasy ninja product landing page background, moonlit cozy ninja village and dojo gardens at night, magical lantern paths, cherry blossoms, soft teal moonlight, warm gold windows, subtle floating petal particles, faint AI workflow constellation lines in the sky, adventurous handcrafted RPG atmosphere, polished pixel-painterly detail, low contrast center area so UI can sit on top, no characters, no text, no logo, no UI panels, no mockup. ${fantasyDirection} ${palette}`
+    prompt:
+      "Wide 16:9 premium fantasy ninja product landing page background, moonlit cozy Japanese dojo courtyard at night, soft cherry blossoms, lantern glow, teal moonlight mist, faint shuriken constellations, parchment scroll shapes in the distance, whimsical tactical RPG atmosphere, warm and magical rather than deadly serious, black charcoal ivory muted gold blood red moonlight teal palette, lots of dark negative space for UI, no text, no logos, no characters, no UI panels, no existing game or anime IP."
   },
   {
-    filename: "public/cursors/moon-shuriken-cursor.png",
+    filename: "fantasy-brand-accents.png",
+    outputDir: outputRoots.icons,
+    rawDir: path.join(outputRoots.icons, "raw"),
     size: "1024x1024",
     quality: "medium",
     background: "opaque",
     removeChroma: true,
-    resize: 64,
-    prompt: `${transparentPrefix} Small custom cursor asset shaped like a moonlit shuriken pointer, premium minimal, sharp silhouette, slight lantern gold edge and blood red center cut, readable at 24px, no text, no logo. ${palette}`
-  },
-  {
-    filename: "public/cursors/ninja-pointer.png",
-    size: "1024x1024",
-    quality: "medium",
-    background: "opaque",
-    removeChroma: true,
-    resize: 96,
-    prompt: `${transparentPrefix} Small in-game hover pointer marker for selecting a ninja character, cute premium ninja cat paw combined with shuriken arrow, lantern gold edge, blood red center slash, subtle teal moon glint, readable at 32px, premium fantasy tactical RPG UI marker, no text, no logo. ${fantasyDirection} ${palette}`
-  },
-  {
-    filename: "public/icons/scroll-input.png",
-    size: "1024x1024",
-    quality: "medium",
-    background: "opaque",
-    removeChroma: true,
-    prompt: `${transparentPrefix} Premium section icon, parchment scroll entering a dark dojo gate with a thin red ribbon slash, moonlit RPG product style, simple readable silhouette, no text, no logo. ${palette}`
-  },
-  {
-    filename: "public/icons/six-ninja-agents.png",
-    size: "1024x1024",
-    quality: "medium",
-    background: "opaque",
-    removeChroma: true,
-    prompt: `${transparentPrefix} Premium section icon showing six small ninja agent crests arranged around a moonlit command node, abstract not character portraits, dark arcade AI workflow style, no text, no logo. ${palette}`
-  },
-  {
-    filename: "public/icons/workflow-timeline.png",
-    size: "1024x1024",
-    quality: "medium",
-    background: "opaque",
-    removeChroma: true,
-    prompt: `${transparentPrefix} Premium section icon, glowing workflow timeline from scroll to moonrise with small dojo station nodes, dark arcade AI command center style, no text, no logo. ${palette}`
-  },
-  {
-    filename: "public/icons/moonrise-shipped.png",
-    size: "1024x1024",
-    quality: "medium",
-    background: "opaque",
-    removeChroma: true,
-    prompt: `${transparentPrefix} Premium section icon, full deploy moon rising over a minimal dojo gate with teal moonlight and lantern gold glow, shipped success feeling, no text, no logo. ${palette}`
-  },
-  {
-    filename: "public/icons/decor-elements.png",
-    size: "1536x1024",
-    quality: "medium",
-    background: "opaque",
-    removeChroma: true,
-    prompt: `${transparentPrefix} Premium decorative asset sheet containing separate isolated elements: full moon, shuriken, parchment scroll, katana slash, tiny cherry petal, lantern spark. Arrange with clear spacing on green background, no text, no logo, no labels. ${palette}`
-  },
-  ...[
-    ["moji", "Moji", "planner crest, parchment scroll, muted gold headband energy"],
-    ["miji", "Miji", "builder crest, red scarf, tiny hammer and forge spark"],
-    ["maji", "Maji", "attack crest, twin blades, blood red slash energy"],
-    ["meji", "Meji", "review crest, white-gray robe, calm scroll seal"],
-    ["muji", "Muji", "deploy crest, gate opening, moonlight teal signal"],
-    ["meowts", "Meowts", "judge crest, small ninja cat silhouette, moon bell"]
-  ].map(([slug, name, detail]) => ({
-    filename: `public/cast/${slug}-crest.png`,
-    size: "1024x1024",
-    quality: "medium",
-    background: "opaque",
-    removeChroma: true,
-    prompt: `${transparentPrefix} Premium cast card crest for ${name}, ${detail}, moonlit ninja dojo emblem, minimal dark arcade product style, readable small, not cartoonish, no text, no letters, no logo watermark. ${palette}`
-  }))
+    prompt:
+      "Final-production 2D game UI decorative asset sheet on flat pure green chroma key background (#00FF00), separate small elements with clear space between them: crescent moon, tiny shuriken, parchment scroll, red katana slash, lantern spark, cherry blossom petal, moonlit paw print. Premium cozy fantasy ninja RPG style, black ivory muted gold blood red moonlight teal palette, no text, no logos, no labels, no existing game or anime IP."
+  }
 ];
 
-const requested = process.argv.slice(2);
-const selected =
-  requested.length > 0
-    ? assets.filter((asset) => requested.includes(path.basename(asset.filename)) || requested.includes(asset.filename))
-    : assets;
-
-const unknown = requested.filter(
-  (name) => !assets.some((asset) => name === asset.filename || name === path.basename(asset.filename))
+const requestedFilenames = process.argv.slice(2);
+const unknownFilenames = requestedFilenames.filter(
+  (filename) => !assets.some((asset) => asset.filename === filename)
 );
 
-if (unknown.length > 0) {
-  console.error(`Unknown asset(s): ${unknown.join(", ")}`);
+if (unknownFilenames.length > 0) {
+  console.error(`Unknown brand asset filename(s): ${unknownFilenames.join(", ")}`);
   process.exit(1);
 }
 
-if (selected.length > MAX_IMAGES_PER_RUN) {
-  console.error(`Refusing to run ${selected.length} images; max is ${MAX_IMAGES_PER_RUN}.`);
+const selectedAssets =
+  requestedFilenames.length > 0
+    ? assets.filter((asset) => requestedFilenames.includes(asset.filename))
+    : assets;
+
+if (!process.env.OPENAI_API_KEY) {
+  console.error("OPENAI_API_KEY is required. No brand assets were generated.");
   process.exit(1);
 }
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  ...(org ? { organization: org } : {})
+  ...(organization ? { organization } : {})
 });
 
-let hasCost = false;
-let totalCost = 0;
-const results = [];
+for (const asset of selectedAssets) {
+  await mkdir(asset.outputDir, { recursive: true });
+  await mkdir(asset.rawDir, { recursive: true });
+  const response = await client.images.generate({
+    model: MODEL,
+    prompt: asset.prompt,
+    size: asset.size,
+    quality: asset.quality,
+    background: asset.background,
+    output_format: "png"
+  });
 
-await mkdir(rawDir, { recursive: true });
-
-for (const asset of selected) {
-  if (hasCost && totalCost > BUDGET_CAP_USD) {
-    console.error("BUDGET CAP HIT");
-    process.exit(1);
+  const b64 = response.data?.[0]?.b64_json;
+  if (!b64) {
+    throw new Error(`${asset.filename} did not include b64_json.`);
   }
 
-  const result = await generateAsset(asset);
-  results.push(result);
-  if (result.costUsd !== null) {
-    hasCost = true;
-    totalCost += result.costUsd;
+  const rawBuffer = Buffer.from(b64, "base64");
+  const rawPath = path.join(asset.rawDir, asset.filename);
+  const finalPath = path.join(asset.outputDir, asset.filename);
+  await writeFile(rawPath, rawBuffer);
+
+  let finalBuffer = asset.removeChroma
+    ? await removeGreenChroma(rawBuffer)
+    : rawBuffer;
+  if (asset.trim) {
+    finalBuffer = await sharp(finalBuffer)
+      .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .png()
+      .toBuffer();
   }
 
-  if (hasCost && totalCost > BUDGET_CAP_USD) {
-    console.error("BUDGET CAP HIT");
-    process.exit(1);
-  }
-}
-
-console.log("\nNinja Dojo brand asset generation summary");
-console.table(
-  results.map((result) => ({
-    file: result.file,
-    status: result.ok ? "success" : "failure",
-    model: result.model,
-    bytes: result.bytes,
-    cost: result.costUsd === null ? "usage unavailable" : `$${result.costUsd.toFixed(4)} USD`
-  }))
-);
-console.log(`total cost estimate: ${hasCost ? `$${totalCost.toFixed(4)} USD` : "usage unavailable"}`);
-
-async function generateAsset(asset) {
-  try {
-    const response = await client.images.generate({
-      model: MODEL,
-      prompt: asset.prompt,
-      size: asset.size,
-      quality: asset.quality,
-      background: asset.background,
-      output_format: "png"
-    });
-
-    const b64 = response.data?.[0]?.b64_json;
-    if (!b64) throw new Error("Image response did not include b64_json.");
-
-    const rawBuffer = Buffer.from(b64, "base64");
-    const rawPath = path.join(rawDir, asset.filename.replaceAll("/", "__"));
-    await mkdir(path.dirname(asset.filename), { recursive: true });
-    await writeFile(rawPath, rawBuffer);
-
-    let finalBuffer = asset.removeChroma
-      ? await removeGreenChroma(rawBuffer)
-      : rawBuffer;
-
-    if (asset.resize) {
-      finalBuffer = await sharp(finalBuffer)
-        .resize(asset.resize, asset.resize, { fit: "contain" })
-        .png()
-        .toBuffer();
-    }
-
-    await writeFile(asset.filename, finalBuffer);
-    const costUsd = extractCostUsd(response);
-    console.log(
-      `${asset.filename} | ${finalBuffer.byteLength} bytes | ${MODEL} | ${costUsd === null ? "usage unavailable" : `$${costUsd.toFixed(4)} USD`}`
-    );
-
-    return {
-      bytes: finalBuffer.byteLength,
-      costUsd,
-      file: asset.filename,
-      model: MODEL,
-      ok: true
-    };
-  } catch (error) {
-    const status = error?.status ?? error?.statusCode ?? "unknown";
-    const code = error?.code ?? error?.type ?? "unknown";
-    const message = error?.message ?? String(error);
-    console.error(`${asset.filename} failed with ${MODEL}: [${status}/${code}] ${message}`);
-    return {
-      bytes: 0,
-      costUsd: null,
-      file: asset.filename,
-      model: MODEL,
-      ok: false
-    };
-  }
+  await writeFile(finalPath, finalBuffer);
+  console.log(
+    `${asset.filename} | raw ${rawBuffer.byteLength} bytes | final ${finalBuffer.byteLength} bytes | ${MODEL}`
+  );
 }
 
 async function removeGreenChroma(inputBuffer) {
   const image = sharp(inputBuffer).ensureAlpha();
+  const metadata = await image.metadata();
   const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
 
   for (let index = 0; index < data.length; index += 4) {
@@ -258,15 +139,19 @@ async function removeGreenChroma(inputBuffer) {
       green > 120 &&
       green - red > 45 &&
       green - blue > 45 &&
-      red < 145 &&
-      blue < 145;
+      red < 135 &&
+      blue < 135;
 
     if (isGreenScreen) {
       data[index + 3] = 0;
       continue;
     }
 
-    const isGreenSpill = green > red && green > blue && green - Math.max(red, blue) > 16;
+    const isGreenSpill =
+      green > red &&
+      green > blue &&
+      green - Math.max(red, blue) > 16;
+
     if (isGreenSpill) {
       data[index + 1] = Math.max(red, blue);
     }
@@ -274,25 +159,16 @@ async function removeGreenChroma(inputBuffer) {
 
   return sharp(data, {
     raw: {
-      channels: 4,
+      width: info.width,
       height: info.height,
-      width: info.width
+      channels: 4
     }
   })
     .png()
+    .withMetadata({
+      density: metadata.density
+    })
     .toBuffer();
-}
-
-function extractCostUsd(response) {
-  const usage = response?.usage;
-  if (!usage) return null;
-  const value =
-    usage.total_cost_usd ??
-    usage.cost_usd ??
-    usage.estimated_cost_usd ??
-    usage.total_cost;
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : null;
 }
 
 async function loadLocalEnv() {

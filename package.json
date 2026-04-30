@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "generate:assets": "node scripts/generate-assets.mjs",
+    "generate:brand-assets": "node scripts/generate-brand-assets.mjs",
     "generate:local-assets": "node scripts/generate-local-assets.mjs",
     "start": "next start"
   },

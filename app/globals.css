@@ -5344,27 +5344,35 @@ textarea {
 
 .rpg-page::after {
   background:
-    linear-gradient(180deg, rgba(5, 5, 5, 0.34), rgba(5, 5, 5, 0.72)),
-    radial-gradient(circle at 78% 8%, rgba(120, 240, 212, 0.2), transparent 24%),
-    radial-gradient(circle at 16% 16%, rgba(232, 198, 106, 0.12), transparent 28%),
-    url("/backgrounds/moonlit-command-bg.png") center top / cover no-repeat;
-  opacity: 0.62;
+    linear-gradient(180deg, rgba(5, 5, 5, 0.2), rgba(5, 5, 5, 0.74)),
+    radial-gradient(circle at 78% 8%, rgba(120, 240, 212, 0.18), transparent 24%),
+    radial-gradient(circle at 16% 16%, rgba(232, 198, 106, 0.16), transparent 28%),
+    url("/backgrounds/fantasy-dojo-landing-bg.png") center top / cover no-repeat;
+  opacity: 0.72;
 }
 
-.brand-logo__lockup-art {
+.brand-logo__mark-art {
   position: relative;
-  left: auto;
-  top: auto;
-  z-index: 1;
   display: block;
-  width: min(420px, 36vw);
-  max-width: none;
+  flex: 0 0 auto;
+  width: clamp(82px, 7.2vw, 120px);
   height: auto;
-  opacity: 1;
   filter:
     saturate(1.08)
-    drop-shadow(0 18px 44px rgba(0, 0, 0, 0.56))
-    drop-shadow(0 0 30px rgba(120, 240, 212, 0.14));
+    drop-shadow(0 16px 30px rgba(0, 0, 0, 0.56))
+    drop-shadow(0 0 22px rgba(120, 240, 212, 0.12));
+  pointer-events: none;
+}
+
+.brand-logo__wordmark-art {
+  display: block;
+  width: min(310px, 24vw);
+  height: auto;
+  margin-left: -10px;
+  filter:
+    saturate(1.08)
+    drop-shadow(0 13px 26px rgba(0, 0, 0, 0.54))
+    drop-shadow(0 0 18px rgba(232, 198, 106, 0.12));
   pointer-events: none;
 }
 
@@ -5379,10 +5387,10 @@ textarea {
   white-space: nowrap;
 }
 
-.brand-logo__mark {
-  width: 70px;
-  height: 70px;
-  object-fit: contain;
+.brand-logo {
+  align-items: center;
+  gap: 0;
+  max-width: min(430px, 42vw);
 }
 
 .section-icon img,
@@ -5408,17 +5416,17 @@ textarea {
 
 .rpg-hero__decor {
   position: absolute;
-  right: -56px;
-  top: -84px;
+  right: -42px;
+  top: -58px;
   z-index: 0;
-  width: min(420px, 32vw);
-  opacity: 0.1;
+  width: min(360px, 26vw);
+  opacity: 0.12;
   pointer-events: none;
-  transform: rotate(8deg);
+  transform: rotate(6deg);
   filter:
     saturate(1.12)
     blur(0.2px)
-    drop-shadow(0 0 44px rgba(239, 52, 52, 0.16));
+    drop-shadow(0 0 40px rgba(120, 240, 212, 0.12));
 }
 
 .rpg-hero__header,
@@ -5453,14 +5461,17 @@ textarea {
 }
 
 @media (max-width: 820px) {
-  .brand-logo__lockup-art {
-    width: min(290px, 88vw);
-    opacity: 1;
+  .brand-logo {
+    max-width: min(310px, 86vw);
   }
 
-  .brand-logo__mark {
-    width: 52px;
-    height: 52px;
+  .brand-logo__mark-art {
+    width: 74px;
+  }
+
+  .brand-logo__wordmark-art {
+    width: min(220px, 68vw);
+    margin-left: -8px;
   }
 
   .rpg-hero__decor {

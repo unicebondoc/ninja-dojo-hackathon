@@ -9,10 +9,18 @@ export function BrandLogo({ className }: BrandLogoProps) {
     <div className={["brand-logo", className].filter(Boolean).join(" ")}>
       <span className="brand-logo__live" aria-label="Live" />
       <img
-        alt="Ninja Dojo"
-        className="brand-logo__lockup-art"
+        alt=""
+        aria-hidden="true"
+        className="brand-logo__mark-art"
         draggable={false}
-        src="/brand/logo-lockup.png"
+        src="/brand/ninja-cat-mark.png"
+      />
+      <img
+        alt=""
+        aria-hidden="true"
+        className="brand-logo__wordmark-art"
+        draggable={false}
+        src="/brand/ninja-dojo-wordmark.png"
       />
       <h1>NINJA DOJO</h1>
     </div>
