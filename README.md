@@ -12,6 +12,8 @@ Ninja Dojo is a visual command center for solo builders coordinating Codex-style
 
 Inspired by world-simulation interfaces like [WorldX](https://github.com/YGYOOO/WorldX), but built for Codex agent workflows. WorldX was used as visual inspiration only; no code, assets, images, text, or exact UI were copied.
 
+Phaser React architecture is inspired by the MIT-licensed [Phaser React template](https://github.com/phaserjs/template-react). Ninja Dojo assets are original/generated; no WorldX or Pokémon assets are copied.
+
 ## Screenshots / GIF
 
 > Add a short capture here: homepage → Launch live dojo → agents complete → moonrise → `/demo/oracle`.
@@ -26,7 +28,7 @@ Built on-site at OpenAI Codex Hackathon Sydney:
 
 - Cached-first Next.js demo app
 - Scroll → Panels → Moon Ninja Dojo dashboard
-- Live dojo simulation UI with moving workers, event log, progress rail, and moonrise status
+- Phaser-powered live dojo simulation UI with moving workers, event log, progress rail, and moonrise status
 - `/demo/oracle` shipped page
 - `AGENTS.md` Dojo Law
 - Six Codex Skills in `.codex/skills`
@@ -56,7 +58,7 @@ The current local demo is cached-first and stage-safe. It does not require Teleg
 ## Features
 
 - Game-like dark dojo homepage with Scroll → Panels → Moon storytelling.
-- Live 2D dojo board with moving chibi agents, moonlight, katana effects, stations, progress, and event log.
+- Phaser-powered 2D dojo board with moving chibi agents, moonlight, katana effects, stations, progress, and event log.
 - Cached-first run timeline that works without live services.
 - Six named agent roles: Moji, Miji, Renegade, Sensei, Tester, and Meowts.
 - Shoji status panels that show idle, working, complete, and failed states.
@@ -68,6 +70,8 @@ The current local demo is cached-first and stage-safe. It does not require Teleg
 ## Visual Assets
 
 The dojo background, sprites, scroll, moon, and slash effects are original generated assets for Ninja Dojo. WorldX was used only as broad inspiration for a live AI-world interface; no WorldX code, sprites, maps, filenames, layouts, images, text, or assets are copied.
+
+The Phaser/React integration follows the broad bridge pattern from the MIT-licensed Phaser React template: React owns surrounding UI state and controls, while Phaser owns the canvas scene, tweens, sprites, and in-world speech bubbles.
 
 - Local generated asset script: `scripts/generate-local-assets.mjs`
 - GPT Image 2 generation script: `scripts/generate-assets.mjs`
@@ -101,7 +105,7 @@ The requested spritesheet is a single transparent PNG with six chibi game sprite
 ┌────────────────────────────────────────────────────────────┐
 │ Next.js App Router homepage                                │
 │ - Scroll input                                              │
-│ - Live 2D dojo game board                                   │
+│ - Phaser 2D dojo game board                                 │
 │ - Shoji panels                                              │
 │ - Progress rail and event log                               │
 │ - Artifact packet                                           │

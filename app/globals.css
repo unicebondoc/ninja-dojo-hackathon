@@ -3735,6 +3735,7 @@ textarea {
 }
 
 .rpg-board-shell {
+  position: relative;
   display: grid;
   min-width: 0;
   place-items: center;
@@ -3763,6 +3764,57 @@ textarea {
     0 0 110px rgba(246, 231, 177, 0.18),
     0 0 80px rgba(220, 38, 38, 0.14),
     inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+
+.phaser-dojo {
+  display: grid;
+  place-items: stretch;
+}
+
+.phaser-dojo__mount {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #070403;
+}
+
+.phaser-dojo__mount canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.phaser-dojo[data-ready="false"]::after {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(220, 38, 38, 0.12), transparent 44%),
+    rgba(0, 0, 0, 0.62);
+  color: #f6e7b1;
+  font-size: 13px;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  content: "Opening dojo...";
+}
+
+.phaser-dojo-debug {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 20;
+  border: 1px solid rgba(246, 231, 177, 0.14);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.58);
+  padding: 5px 7px;
+  color: rgba(246, 231, 177, 0.64);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 9px;
+  pointer-events: none;
 }
 
 .rpg-board__background {
