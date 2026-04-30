@@ -1,27 +1,45 @@
+import { linesFor, stageToAgentState } from "@/game/dialogue/lines";
 import { EventBus } from "@/game/events";
+import {
+  RunStateMachine,
+  type AgentId,
+  type RunStage,
+  type RunStageEvent
+} from "@/game/run/RunStateMachine";
+import {
+  MAP_HEIGHT,
+  MAP_WIDTH,
+  TILE_SIZE,
+  WORLD_HEIGHT,
+  WORLD_WIDTH,
+  dojoGrid,
+  stations,
+  tileToWorld
+} from "@/game/world/tilemap";
 
 type ActorState = "idle" | "walking" | "working" | "done";
-type AgentId = "Moji" | "Miji" | "Renegade" | "Sensei" | "Tester" | "Meowts";
-type Position = { x: number; y: number };
 
-type ActorConfig = {
-  busy: string;
-  done: string;
-  file: string;
-  home: Position;
-  id: AgentId;
-  role: string;
-  work: Position;
+type WorldPoint = {
+  x: number;
+  y: number;
 };
 
-type ActorRuntime = ActorConfig & {
+type ActorRuntime = {
   bubble?: any;
-  check?: any;
   container: any;
-  label: any;
+  file: string;
+  homeX: number;
+  homeY: number;
+  id: AgentId;
+  nameplate?: any;
+  nameplateTimer?: any;
+  patrolTimer?: any;
+  role: string;
   shadow: any;
   sprite: any;
   state: ActorState;
+  workX: number;
+  workY: number;
 };
 
 export type DojoSceneController = {
@@ -30,89 +48,159 @@ export type DojoSceneController = {
   showSpeech: (id: AgentId) => void;
 };
 
-const sceneSize = { height: 720, width: 1280 };
+const SAVE_KEY = "ninja-dojo:save";
 
-const actors: ActorConfig[] = [
-  {
-    busy: "Writing the plan.",
-    done: "Plan complete.",
-    file: "moji",
-    home: { x: 12, y: 78 },
-    id: "Moji",
-    role: "Plan",
-    work: { x: 43, y: 48 }
+const agentMeta: Record<AgentId, { busy: string; done: string; file: string; role: string }> = {
+  Maji: { busy: "Attack path ready.", done: "Attack complete.", file: "maji", role: "Attack" },
+  Meji: { busy: "Reviewing the scroll.", done: "Review complete.", file: "meji", role: "Review" },
+  Meowts: { busy: "Judging under moonlight.", done: "Approved.", file: "meowts", role: "Judge" },
+  Miji: { busy: "Building the first pass.", done: "Build complete.", file: "miji", role: "Build" },
+  Moji: { busy: "Mapping the scroll route.", done: "Plan complete.", file: "moji", role: "Plan" },
+  Muji: { busy: "Deploy route is clear.", done: "Deploy complete.", file: "muji", role: "Deploy" }
+};
+
+const actorDisplay = {
+  height: 124,
+  walkHeight: 216,
+  walkWidth: 88,
+  width: 100
+};
+
+const workTiles: Record<AgentId, { tileX: number; tileY: number }> = {
+  Maji: { tileX: 23, tileY: 10 },
+  Meji: { tileX: 24, tileY: 14 },
+  Meowts: { tileX: 29, tileY: 9 },
+  Miji: { tileX: 16, tileY: 13 },
+  Moji: { tileX: 18, tileY: 11 },
+  Muji: { tileX: 20, tileY: 15 }
+};
+
+const patrolTiles: Record<AgentId, Array<{ tileX: number; tileY: number }>> = {
+  Maji: [
+    { tileX: 23, tileY: 8 },
+    { tileX: 27, tileY: 10 },
+    { tileX: 25, tileY: 13 }
+  ],
+  Meji: [
+    { tileX: 27, tileY: 13 },
+    { tileX: 30, tileY: 11 },
+    { tileX: 25, tileY: 15 }
+  ],
+  Meowts: [
+    { tileX: 30, tileY: 14 },
+    { tileX: 32, tileY: 12 },
+    { tileX: 28, tileY: 16 }
+  ],
+  Miji: [
+    { tileX: 13, tileY: 9 },
+    { tileX: 16, tileY: 12 },
+    { tileX: 19, tileY: 13 }
+  ],
+  Moji: [
+    { tileX: 8, tileY: 9 },
+    { tileX: 11, tileY: 12 },
+    { tileX: 15, tileY: 10 }
+  ],
+  Muji: [
+    { tileX: 18, tileY: 15 },
+    { tileX: 21, tileY: 16 },
+    { tileX: 23, tileY: 14 }
+  ]
+};
+
+const stageRoutes: Record<AgentId, Array<{ tileX: number; tileY: number }>> = {
+  Maji: [
+    { tileX: 27, tileY: 8 },
+    { tileX: 25, tileY: 10 },
+    { tileX: 23, tileY: 10 }
+  ],
+  Meji: [
+    { tileX: 30, tileY: 12 },
+    { tileX: 27, tileY: 14 },
+    { tileX: 24, tileY: 14 }
+  ],
+  Meowts: [
+    { tileX: 31, tileY: 12 },
+    { tileX: 30, tileY: 10 },
+    { tileX: 29, tileY: 9 }
+  ],
+  Miji: [
+    { tileX: 14, tileY: 9 },
+    { tileX: 16, tileY: 11 },
+    { tileX: 16, tileY: 13 }
+  ],
+  Moji: [
+    { tileX: 9, tileY: 8 },
+    { tileX: 14, tileY: 10 },
+    { tileX: 18, tileY: 11 }
+  ],
+  Muji: [
+    { tileX: 20, tileY: 13 },
+    { tileX: 20, tileY: 15 }
+  ]
+};
+
+const stageReplies: Partial<Record<RunStage, { from?: AgentId; line?: string }>> = {
+  attack: {
+    from: "Miji",
+    line: "Patch fast. Keep the page standing."
   },
-  {
-    busy: "Building the oracle page.",
-    done: "Build complete.",
-    file: "miji",
-    home: { x: 22, y: 82 },
-    id: "Miji",
-    role: "Build",
-    work: { x: 35, y: 60 }
+  build: {
+    from: "Moji",
+    line: "Plan is clean. Miji, take the forge."
   },
-  {
-    busy: "Attacking weak spots.",
-    done: "Weak spots found.",
-    file: "renegade",
-    home: { x: 82, y: 78 },
-    id: "Renegade",
-    role: "Attack",
-    work: { x: 65, y: 50 }
+  deploy: {
+    from: "Meji",
+    line: "Muji, prove the moon deserves to rise."
   },
-  {
-    busy: "Reviewing architecture.",
-    done: "Architecture approved.",
-    file: "sensei",
-    home: { x: 72, y: 83 },
-    id: "Sensei",
-    role: "Review",
-    work: { x: 62, y: 66 }
+  judge: {
+    from: "Muji",
+    line: "Checks are green. Your turn, Meowts."
   },
-  {
-    busy: "Running build checks.",
-    done: "Checks passed.",
-    file: "tester",
-    home: { x: 48, y: 86 },
-    id: "Tester",
-    role: "Deploy",
-    work: { x: 50, y: 70 }
-  },
-  {
-    busy: "Judging the final run.",
-    done: "Approved. The moon may rise.",
-    file: "meowts",
-    home: { x: 92, y: 58 },
-    id: "Meowts",
-    role: "Judge",
-    work: { x: 78, y: 42 }
+  review: {
+    from: "Maji",
+    line: "Found the cracks. Meji, read the scars."
   }
-];
+};
 
-const timeline = [
-  { agent: "Moji" as AgentId, at: 1500, duration: 1200, effect: "plan" },
-  { agent: "Miji" as AgentId, at: 3500, duration: 1200, effect: "build" },
-  { agent: "Renegade" as AgentId, at: 6000, duration: 900, effect: "attack" },
-  { agent: "Sensei" as AgentId, at: 9000, duration: 1100, effect: "review" },
-  { agent: "Tester" as AgentId, at: 11000, duration: 1100, effect: "deploy" },
-  { agent: "Meowts" as AgentId, at: 13000, duration: 1000, effect: "judge" }
-];
+function loadSave(): { runsCompleted: number } {
+  if (typeof window === "undefined") return { runsCompleted: 0 };
+  try {
+    const raw = window.localStorage.getItem(SAVE_KEY);
+    return raw ? JSON.parse(raw) : { runsCompleted: 0 };
+  } catch {
+    return { runsCompleted: 0 };
+  }
+}
 
-function toPoint(position: Position) {
-  return {
-    x: (position.x / 100) * sceneSize.width,
-    y: (position.y / 100) * sceneSize.height
-  };
+function persistSave(save: { runsCompleted: number }) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+  } catch {
+    // Ignore localStorage failures in private browsing or locked-down iframes.
+  }
+}
+
+function tilePoint(tileX: number, tileY: number): WorldPoint {
+  return tileToWorld(tileX, tileY);
+}
+
+function randomBetween(min: number, max: number) {
+  return min + Math.random() * (max - min);
 }
 
 export function createDojoScene(Phaser: any) {
   return class DojoScene extends Phaser.Scene implements DojoSceneController {
     private actorMap = new Map<AgentId, ActorRuntime>();
     private moon?: any;
-    private runEvents: any[] = [];
-    private running = false;
+    private nightOverlay?: any;
+    private runMachine?: RunStateMachine;
+    private save = loadSave();
+    private eventCleanups: Array<() => void> = [];
     private scroll?: any;
     private slash?: any;
+    private wallsGroup?: any;
 
     constructor() {
       super("DojoScene");
@@ -125,153 +213,143 @@ export function createDojoScene(Phaser: any) {
       this.load.image("slash", "/assets/dojo/slash.png");
       this.load.image("petal", "/assets/dojo/petal.png");
 
-      actors.forEach((actor) => {
-        this.load.image(`${actor.file}-idle`, `/assets/dojo/${actor.file}.png`);
-        this.load.spritesheet(
-          `${actor.file}-walk`,
-          `/assets/dojo/${actor.file}-walk.png`,
-          {
-            frameHeight: 1024,
-            frameWidth: 384
-          }
-        );
+      (Object.keys(agentMeta) as AgentId[]).forEach((id) => {
+        const file = agentMeta[id].file;
+        this.load.image(`${file}-idle`, `/assets/dojo/${file}.png`);
+        this.load.spritesheet(`${file}-walk`, `/assets/dojo/${file}-walk.png`, {
+          frameHeight: 1024,
+          frameWidth: 384
+        });
       });
     }
 
     create() {
+      this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+      this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
       this.cameras.main.setBackgroundColor("#070403");
+
       this.add
-        .image(sceneSize.width / 2, sceneSize.height / 2, "dojo-background")
-        .setDisplaySize(sceneSize.width, sceneSize.height)
+        .image(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, "dojo-background")
+        .setDisplaySize(WORLD_WIDTH, WORLD_HEIGHT)
         .setDepth(0);
 
       this.add
-        .rectangle(
-          sceneSize.width / 2,
-          sceneSize.height / 2,
-          sceneSize.width,
-          sceneSize.height,
-          0x000000,
-          0.2
-        )
+        .rectangle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_WIDTH, WORLD_HEIGHT, 0x000000, 0.16)
         .setDepth(1);
 
-      this.scroll = this.add
-        .image(toPoint({ x: 50, y: 50 }).x, toPoint({ x: 50, y: 50 }).y, "scroll")
-        .setDisplaySize(132, 132)
-        .setAlpha(0.45)
-        .setDepth(4);
-
-      this.moon = this.add
-        .image(toPoint({ x: 86, y: 18 }).x, toPoint({ x: 86, y: 18 }).y, "moon")
-        .setDisplaySize(110, 110)
-        .setAlpha(0.18)
-        .setDepth(3);
-
-      this.slash = this.add
-        .image(toPoint({ x: 62, y: 43 }).x, toPoint({ x: 62, y: 43 }).y, "slash")
-        .setDisplaySize(360, 220)
-        .setAlpha(0)
-        .setDepth(10);
-
+      this.buildWalls();
       this.createPetals();
+      this.createWorldObjects();
       this.createAnimations();
       this.createActors();
+      this.createNightOverlay();
+
+      this.events.once("shutdown", () => this.cleanupRunEvents());
+      this.events.once("destroy", () => this.cleanupRunEvents());
+
+      this.runMachine = new RunStateMachine(this);
+      this.subscribeToRunEvents();
+
       EventBus.emit("dojo-scene-ready", this);
+      EventBus.emit("dojo-save", this.save);
+    }
+
+    update() {}
+
+    runDojo() {
+      if (!this.runMachine?.isRunning()) {
+        this.resetActorsForRun({ startPatrol: false });
+      }
+      this.runMachine?.start();
     }
 
     resetDojo() {
-      this.running = false;
-      this.runEvents.forEach((event) => event?.remove?.());
-      this.runEvents = [];
-      this.tweens.killAll();
-
-      this.scroll?.setAlpha(0.45).setScale(1).setAngle(0);
-      this.moon?.setAlpha(0.18).setScale(1).clearTint();
-      this.slash?.setAlpha(0);
-
-      this.actorMap.forEach((actor) => {
-        const home = toPoint(actor.home);
-        actor.container.setPosition(home.x, home.y).setAlpha(1);
-        actor.container.setScale(1);
-        actor.sprite.setTexture(`${actor.file}-idle`).setDisplaySize(122, 142);
-        actor.sprite.stop?.();
-        actor.label.setText(`${actor.id.toUpperCase()} / ${actor.role}`);
-        actor.check?.destroy();
-        actor.check = undefined;
-        actor.bubble?.destroy();
-        actor.bubble = undefined;
-        actor.state = "idle";
-      });
-    }
-
-    runDojo() {
-      if (this.running) {
-        return;
-      }
-
-      this.resetDojo();
-      this.running = true;
-
-      this.tweens.add({
-        alpha: 1,
-        duration: 520,
-        ease: "Back.Out",
-        scale: 1.16,
-        targets: this.scroll,
-        yoyo: true
-      });
-
-      timeline.forEach((step) => {
-        this.runEvents.push(
-          this.time.delayedCall(step.at, () => {
-            this.walkActor(step.agent, step.duration, step.effect);
-          })
-        );
-      });
-
-      this.runEvents.push(
-        this.time.delayedCall(15000, () => {
-          this.finishRun();
-        })
-      );
+      this.runMachine?.reset();
+      this.resetActorsForRun({ startPatrol: true });
     }
 
     showSpeech(id: AgentId) {
-      const actor = this.actorMap.get(id);
+      this.handleTalk(id);
+    }
 
-      if (!actor) {
-        return;
-      }
+    private buildWalls() {
+      this.wallsGroup = this.physics.add.staticGroup();
+      const t = TILE_SIZE;
 
-      const message =
-        actor.state === "walking"
-          ? "On my way."
-          : actor.state === "working"
-            ? actor.busy
-            : actor.state === "done"
-              ? actor.done
-              : "Waiting for the scroll.";
+      [
+        { h: t, w: WORLD_WIDTH, x: 0, y: 0 },
+        { h: t, w: WORLD_WIDTH, x: 0, y: WORLD_HEIGHT - t },
+        { h: WORLD_HEIGHT, w: t, x: 0, y: 0 },
+        { h: WORLD_HEIGHT, w: t, x: WORLD_WIDTH - t, y: 0 }
+      ].forEach((rect) => {
+        const wall = this.add
+          .rectangle(rect.x + rect.w / 2, rect.y + rect.h / 2, rect.w, rect.h, 0x000000, 0)
+          .setDepth(0);
+        this.physics.add.existing(wall, true);
+        this.wallsGroup.add(wall);
+      });
 
-      actor.bubble?.destroy();
-      actor.bubble = this.createSpeechBubble(actor, message);
-      this.time.delayedCall(3000, () => {
-        actor.bubble?.destroy();
-        actor.bubble = undefined;
+      void dojoGrid;
+      void MAP_WIDTH;
+      void MAP_HEIGHT;
+    }
+
+    private createWorldObjects() {
+      const scrollPos = tilePoint(20, 11);
+      this.scroll = this.add
+        .image(scrollPos.x, scrollPos.y, "scroll")
+        .setDisplaySize(110, 110)
+        .setAlpha(0.14)
+        .setDepth(2);
+
+      const moonPos = tilePoint(34, 4);
+      this.moon = this.add
+        .image(moonPos.x, moonPos.y, "moon")
+        .setDisplaySize(108, 108)
+        .setAlpha(0.18)
+        .setDepth(2);
+
+      const slashPos = tilePoint(24, 9);
+      this.slash = this.add
+        .image(slashPos.x, slashPos.y, "slash")
+        .setDisplaySize(320, 200)
+        .setAlpha(0)
+        .setDepth(800);
+    }
+
+    private createPetals() {
+      [180, 460, 760, 1040].forEach((x, index) => {
+        const petal = this.add
+          .image(x, -40 - index * 80, "petal")
+          .setDisplaySize(18, 18)
+          .setAlpha(0.6)
+          .setDepth(6);
+
+        this.tweens.add({
+          angle: 360,
+          duration: 9000 + index * 700,
+          repeat: -1,
+          targets: petal,
+          x: x + (index % 2 === 0 ? 80 : -70),
+          y: WORLD_HEIGHT + 60
+        });
       });
     }
 
+    private createNightOverlay() {
+      this.nightOverlay = this.add
+        .rectangle(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 0x05060a, 0)
+        .setOrigin(0)
+        .setDepth(900);
+    }
+
     private createAnimations() {
-      actors.forEach((actor) => {
-        const key = `${actor.file}-walk-cycle`;
-
-        if (this.anims.exists(key)) {
-          return;
-        }
-
+      [...new Set(Object.values(agentMeta).map((m) => m.file))].forEach((file) => {
+        const key = `${file}-walk-cycle`;
+        if (this.anims.exists(key)) return;
         this.anims.create({
-          frameRate: 8,
-          frames: this.anims.generateFrameNumbers(`${actor.file}-walk`, {
+          frameRate: 7,
+          frames: this.anims.generateFrameNumbers(`${file}-walk`, {
             end: 3,
             start: 0
           }),
@@ -282,230 +360,494 @@ export function createDojoScene(Phaser: any) {
     }
 
     private createActors() {
-      actors.forEach((config) => {
-        const home = toPoint(config.home);
-        const container = this.add.container(home.x, home.y).setDepth(Math.round(home.y));
-        const shadow = this.add.ellipse(0, 60, 70, 18, 0x000000, 0.42);
+      stations.forEach(({ agent, tileX, tileY }) => {
+        const meta = agentMeta[agent];
+        const home = tilePoint(tileX, tileY);
+        const work = tilePoint(workTiles[agent].tileX, workTiles[agent].tileY);
+        const container = this.add
+          .container(home.x, home.y)
+          .setDepth(Math.round(home.y));
+
+        const shadow = this.add.ellipse(0, 47, 58, 13, 0x000000, 0.46);
         const sprite = this.add
-          .sprite(0, 0, `${config.file}-idle`)
-          .setDisplaySize(122, 142);
-        const labelBg = this.add
-          .rectangle(0, 86, 176, 34, 0x050505, 0.8)
-          .setStrokeStyle(1, 0xf6e7b1, 0.35);
-        const label = this.add
-          .text(0, 86, `${config.id.toUpperCase()} / ${config.role}`, {
-            color: "#f6e7b1",
-            fontFamily: "monospace",
-            fontSize: "20px",
-            fontStyle: "bold",
-            resolution: 2
-          })
-          .setOrigin(0.5);
+          .sprite(0, 0, `${meta.file}-idle`)
+          .setDisplaySize(actorDisplay.width, actorDisplay.height)
+          .setInteractive({ useHandCursor: true });
 
-        container.add([shadow, sprite, labelBg, label]);
-        container.setSize(176, 184).setInteractive({ cursor: "pointer" });
-        container.on("pointerdown", () => this.showSpeech(config.id));
+        container.add([shadow, sprite]);
 
-        this.tweens.add({
-          duration: 2200 + Math.random() * 800,
-          ease: "Sine.InOut",
-          repeat: -1,
-          targets: sprite,
-          y: -4,
-          yoyo: true
-        });
-
-        this.actorMap.set(config.id, {
-          ...config,
+        const actor: ActorRuntime = {
           container,
-          label,
+          file: meta.file,
+          homeX: home.x,
+          homeY: home.y,
+          id: agent,
+          role: meta.role,
           shadow,
           sprite,
-          state: "idle"
-        });
+          state: "idle",
+          workX: work.x,
+          workY: work.y
+        };
+
+        sprite.on("pointerover", () => this.showNameplate(actor));
+        sprite.on("pointerdown", () => this.handleTalk(agent));
+
+        this.actorMap.set(agent, actor);
+        this.startIdleLoop(actor, randomBetween(800, 2600));
       });
     }
 
-    private createPetals() {
-      [120, 330, 650, 920, 1120].forEach((x, index) => {
-        const petal = this.add
-          .image(x, -40 - index * 95, "petal")
-          .setDisplaySize(20 - (index % 2) * 4, 20 - (index % 2) * 4)
-          .setAlpha(0.72)
-          .setDepth(6);
+    private resetActorsForRun(options: { startPatrol: boolean }) {
+      this.tweens.killTweensOf(this.nightOverlay);
+      this.scroll?.setAlpha(0.14).setDisplaySize(110, 110).clearTint();
+      this.nightOverlay?.setAlpha(0);
+      this.actorMap.forEach((actor) => {
+        this.cancelActorTimers(actor);
+        this.tweens.killTweensOf(actor.container);
+        this.tweens.killTweensOf(actor.sprite);
+        actor.container.setPosition(actor.homeX, actor.homeY);
+        this.updateActorDepth(actor);
+        actor.sprite
+          .setTexture(`${actor.file}-idle`)
+          .setDisplaySize(actorDisplay.width, actorDisplay.height)
+          .clearTint()
+          .setAlpha(1)
+          .setFlipX(false);
+        actor.sprite.stop?.();
+        actor.bubble?.destroy();
+        actor.bubble = undefined;
+        actor.nameplate?.destroy();
+        actor.nameplate = undefined;
+        actor.state = "idle";
+        if (options.startPatrol) {
+          this.startIdleLoop(actor, randomBetween(800, 2600));
+        }
+      });
+      this.moon?.setAlpha(0.18).clearTint().setDisplaySize(108, 108);
+      this.slash?.setAlpha(0);
+    }
+
+    private cancelActorTimers(actor: ActorRuntime) {
+      actor.patrolTimer?.remove?.();
+      actor.patrolTimer = undefined;
+      actor.nameplateTimer?.remove?.();
+      actor.nameplateTimer = undefined;
+    }
+
+    private startIdleLoop(actor: ActorRuntime, delay = randomBetween(1600, 4200)) {
+      actor.patrolTimer?.remove?.();
+      actor.patrolTimer = this.time.delayedCall(delay, () => {
+        if (this.runMachine?.isRunning() || actor.state !== "idle") {
+          this.startIdleLoop(actor, randomBetween(1400, 3200));
+          return;
+        }
+
+        if (Math.random() < 0.68) {
+          const target = this.randomPatrolPoint(actor.id);
+          this.moveActor(actor, target, {
+            duration: randomBetween(1700, 3100),
+            onComplete: () => this.startIdleLoop(actor, randomBetween(1000, 2800)),
+            stateAfter: "idle"
+          });
+        } else {
+          if (Math.random() < 0.5) actor.sprite.setFlipX(!actor.sprite.flipX);
+          if (Math.random() < 0.45) this.showFloatingBubble(actor, linesFor(actor.id, "idle")[0]);
+          this.startIdleLoop(actor, randomBetween(1800, 4300));
+        }
+      });
+    }
+
+    private randomPatrolPoint(id: AgentId) {
+      const points = patrolTiles[id];
+      const chosen = points[Math.floor(Math.random() * points.length)];
+      const base = tilePoint(chosen.tileX, chosen.tileY);
+      return {
+        x: base.x + randomBetween(-8, 8),
+        y: base.y + randomBetween(-6, 6)
+      };
+    }
+
+    private handleTalk(id: AgentId) {
+      const actor = this.actorMap.get(id);
+      if (!actor) return;
+
+      const agentState = mapActorState(actor.state);
+      const lines = linesFor(id, agentState);
+      const text = lines[Math.floor(Math.random() * lines.length)];
+
+      this.showNameplate(actor);
+      this.showFloatingBubble(actor, text);
+      this.playTaskPulse(actor, 0xf6e7b1);
+    }
+
+    private subscribeToRunEvents() {
+      this.cleanupRunEvents();
+      this.eventCleanups = [
+        EventBus.on<RunStageEvent>("run-stage", (event) => {
+          if (!event) return;
+          this.handleStageEvent(event);
+        }),
+        EventBus.on("run-completed", () => {
+          this.save = { runsCompleted: this.save.runsCompleted + 1 };
+          persistSave(this.save);
+          EventBus.emit("dojo-save", this.save);
+          this.tweens.add({
+            alpha: 1,
+            displayHeight: 146,
+            displayWidth: 146,
+            duration: 900,
+            ease: "Sine.Out",
+            targets: this.moon,
+            yoyo: true
+          });
+          this.moon?.setTint(0xfff2b5);
+        }),
+        EventBus.on("run-reset", () => {
+          this.actorMap.forEach((actor) => (actor.state = "idle"));
+        })
+      ];
+    }
+
+    private cleanupRunEvents() {
+      this.runMachine?.dispose();
+      this.eventCleanups.forEach((off) => off());
+      this.eventCleanups = [];
+      this.actorMap.forEach((actor) => this.cancelActorTimers(actor));
+    }
+
+    private handleStageEvent(event: RunStageEvent) {
+      this.tintNightForStage(event.stage);
+
+      if (!event.agent) {
+        if (event.stage === "idle") {
+          this.actorMap.forEach((actor) => {
+            actor.patrolTimer?.remove?.();
+            actor.patrolTimer = undefined;
+          });
+          this.revealScroll();
+        }
+        if (event.stage === "moonrise") {
+          this.actorMap.forEach((actor) => this.markDone(actor));
+        }
+        return;
+      }
+
+      this.finishPreviousWorkers(event.agent);
+      const actor = this.actorMap.get(event.agent);
+      if (!actor) return;
+
+      const agentState = stageToAgentState(event.stage, event.agent);
+      const linesPool = linesFor(event.agent, agentState);
+      const message = linesPool[0] ?? agentMeta[event.agent].busy;
+      const delay = randomBetween(180, 720);
+
+      this.time.delayedCall(delay, () => {
+        this.walkActorToWork(actor, event.stage);
+        this.showFloatingBubble(actor, message);
+        this.playTaskPulse(actor, event.stage === "attack" ? 0xdc2626 : 0xf6e7b1);
+      });
+
+      const reply = stageReplies[event.stage];
+      if (reply?.from && reply.line) {
+        const replyActor = this.actorMap.get(reply.from);
+        if (replyActor) {
+          this.time.delayedCall(delay + 1200, () => {
+            this.showFloatingBubble(replyActor, reply.line ?? "");
+            this.playTaskPulse(replyActor, 0xf6e7b1);
+          });
+        }
+      }
+    }
+
+    private walkActorToWork(actor: ActorRuntime, stage: RunStage) {
+      actor.patrolTimer?.remove?.();
+      const route = stageRoutes[actor.id].map(({ tileX, tileY }) =>
+        tilePoint(tileX, tileY)
+      );
+      const finalPoint = route.at(-1);
+      if (!finalPoint || finalPoint.x !== actor.workX || finalPoint.y !== actor.workY) {
+        route.push({ x: actor.workX, y: actor.workY });
+      }
+
+      this.moveActorAlongPath(actor, route, {
+        duration: stage === "attack" ? 1800 : 2600,
+        onComplete: () => {
+          if (stage === "attack") this.playSlash();
+          if (stage === "judge") {
+            this.tweens.add({
+              duration: 320,
+              targets: actor.container,
+              y: actor.workY - 18,
+              yoyo: true,
+              onUpdate: () => this.updateActorDepth(actor)
+            });
+          }
+        },
+        stage,
+        stateAfter: "working"
+      });
+    }
+
+    private moveActorAlongPath(
+      actor: ActorRuntime,
+      path: WorldPoint[],
+      options: {
+        duration: number;
+        onComplete?: () => void;
+        stage?: RunStage;
+        stateAfter: ActorState;
+      }
+    ) {
+      const points = path.filter((point) => {
+        const dx = Math.abs(point.x - actor.container.x);
+        const dy = Math.abs(point.y - actor.container.y);
+        return dx > 2 || dy > 2;
+      });
+
+      if (points.length === 0) {
+        actor.state = options.stateAfter;
+        options.onComplete?.();
+        return;
+      }
+
+      const distances = points.map((point, index) => {
+        const start = index === 0 ? actor.container : points[index - 1];
+        return Phaser.Math.Distance.Between(start.x, start.y, point.x, point.y);
+      });
+      const totalDistance = distances.reduce((sum, distance) => sum + distance, 0);
+      const minSegmentDuration = options.stage === "attack" ? 320 : 420;
+
+      actor.state = "walking";
+      actor.sprite
+          .setTexture(`${actor.file}-walk`)
+        .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight)
+        .play(`${actor.file}-walk-cycle`);
+      this.updateActorDepth(actor);
+      this.tweens.killTweensOf(actor.container);
+
+      const walkSegment = (index: number) => {
+        const target = points[index];
+        if (!target) {
+          actor.state = options.stateAfter;
+          actor.sprite
+            .setTexture(`${actor.file}-idle`)
+            .setDisplaySize(actorDisplay.width, actorDisplay.height);
+          actor.sprite.stop?.();
+          this.updateActorDepth(actor);
+          options.onComplete?.();
+          return;
+        }
+
+        actor.sprite.setFlipX(target.x < actor.container.x);
+        const segmentDuration = Math.max(
+          minSegmentDuration,
+          totalDistance > 0
+            ? (distances[index] / totalDistance) * options.duration
+            : options.duration / points.length
+        );
 
         this.tweens.add({
-          angle: 360,
-          duration: 9000 + index * 650,
-          repeat: -1,
-          targets: petal,
-          x: x + (index % 2 === 0 ? 80 : -70),
-          y: sceneSize.height + 70
+          duration: segmentDuration,
+          ease: options.stage === "attack" ? "Quad.InOut" : "Sine.InOut",
+          targets: actor.container,
+          x: target.x,
+          y: target.y,
+          onComplete: () => walkSegment(index + 1),
+          onUpdate: () => this.updateActorDepth(actor)
         });
-      });
+      };
+
+      walkSegment(0);
     }
 
-    private createSpeechBubble(actor: ActorRuntime, message: string) {
-      const bubble = this.add.container(0, -94).setDepth(20);
-      const text = this.add
-        .text(0, 0, message, {
-          align: "center",
-          color: "#ffffff",
-          fontFamily: "monospace",
-          fontSize: "22px",
-          fontStyle: "bold",
-          resolution: 2,
-          wordWrap: { width: 190 }
-        })
-        .setOrigin(0.5);
-      const bounds = text.getBounds();
-      const background = this.add
-        .rectangle(0, 0, bounds.width + 22, bounds.height + 16, 0x050505, 0.84)
-        .setStrokeStyle(1, 0xf6e7b1, 0.42);
+    private moveActor(
+      actor: ActorRuntime,
+      target: WorldPoint,
+      options: {
+        duration: number;
+        onComplete?: () => void;
+        stage?: RunStage;
+        stateAfter: ActorState;
+      }
+    ) {
+      actor.state = "walking";
+      actor.sprite
+        .setTexture(`${actor.file}-walk`)
+        .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight)
+        .play(`${actor.file}-walk-cycle`);
+      actor.sprite.setFlipX(target.x < actor.container.x);
+      this.updateActorDepth(actor);
 
-      bubble.add([background, text]);
-      actor.container.add(bubble);
-
-      return bubble;
-    }
-
-    private drawPath(actor: ActorRuntime) {
-      const home = toPoint(actor.home);
-      const work = toPoint(actor.work);
-      const graphics = this.add.graphics().setDepth(2);
-      graphics.lineStyle(2, 0xf6e7b1, 0.38);
-      graphics.beginPath();
-      graphics.moveTo(home.x, home.y);
-      graphics.lineTo(work.x, work.y);
-      graphics.strokePath();
-
+      this.tweens.killTweensOf(actor.container);
       this.tweens.add({
-        alpha: 0,
-        duration: 1050,
-        targets: graphics,
-        onComplete: () => graphics.destroy()
+        duration: options.duration,
+        ease: options.stage === "attack" ? "Quad.InOut" : "Sine.InOut",
+        targets: actor.container,
+        x: target.x,
+        y: target.y,
+        onComplete: () => {
+          actor.state = options.stateAfter;
+          actor.sprite
+            .setTexture(`${actor.file}-idle`)
+            .setDisplaySize(actorDisplay.width, actorDisplay.height);
+          actor.sprite.stop?.();
+          this.updateActorDepth(actor);
+          options.onComplete?.();
+        },
+        onUpdate: () => this.updateActorDepth(actor)
       });
     }
 
-    private finishPreviousWorkers() {
-      this.actorMap.forEach((actor) => {
-        if (actor.state === "working") {
+    private revealScroll() {
+      this.scroll?.setAlpha(1).setDisplaySize(118, 118).setTint(0xfff2b5);
+      this.tweens.add({
+        alpha: 0.95,
+        displayHeight: 138,
+        displayWidth: 138,
+        duration: 420,
+        ease: "Back.Out",
+        targets: this.scroll
+      });
+    }
+
+    private finishPreviousWorkers(except: AgentId) {
+      this.actorMap.forEach((actor, id) => {
+        if (id === except) return;
+        if (actor.state === "working" || actor.state === "walking") {
           this.markDone(actor);
         }
       });
     }
 
-    private finishRun() {
-      this.running = false;
-      this.actorMap.forEach((actor) => this.markDone(actor));
-      this.tweens.add({
-        alpha: 1,
-        duration: 900,
-        ease: "Sine.Out",
-        scale: 1.42,
-        targets: this.moon,
-        yoyo: true
-      });
-      this.moon?.setTint(0xfff2b5);
-      EventBus.emit("dojo-run-complete");
-    }
-
     private markDone(actor: ActorRuntime) {
       actor.state = "done";
-      actor.sprite.setTexture(`${actor.file}-idle`).setDisplaySize(122, 142);
+      actor.sprite
+        .setTexture(`${actor.file}-idle`)
+        .setDisplaySize(actorDisplay.width, actorDisplay.height);
       actor.sprite.stop?.();
-      actor.label.setText(`${actor.id.toUpperCase()} / DONE`);
-      actor.container.setDepth(Math.round(actor.container.y));
-      actor.bubble?.destroy();
-      actor.bubble = undefined;
-
-      if (!actor.check) {
-        actor.check = this.add
-          .text(40, -46, "✓", {
-            backgroundColor: "#166534",
-            color: "#f6e7b1",
-            fontFamily: "monospace",
-            fontSize: "26px",
-            fontStyle: "bold",
-            padding: { bottom: 4, left: 7, right: 7, top: 4 },
-            resolution: 2
-          })
-          .setOrigin(0.5);
-        actor.container.add(actor.check);
-      }
+      this.updateActorDepth(actor);
     }
 
-    private walkActor(id: AgentId, duration: number, effect: string) {
-      const actor = this.actorMap.get(id);
+    private showNameplate(actor: ActorRuntime) {
+      actor.nameplate?.destroy();
+      actor.nameplateTimer?.remove?.();
 
-      if (!actor) {
-        return;
-      }
+      const plate = this.add.container(0, 72).setDepth(710);
+      const text = this.add
+        .text(0, 0, `${actor.id} / ${actor.role}`, {
+          color: "#f6e7b1",
+          fontFamily: "monospace",
+          fontSize: "16px",
+          fontStyle: "bold",
+          resolution: 2
+        })
+        .setOrigin(0.5);
+      const bounds = text.getBounds();
+      const bg = this.add
+        .rectangle(0, 0, bounds.width + 22, bounds.height + 12, 0x050505, 0.9)
+        .setStrokeStyle(1, 0xf6e7b1, 0.58);
+      plate.add([bg, text]);
+      actor.container.add(plate);
+      actor.nameplate = plate;
 
-      this.finishPreviousWorkers();
-      actor.state = "walking";
-      actor.bubble?.destroy();
-      actor.bubble = undefined;
-      actor.label.setText(`${actor.id.toUpperCase()} / ${actor.role}`);
-      actor.sprite
-        .setTexture(`${actor.file}-walk`)
-        .setDisplaySize(122, 156)
-        .play(`${actor.file}-walk-cycle`);
-      actor.sprite.setFlipX(actor.work.x < actor.home.x);
-      actor.container.setDepth(30);
-      this.drawPath(actor);
-
-      const work = toPoint(actor.work);
-      this.tweens.add({
-        duration,
-        ease: effect === "attack" ? "Quad.InOut" : "Sine.InOut",
-        targets: actor.container,
-        x: work.x,
-        y: work.y,
-        onComplete: () => {
-          actor.state = "working";
-          actor.sprite.setTexture(`${actor.file}-idle`).setDisplaySize(122, 142);
-          actor.sprite.stop?.();
-          actor.container.setDepth(Math.round(work.y));
-          this.showSpeech(id);
-
-          if (effect === "attack") {
-            this.playSlash();
-          }
-
-          if (effect === "judge") {
-            this.tweens.add({
-              duration: 320,
-              targets: actor.container,
-              y: work.y - 18,
-              yoyo: true
-            });
-          }
+      actor.nameplateTimer = this.time.delayedCall(1600, () => {
+        if (actor.nameplate === plate) {
+          plate.destroy();
+          actor.nameplate = undefined;
         }
       });
+    }
 
-      if (effect === "attack") {
-        this.tweens.add({
-          angle: 4,
-          duration: 90,
-          repeat: 6,
-          targets: actor.container,
-          yoyo: true
-        });
-      }
+    private showFloatingBubble(actor: ActorRuntime, message: string) {
+      actor.bubble?.destroy();
+      const bubble = this.add.container(0, -94).setDepth(720);
+      const text = this.add
+        .text(0, 0, message, {
+          align: "center",
+          color: "#ffffff",
+          fontFamily: "monospace",
+          fontSize: "18px",
+          fontStyle: "bold",
+          resolution: 2,
+          wordWrap: { width: 260 }
+        })
+        .setOrigin(0.5);
+      const bounds = text.getBounds();
+      const bg = this.add
+        .rectangle(0, 0, bounds.width + 28, bounds.height + 20, 0x050505, 0.94)
+        .setStrokeStyle(2, 0xf6e7b1, 0.72);
+      bubble.add([bg, text]);
+      actor.container.add(bubble);
+      actor.bubble = bubble;
+
+      this.time.delayedCall(2800, () => {
+        if (actor.bubble === bubble) {
+          bubble.destroy();
+          actor.bubble = undefined;
+        }
+      });
+    }
+
+    private playTaskPulse(actor: ActorRuntime, color: number) {
+      const ring = this.add
+        .ellipse(0, 42, 70, 18, color, 0.16)
+        .setStrokeStyle(2, color, 0.55)
+        .setDepth(1);
+      actor.container.addAt(ring, 0);
+      this.tweens.add({
+        alpha: 0,
+        duration: 650,
+        ease: "Sine.Out",
+        scaleX: 1.75,
+        scaleY: 1.75,
+        targets: ring,
+        onComplete: () => ring.destroy()
+      });
     }
 
     private playSlash() {
-      this.slash?.setAlpha(0).setScale(0.72);
+      this.slash?.setAlpha(0).setDisplaySize(240, 150);
       this.tweens.add({
         alpha: { from: 0, to: 1 },
+        displayHeight: 220,
+        displayWidth: 350,
         duration: 180,
         ease: "Quad.Out",
-        scale: 1.18,
+        onComplete: () => this.slash?.setAlpha(0),
         targets: this.slash,
-        yoyo: true,
-        onComplete: () => this.slash?.setAlpha(0)
+        yoyo: true
+      });
+    }
+
+    private updateActorDepth(actor: ActorRuntime) {
+      actor.container.setDepth(Math.round(actor.container.y));
+    }
+
+    private tintNightForStage(stage: RunStage) {
+      if (!this.nightOverlay) return;
+      const targets: Record<RunStage, number> = {
+        attack: 0.16,
+        build: 0.06,
+        deploy: 0.28,
+        idle: 0,
+        judge: 0.38,
+        moonrise: 0.05,
+        plan: 0.03,
+        review: 0.2
+      };
+      this.tweens.add({
+        alpha: targets[stage],
+        duration: 900,
+        ease: "Sine.InOut",
+        targets: this.nightOverlay
       });
     }
   };
+}
+
+function mapActorState(state: ActorState): "idle" | "working" | "done" {
+  if (state === "done") return "done";
+  if (state === "walking" || state === "working") return "working";
+  return "idle";
 }

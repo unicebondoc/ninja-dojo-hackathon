@@ -44,7 +44,7 @@ Product scroll
   ↓
 Shoji panels open
   ↓
-Moji plans → Miji builds → Renegade attacks → Sensei reviews → Tester deploys
+Moji plans → Miji builds → Maji attacks → Meji reviews → Muji deploys
   ↓
 Meowts judges
   ↓
@@ -60,7 +60,7 @@ The current local demo is cached-first and stage-safe. It does not require Teleg
 - Game-like dark dojo homepage with Scroll → Panels → Moon storytelling.
 - Phaser-powered 2D dojo board with moving chibi agents, moonlight, katana effects, stations, progress, and event log.
 - Cached-first run timeline that works without live services.
-- Six named agent roles: Moji, Miji, Renegade, Sensei, Tester, and Meowts.
+- Six named agent roles: Moji, Miji, Maji, Meji, Muji, and Meowts.
 - Shoji status panels that show idle, working, complete, and failed states.
 - Artifact packet for plan, build notes, attack findings, review, deploy checks, and final judgment.
 - Cached `/api/train` compatibility endpoint for reliable demos.
@@ -92,7 +92,7 @@ Generate GPT Image 2 assets when `OPENAI_API_KEY` is configured:
 npm run generate:assets
 ```
 
-The requested spritesheet is a single transparent PNG with six chibi game sprites in one row: Moji, Miji, Renegade, Sensei, Tester, and Meowts.
+The requested spritesheet is a single transparent PNG with six chibi game sprites in one row: Moji, Miji, Maji, Meji, Muji, and Meowts.
 
 ## Architecture
 
@@ -141,9 +141,9 @@ The requested spritesheet is a single transparent PNG with six chibi game sprite
 - `AGENTS.md` describes the Dojo Law and product rules.
 - `.codex/skills/moji-plan/SKILL.md` turns a scroll into a plan.
 - `.codex/skills/miji-build/SKILL.md` builds the artifact.
-- `.codex/skills/renegade-attack/SKILL.md` attacks the plan and build.
-- `.codex/skills/sensei-review/SKILL.md` reviews architecture.
-- `.codex/skills/tester-deploy/SKILL.md` checks build and preview readiness.
+- `.codex/skills/maji-attack/SKILL.md` attacks the plan and build.
+- `.codex/skills/meji-review/SKILL.md` reviews architecture.
+- `.codex/skills/muji-deploy/SKILL.md` checks build and preview readiness.
 - `.codex/skills/meowts-judge/SKILL.md` decides whether the moon rises.
 
 ## Product Direction
@@ -174,7 +174,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`, click **Send Scroll**, then watch the agents talk to each other and complete the run. The shipped preview is available at `/demo/oracle`.
+Open `http://localhost:3000`, click **Send Scroll**, and watch the ninjas walk, talk, review, deploy, and judge inside the live dojo. The shipped preview is available at `/demo/oracle` after moonrise.
 
 ## Current Routes
 
@@ -191,7 +191,7 @@ The next production adapters should preserve the current `DojoRun` and `DojoRunE
 - Database: Postgres for runs, events, artifacts, users, and team workspaces.
 - Auth: account login, workspace membership, and run ownership.
 - Codex orchestration: replace the local event factory with real worktree execution.
-- Deployments: connect Tester to preview deploy providers.
+- Deployments: connect Muji to preview deploy providers.
 - Billing: add plans only after the core run loop is valuable.
 - Observability: event logs, run replay, error recovery, and agent quality metrics.
 

@@ -19,20 +19,20 @@ export const demoOutput: DojoDemoOutput = {
       output: "Built a dark mystical landing page with waitlist CTA."
     },
     {
-      name: "Renegade",
+      name: "Maji",
       role: "Attack",
       status: "complete",
       output: "Flagged vague CTA and weak mobile spacing. Fixed before ship."
     },
     {
-      name: "Sensei",
+      name: "Meji",
       role: "Review",
       status: "complete",
       output:
         "Architecture approved. Live SSE backend, clean Tailwind, adapter-ready orchestration."
     },
     {
-      name: "Tester",
+      name: "Muji",
       role: "Deploy",
       status: "complete",
       output: "Build passed. Live stream and preview ready at /demo/oracle."

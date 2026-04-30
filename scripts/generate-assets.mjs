@@ -19,7 +19,7 @@ const prompts = [
     size: "1536x256",
     background: "transparent",
     prompt:
-      "Transparent PNG spritesheet, one row of six small chibi/pixel-art game sprites, consistent scale and lighting, top-down/isometric hybrid, dark ninja dojo theme, no text, no logos. Characters left to right: Moji with gold headband and scroll, Miji with red scarf and builder tool, Renegade with red flame accent and twin blades, Sensei with white-gray robe and calm pose, Tester with blue accent and checklist/tool, Meowts as a small ninja cat with pink/gold accent. Polished readable game sprites."
+      "Transparent PNG spritesheet, one row of six small chibi/pixel-art game sprites, consistent scale and lighting, top-down/isometric hybrid, dark ninja dojo theme, no text, no logos. Characters left to right: Moji with gold headband and scroll, Miji with red scarf and builder tool, Maji with red flame accent and twin blades, Meji with white-gray robe and calm pose, Muji with blue accent and checklist/tool, Meowts as a small ninja cat with pink/gold accent. Polished readable game sprites."
   },
   {
     name: "scroll.png",

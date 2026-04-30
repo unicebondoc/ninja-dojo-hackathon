@@ -44,7 +44,7 @@ const assets = [
     prompt: `${spritePrefix} Dark ninja outfit, blood-red scarf trailing slightly, holding a small builder hammer or wrench, ready-to-build stance, focused builder energy.`
   },
   {
-    filename: "renegade.png",
+    filename: "maji.png",
     size: "1024x1024",
     quality: "medium",
     background: "opaque",
@@ -52,7 +52,7 @@ const assets = [
     prompt: `${spritePrefix} Dark ninja outfit, blood-red flame accent, twin short blades, aggressive attack stance, one blade raised, dynamic adversary energy, strong action silhouette.`
   },
   {
-    filename: "sensei.png",
+    filename: "meji.png",
     size: "1024x1024",
     quality: "medium",
     background: "opaque",
@@ -60,12 +60,12 @@ const assets = [
     prompt: `${spritePrefix} White-gray robe layered over dark ninja outfit, holding a small scroll or short staff, calm architect pose, still and wise, elegant mentor silhouette.`
   },
   {
-    filename: "tester.png",
+    filename: "muji.png",
     size: "1024x1024",
     quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${spritePrefix} Dark ninja outfit with deep blue accent scarf, holding checklist tablet and tiny deploy tool, precise tester stance, focused and reliable.`
+    prompt: `${spritePrefix} Dark ninja outfit with deep blue accent scarf, holding checklist tablet and tiny deploy tool, precise deployer stance, focused and reliable.`
   },
   {
     filename: "meowts.png",
@@ -128,7 +128,7 @@ const assets = [
     prompt: `${walkingSpritePrefix} Character: dark ninja outfit, blood-red scarf, holding small builder hammer or wrench.`
   },
   {
-    filename: "renegade-walk.png",
+    filename: "maji-walk.png",
     size: "1536x1024",
     quality: "medium",
     background: "opaque",
@@ -136,7 +136,7 @@ const assets = [
     prompt: `${walkingSpritePrefix} Character: dark ninja outfit, blood-red flame accent, twin short blades.`
   },
   {
-    filename: "sensei-walk.png",
+    filename: "meji-walk.png",
     size: "1536x1024",
     quality: "medium",
     background: "opaque",
@@ -144,7 +144,7 @@ const assets = [
     prompt: `${walkingSpritePrefix} Character: white-gray robe over dark ninja outfit, holding short staff or scroll.`
   },
   {
-    filename: "tester-walk.png",
+    filename: "muji-walk.png",
     size: "1536x1024",
     quality: "medium",
     background: "opaque",

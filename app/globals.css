@@ -1018,7 +1018,7 @@ textarea {
     linear-gradient(135deg, #202028, #07070a);
 }
 
-.dojo-sprite[data-variant="sensei"] .dojo-sprite__body {
+.dojo-sprite[data-variant="meji"] .dojo-sprite__body {
   background:
     linear-gradient(#cbd5e1, #cbd5e1) 50% 0 / 9px 100% no-repeat,
     linear-gradient(135deg, #f8fafc, #71717a);
@@ -1051,7 +1051,7 @@ textarea {
   background: #9ca3af;
 }
 
-.dojo-sprite[data-variant="tester"] .dojo-sprite__prop {
+.dojo-sprite[data-variant="muji"] .dojo-sprite__prop {
   right: 3px;
   width: 28px;
   height: 30px;
@@ -1657,13 +1657,13 @@ textarea {
 }
 
 .anime-agent[data-face="masked"] .anime-agent-face,
-.anime-agent[data-face="tester"] .anime-agent-face {
+.anime-agent[data-face="deployer"] .anime-agent-face {
   background:
     linear-gradient(var(--agent-accent), var(--agent-accent)) 0 15px / 100% 10px no-repeat,
     #f2bf9e;
 }
 
-.anime-agent[data-face="sensei"] .anime-agent-hair {
+.anime-agent[data-face="mentor"] .anime-agent-hair {
   background:
     linear-gradient(135deg, #f4f4f5, #71717a);
 }
@@ -3658,8 +3658,8 @@ textarea {
 .rpg-hero__layout {
   display: grid;
   min-height: 0;
-  grid-template-columns: minmax(270px, 0.72fr) minmax(760px, 2.5fr) minmax(270px, 0.74fr);
-  gap: 16px;
+  grid-template-columns: minmax(170px, 0.36fr) minmax(860px, 4fr) minmax(170px, 0.36fr);
+  gap: 12px;
   align-items: stretch;
   padding: 0 16px;
 }
@@ -3682,9 +3682,9 @@ textarea {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid rgba(246, 231, 177, 0.14);
-  padding: 14px 15px;
+  padding: 12px;
   color: #f6e7b1;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 950;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -3702,8 +3702,8 @@ textarea {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
+  gap: 8px;
+  padding: 10px;
 }
 
 .rpg-event-log__empty,
@@ -3712,9 +3712,9 @@ textarea {
   border: 1px solid rgba(246, 231, 177, 0.13);
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.36);
-  padding: 12px;
+  padding: 10px;
   color: rgba(255, 255, 255, 0.68);
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1.45;
 }
 
@@ -3745,7 +3745,7 @@ textarea {
   position: relative;
   isolation: isolate;
   width: 100%;
-  max-height: min(68vh, 790px);
+  max-height: min(72vh, 840px);
   overflow: hidden;
   border: 1px solid rgba(246, 231, 177, 0.24);
   border-radius: 12px;
@@ -3803,6 +3803,7 @@ textarea {
 }
 
 .phaser-dojo-debug {
+  display: none;
   position: absolute;
   right: 12px;
   bottom: 12px;
@@ -4190,8 +4191,8 @@ textarea {
 
 .rpg-moon-panel__orb {
   display: grid;
-  width: min(76%, 210px);
-  margin: 18px auto 12px;
+  width: min(70%, 170px);
+  margin: 16px auto 10px;
   aspect-ratio: 1;
   place-items: center;
   opacity: 0.62;
@@ -4223,7 +4224,7 @@ textarea {
 .rpg-moon-panel h2 {
   margin: 6px 16px 0;
   color: #fff;
-  font-size: clamp(26px, 2vw, 36px);
+  font-size: clamp(22px, 1.6vw, 31px);
   font-weight: 950;
   line-height: 1.02;
 }
@@ -4231,7 +4232,7 @@ textarea {
 .rpg-moon-panel p {
   margin: 12px 16px 0;
   color: rgba(255, 255, 255, 0.72);
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -4249,7 +4250,7 @@ textarea {
   border-top: 1px solid rgba(246, 231, 177, 0.12);
   padding-top: 9px;
   color: rgba(255, 255, 255, 0.78);
-  font-size: 13px;
+  font-size: 11px;
 }
 
 .rpg-moon-panel__stats strong {

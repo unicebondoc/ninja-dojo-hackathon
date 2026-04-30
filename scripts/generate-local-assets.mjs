@@ -150,9 +150,9 @@ function spritesheetSvg() {
   const sprites = [
     spriteSvg(128, "Moji", palette.gold, "scroll"),
     spriteSvg(384, "Miji", palette.red, "hammer"),
-    spriteSvg(640, "Renegade", "#fb923c", "blades"),
-    spriteSvg(896, "Sensei", "#cbd5e1", "robe"),
-    spriteSvg(1152, "Tester", palette.blue, "check"),
+    spriteSvg(640, "Maji", "#fb923c", "blades"),
+    spriteSvg(896, "Meji", "#cbd5e1", "robe"),
+    spriteSvg(1152, "Muji", palette.blue, "check"),
     catSpriteSvg(1408)
   ];
 

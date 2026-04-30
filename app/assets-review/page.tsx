@@ -8,9 +8,9 @@ const assetNames = [
   "dojo-background.png",
   "moji.png",
   "miji.png",
-  "renegade.png",
-  "sensei.png",
-  "tester.png",
+  "maji.png",
+  "meji.png",
+  "muji.png",
   "meowts.png",
   "scroll.png",
   "moon.png",
@@ -18,9 +18,9 @@ const assetNames = [
   "petal.png",
   "moji-walk.png",
   "miji-walk.png",
-  "renegade-walk.png",
-  "sensei-walk.png",
-  "tester-walk.png",
+  "maji-walk.png",
+  "meji-walk.png",
+  "muji-walk.png",
   "meowts-walk.png"
 ];
 

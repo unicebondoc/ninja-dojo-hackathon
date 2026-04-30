@@ -19,15 +19,15 @@ type StageAgent = {
   accent: string;
   x: number;
   y: number;
-  face: "ninja" | "masked" | "sensei" | "tester" | "cat";
+  face: "ninja" | "masked" | "mentor" | "deployer" | "cat";
 };
 
 const stageAgents: Record<string, StageAgent> = {
   Moji: { name: "Moji", role: "Plan", accent: "#f6e7b1", x: 18, y: 45, face: "ninja" },
   Miji: { name: "Miji", role: "Build", accent: "#dc2626", x: 36, y: 66, face: "ninja" },
-  Renegade: { name: "Renegade", role: "Attack", accent: "#fb923c", x: 72, y: 43, face: "masked" },
-  Sensei: { name: "Sensei", role: "Review", accent: "#99f6e4", x: 61, y: 66, face: "sensei" },
-  Tester: { name: "Tester", role: "Deploy", accent: "#93c5fd", x: 21, y: 75, face: "tester" },
+  Maji: { name: "Maji", role: "Attack", accent: "#fb923c", x: 72, y: 43, face: "masked" },
+  Meji: { name: "Meji", role: "Review", accent: "#99f6e4", x: 61, y: 66, face: "mentor" },
+  Muji: { name: "Muji", role: "Deploy", accent: "#93c5fd", x: 21, y: 75, face: "deployer" },
   Meowts: { name: "Meowts", role: "Judge", accent: "#f9a8d4", x: 82, y: 74, face: "cat" }
 };
 
@@ -69,7 +69,7 @@ export function AnimeDojoStage({
       <motion.div
         animate={{
           opacity: isRunning || isComplete ? 1 : 0.64,
-          x: speaker === "Miji" || speaker === "Renegade" ? 8 : 0,
+          x: speaker === "Miji" || speaker === "Maji" ? 8 : 0,
           scale: speaker === "Miji" ? 1.03 : 1
         }}
         className="anime-hero-card"
@@ -200,15 +200,15 @@ function getEffectForSpeaker(speaker?: string): AnimeEffect {
     return "build";
   }
 
-  if (speaker === "Renegade") {
+  if (speaker === "Maji") {
     return "attack";
   }
 
-  if (speaker === "Sensei") {
+  if (speaker === "Meji") {
     return "review";
   }
 
-  if (speaker === "Tester") {
+  if (speaker === "Muji") {
     return "deploy";
   }
 

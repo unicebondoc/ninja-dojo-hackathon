@@ -24,7 +24,7 @@ export const defaultArtifacts: DojoArtifact[] = [
   },
   {
     kind: "attack",
-    title: "Renegade attack",
+    title: "Maji attack",
     summary: "Product risks called out before the ship moment.",
     body: [
       "CTA needed to be clear above the fold.",
@@ -34,7 +34,7 @@ export const defaultArtifacts: DojoArtifact[] = [
   },
   {
     kind: "review",
-    title: "Sensei review",
+    title: "Meji review",
     summary: "Architecture stays simple and Codex-native.",
     body: [
       "App Router routes cover the dashboard, shipped preview, cached API, and SSE run stream.",
@@ -44,7 +44,7 @@ export const defaultArtifacts: DojoArtifact[] = [
   },
   {
     kind: "deploy",
-    title: "Tester deploy",
+    title: "Muji deploy",
     summary: "Build path and preview route are verified for deployment.",
     body: [
       "Production build passes with Next.js 15.",
@@ -169,7 +169,7 @@ export function createLiveDojoEvents(run: DojoRun): DojoRunEvent[] {
       runId: run.id,
       agentName: "Miji",
       role: "Build",
-      message: "Renegade, warm up. I want you to break this before a customer does."
+      message: "Maji, warm up. I want you to break this before a customer does."
     },
     {
       id: `${run.id}-miji-done`,
@@ -185,52 +185,52 @@ export function createLiveDojoEvents(run: DojoRun): DojoRunEvent[] {
       type: "agent_started",
       at: 4050,
       runId: run.id,
-      agentName: "Renegade",
+      agentName: "Maji",
       role: "Attack",
       message: "I found the weak spots: CTA clarity and mobile breathing room."
     },
     {
-      id: `${run.id}-sensei-start`,
+      id: `${run.id}-meji-start`,
       type: "agent_started",
       at: 4300,
       runId: run.id,
-      agentName: "Sensei",
+      agentName: "Meji",
       role: "Review",
       message: "Architecture is under review. Keep the critical path simple."
     },
     {
-      id: `${run.id}-tester-start`,
+      id: `${run.id}-muji-start`,
       type: "agent_started",
       at: 4550,
       runId: run.id,
-      agentName: "Tester",
+      agentName: "Muji",
       role: "Deploy",
       message: "I am checking the local preview routes and deploy readiness."
     },
     {
-      id: `${run.id}-renegade-done`,
+      id: `${run.id}-maji-done`,
       type: "agent_completed",
       at: 5600,
       runId: run.id,
-      agentName: "Renegade",
+      agentName: "Maji",
       role: "Attack",
       message: demoOutput.agents[2].output
     },
     {
-      id: `${run.id}-sensei-done`,
+      id: `${run.id}-meji-done`,
       type: "agent_completed",
       at: 6400,
       runId: run.id,
-      agentName: "Sensei",
+      agentName: "Meji",
       role: "Review",
       message: demoOutput.agents[3].output
     },
     {
-      id: `${run.id}-tester-done`,
+      id: `${run.id}-muji-done`,
       type: "agent_completed",
       at: 7250,
       runId: run.id,
-      agentName: "Tester",
+      agentName: "Muji",
       role: "Deploy",
       message: demoOutput.agents[4].output
     },

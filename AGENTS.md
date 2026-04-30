@@ -13,9 +13,9 @@ Every scroll follows the way of the ninja:
 
 1. Moji plans before any blade is drawn.
 2. Miji builds in isolation, never in the main hall.
-3. Renegade attacks every plan to find weakness.
-4. Sensei reviews architecture for harmony.
-5. Tester deploys only when the work passes.
+3. Maji attacks every plan to find weakness.
+4. Meji reviews architecture for harmony.
+5. Muji deploys only when the work passes.
 6. Meowts judges the final result from the pagoda roof.
 
 ## Rules
@@ -37,5 +37,5 @@ Build a landing page for a magical oracle deck with a waitlist CTA.
 
 I am a solo builder. Codex gives me parallel workers, but I needed a command center.
 Ninja Dojo is that command center: one scroll in, live ninjas out.
-Moji plans, Miji builds, Renegade attacks, Sensei reviews, Tester deploys, and Meowts judges.
+Moji plans, Miji builds, Maji attacks, Meji reviews, Muji deploys, and Meowts judges.
 The scroll becomes a shipped page. The moon rises when it passes.

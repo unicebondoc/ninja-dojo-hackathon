@@ -27,21 +27,21 @@ type DojoSpriteProps = {
 };
 
 const spriteFiles: Record<string, string> = {
+  Maji: "maji.png",
+  Meji: "meji.png",
   Meowts: "meowts.png",
   Miji: "miji.png",
   Moji: "moji.png",
-  Renegade: "renegade.png",
-  Sensei: "sensei.png",
-  Tester: "tester.png"
+  Muji: "muji.png"
 };
 
 const walkSpriteFiles: Record<string, string> = {
+  Maji: "maji-walk.png",
+  Meji: "meji-walk.png",
   Meowts: "meowts-walk.png",
   Miji: "miji-walk.png",
   Moji: "moji-walk.png",
-  Renegade: "renegade-walk.png",
-  Sensei: "sensei-walk.png",
-  Tester: "tester-walk.png"
+  Muji: "muji-walk.png"
 };
 
 export function DojoSprite({
@@ -93,10 +93,12 @@ export function DojoSprite({
         />
       )}
       <span className="rpg-sprite__shadow" />
-      <span className="rpg-sprite__label">
-        <strong>{actor.name.toUpperCase()}</strong>
-        <em>{actor.role}</em>
-      </span>
+      {speech ? null : (
+        <span className="rpg-sprite__label">
+          <strong>{actor.name.toUpperCase()}</strong>
+          <em>{actor.role}</em>
+        </span>
+      )}
       {isComplete ? <span className="rpg-sprite__check">✓</span> : null}
     </button>
   );

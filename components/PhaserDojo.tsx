@@ -18,13 +18,12 @@ export type PhaserDojoHandle = {
 type PhaserDojoProps = {
   boardTitle: string;
   complete: boolean;
-  onComplete?: () => void;
   onReady?: () => void;
   running: boolean;
 };
 
 export const PhaserDojo = forwardRef<PhaserDojoHandle, PhaserDojoProps>(
-  function PhaserDojo({ boardTitle, complete, onComplete, onReady, running }, ref) {
+  function PhaserDojo({ boardTitle, complete, onReady, running }, ref) {
     const gameRef = useRef<any>(undefined);
     const mountRef = useRef<HTMLDivElement>(null);
     const sceneRef = useRef<DojoSceneController | undefined>(undefined);
@@ -42,7 +41,6 @@ export const PhaserDojo = forwardRef<PhaserDojoHandle, PhaserDojoProps>(
     useEffect(() => {
       let cancelled = false;
       let cleanupReady = () => {};
-      let cleanupComplete = () => {};
 
       async function bootGame() {
         if (!mountRef.current || gameRef.current) {
@@ -58,19 +56,22 @@ export const PhaserDojo = forwardRef<PhaserDojoHandle, PhaserDojoProps>(
           setReady(true);
           onReady?.();
         });
-        cleanupComplete = EventBus.on("dojo-run-complete", () => {
-          onComplete?.();
-        });
 
         if (cancelled || !mountRef.current) {
           cleanupReady();
-          cleanupComplete();
           return;
         }
 
         gameRef.current = new Phaser.Game({
           backgroundColor: "#070403",
           parent: mountRef.current,
+          physics: {
+            arcade: {
+              debug: false,
+              gravity: { x: 0, y: 0 }
+            },
+            default: "arcade"
+          },
           pixelArt: true,
           render: {
             antialias: false,
@@ -92,12 +93,11 @@ export const PhaserDojo = forwardRef<PhaserDojoHandle, PhaserDojoProps>(
       return () => {
         cancelled = true;
         cleanupReady();
-        cleanupComplete();
         sceneRef.current = undefined;
         gameRef.current?.destroy(true);
         gameRef.current = undefined;
       };
-    }, [onComplete, onReady]);
+    }, [onReady]);
 
     return (
       <div
