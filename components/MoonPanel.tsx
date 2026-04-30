@@ -59,8 +59,8 @@ export function MoonPanel({
           Cached-first
         </span>
         <span>
-          <strong>Route</strong>
-          /demo/oracle
+          <strong>Moonrise</strong>
+          Shipped page
         </span>
         <span>
           <strong>Signal</strong>

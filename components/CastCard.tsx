@@ -6,13 +6,13 @@ type CastCardProps = {
 };
 
 export function CastCard({ accent, line, name, role }: CastCardProps) {
-  const crestPath = `/cast/${name.toLowerCase()}-crest.png`;
+  const spritePath = `/assets/dojo/${name.toLowerCase()}.png`;
 
   return (
     <article className="cast-card" data-accent={accent}>
       <div className="cast-card__top">
         <span className="cast-card__crest">
-          <img alt="" aria-hidden="true" draggable={false} src={crestPath} />
+          <img alt="" aria-hidden="true" draggable={false} src={spritePath} />
         </span>
         <span>{role}</span>
       </div>

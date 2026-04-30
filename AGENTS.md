@@ -47,9 +47,9 @@ Every scroll follows the way of the ninja:
 - Keep the UI dark, sharp, and memorable.
 - Do not overbuild. Ship the scroll → live dojo → panels → moon path first.
 
-## Stage-Demo Constraints
+## Fallback Constraints
 
-The stage-demo path is cached-first and must run without:
+The fallback run path is cached-first and must run without:
 
 - Telegram
 - Vercel
@@ -59,9 +59,9 @@ The stage-demo path is cached-first and must run without:
 - Payments
 - Any external orchestration
 
-Live adapters may exist behind feature flags. They must never be required for the stage demo.
+Live adapters may exist behind feature flags. They must never be required for the fallback run.
 
-## Demo Scroll
+## Example Scroll
 
 Build a landing page for a magical oracle deck with a waitlist CTA.
 

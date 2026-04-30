@@ -62,9 +62,9 @@ const agentMeta: Record<AgentId, { busy: string; done: string; file: string; rol
 
 const actorDisplay = {
   height: 124,
-  shadowHeight: 8,
-  shadowOffsetY: 54,
-  shadowWidth: 42,
+  shadowHeight: 10,
+  shadowOffsetY: 58,
+  shadowWidth: 46,
   walkHeight: 236,
   walkWidth: 96,
   width: 100
@@ -263,7 +263,11 @@ export function createDojoScene(Phaser: any) {
       EventBus.emit("dojo-save", this.save);
     }
 
-    update() {}
+    update() {
+      this.actorMap.forEach((actor) => {
+        this.updateActorShadow(actor);
+      });
+    }
 
     runDojo() {
       if (!this.runMachine?.isRunning()) {
@@ -401,24 +405,13 @@ export function createDojoScene(Phaser: any) {
           .container(home.x, home.y)
           .setDepth(Math.round(home.y));
 
-        const shadow = this.add
-          .ellipse(
-            0,
-            actorDisplay.shadowOffsetY,
-            actorDisplay.shadowWidth,
-            actorDisplay.shadowHeight,
-            0x000000,
-            0.42
-          )
-          .setDepth(-1);
+        const shadow = this.createNinjaShadow(home.x, home.y, agent);
         const sprite = this.add
           .sprite(0, 0, `${meta.file}-idle`)
           .setDisplaySize(actorDisplay.width, actorDisplay.height)
-          .setInteractive({
-            cursor: 'url("/cursors/ninja-pointer.png") 8 8, pointer'
-          });
+          .setInteractive({ useHandCursor: true });
 
-        container.add([shadow, sprite]);
+        container.add([sprite]);
 
         const actor: ActorRuntime = {
           container,
@@ -493,6 +486,20 @@ export function createDojoScene(Phaser: any) {
       actor.patrolTimer = undefined;
       actor.nameplateTimer?.remove?.();
       actor.nameplateTimer = undefined;
+    }
+
+    private createNinjaShadow(x: number, y: number, id: AgentId) {
+      const isSmall = id === "Meowts";
+      return this.add
+        .ellipse(
+          x,
+          y + actorDisplay.shadowOffsetY,
+          isSmall ? 36 : actorDisplay.shadowWidth,
+          isSmall ? 8 : actorDisplay.shadowHeight,
+          0x000000,
+          isSmall ? 0.38 : 0.46
+        )
+        .setDepth(Math.round(y) - 2);
     }
 
     private startIdleLoop(actor: ActorRuntime, delay = randomBetween(1600, 4200)) {
@@ -886,8 +893,8 @@ export function createDojoScene(Phaser: any) {
       actor.pointer?.destroy();
       const pointer = this.add
         .image(0, -78, "ninja-pointer")
-        .setDisplaySize(34, 34)
-        .setAlpha(0.96)
+        .setDisplaySize(22, 22)
+        .setAlpha(0.86)
         .setDepth(715);
       actor.container.add(pointer);
       actor.pointer = pointer;
@@ -1037,13 +1044,19 @@ export function createDojoScene(Phaser: any) {
 
     private updateActorDepth(actor: ActorRuntime) {
       actor.container.setDepth(Math.round(actor.container.y));
+      this.updateActorShadow(actor);
     }
 
     private updateActorShadow(actor: ActorRuntime) {
+      const isSmall = actor.id === "Meowts";
       actor.shadow
-        ?.setPosition(0, actorDisplay.shadowOffsetY)
-        .setDisplaySize(actorDisplay.shadowWidth, actorDisplay.shadowHeight)
-        .setAlpha(actor.state === "walking" ? 0.38 : 0.42);
+        ?.setPosition(actor.container.x, actor.container.y + actorDisplay.shadowOffsetY)
+        .setDisplaySize(
+          isSmall ? 36 : actorDisplay.shadowWidth,
+          isSmall ? 8 : actorDisplay.shadowHeight
+        )
+        .setAlpha(actor.state === "walking" ? 0.4 : isSmall ? 0.38 : 0.46)
+        .setDepth(Math.round(actor.container.y) - 2);
     }
 
     private tintNightForStage(stage: RunStage) {

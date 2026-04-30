@@ -37,7 +37,7 @@ Scroll → Plan → Build → Attack → Review → Deploy → Judge → Moonris
 5. **Review** — Meji checks architecture and maintainability.
 6. **Deploy** — Muji runs build/test checks and prepares a preview.
 7. **Judge** — Meowts decides: does the moon rise?
-8. **Moonrise** — the shipped page opens at `/demo/oracle`.
+8. **Moonrise** — the shipped page is ready to open.
 
 ## Codex-Native Architecture
 
@@ -60,9 +60,9 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`, send the scroll, and watch the dojo go to work. The shipped preview is at `/demo/oracle`.
+Open `http://localhost:3000`, send the scroll, and watch the dojo go to work. The shipped page remains available at `/demo/oracle` for compatibility.
 
-## Demo Flow
+## Product Flow
 
 What a first-time visitor sees:
 
@@ -72,9 +72,9 @@ What a first-time visitor sees:
 4. Maji attacks the build. A katana slash flashes on screen.
 5. Meji reviews the architecture. Muji runs deploy checks.
 6. Meowts delivers the verdict from the pagoda roof.
-7. The moon rises. The shipped page opens at `/demo/oracle`.
+7. The moon rises. The shipped page is ready to open.
 
-The whole loop runs offline from cached data, so the demo never blocks on a network call.
+The whole loop runs offline from cached data, so the product never blocks on a network call.
 
 ## Tech Stack
 
@@ -87,7 +87,7 @@ The whole loop runs offline from cached data, so the demo never blocks on a netw
 ## Routes
 
 - `/` — live dojo dashboard.
-- `/demo/oracle` — sample shipped page.
+- `/demo/oracle` — backwards-compatible moonrise page.
 - `/api/runs` — run creation API.
 - `/api/runs/[runId]/events` — SSE run stream.
 - `/api/train` — cached compatibility API.

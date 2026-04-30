@@ -171,7 +171,7 @@ export function LiveDojo() {
           tabIndex={!complete ? -1 : undefined}
         >
           <ExternalLink className="h-5 w-5" />
-          Open Shipped Page
+          View Moonrise
         </Link>
       </div>
     </section>
