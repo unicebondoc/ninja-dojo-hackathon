@@ -69,12 +69,12 @@ const shadowSpecs: Record<
   AgentId,
   { alpha: number; anchorY: number; height: number; offsetY: number; width: number }
 > = {
-  Maji: { alpha: 0.48, anchorY: 0.75, height: 12, offsetY: 3, width: 52 },
-  Meji: { alpha: 0.46, anchorY: 0.76, height: 12, offsetY: 3, width: 50 },
-  Meowts: { alpha: 0.44, anchorY: 0.75, height: 10, offsetY: 3, width: 44 },
-  Miji: { alpha: 0.48, anchorY: 0.74, height: 12, offsetY: 3, width: 52 },
-  Moji: { alpha: 0.48, anchorY: 0.73, height: 12, offsetY: 3, width: 50 },
-  Muji: { alpha: 0.46, anchorY: 0.75, height: 12, offsetY: 3, width: 50 }
+  Maji: { alpha: 0.62, anchorY: 0.75, height: 17, offsetY: 10, width: 64 },
+  Meji: { alpha: 0.58, anchorY: 0.76, height: 16, offsetY: 10, width: 60 },
+  Meowts: { alpha: 0.56, anchorY: 0.75, height: 14, offsetY: 9, width: 54 },
+  Miji: { alpha: 0.62, anchorY: 0.74, height: 17, offsetY: 10, width: 64 },
+  Moji: { alpha: 0.6, anchorY: 0.73, height: 16, offsetY: 10, width: 60 },
+  Muji: { alpha: 0.58, anchorY: 0.75, height: 16, offsetY: 10, width: 60 }
 };
 
 const workTiles: Record<AgentId, { tileX: number; tileY: number }> = {
@@ -88,34 +88,40 @@ const workTiles: Record<AgentId, { tileX: number; tileY: number }> = {
 
 const patrolTiles: Record<AgentId, Array<{ tileX: number; tileY: number }>> = {
   Maji: [
-    { tileX: 22, tileY: 12 },
+    { tileX: 18, tileY: 12 },
     { tileX: 25, tileY: 13 },
-    { tileX: 23, tileY: 15 }
+    { tileX: 21, tileY: 16 },
+    { tileX: 27, tileY: 15 }
   ],
   Meji: [
-    { tileX: 23, tileY: 14 },
-    { tileX: 26, tileY: 15 },
-    { tileX: 24, tileY: 16 }
+    { tileX: 23, tileY: 12 },
+    { tileX: 18, tileY: 15 },
+    { tileX: 26, tileY: 16 },
+    { tileX: 21, tileY: 17 }
   ],
   Meowts: [
-    { tileX: 26, tileY: 13 },
+    { tileX: 24, tileY: 12 },
     { tileX: 28, tileY: 14 },
-    { tileX: 27, tileY: 16 }
+    { tileX: 22, tileY: 16 },
+    { tileX: 27, tileY: 17 }
   ],
   Miji: [
-    { tileX: 15, tileY: 13 },
-    { tileX: 17, tileY: 14 },
-    { tileX: 19, tileY: 15 }
+    { tileX: 14, tileY: 12 },
+    { tileX: 20, tileY: 13 },
+    { tileX: 16, tileY: 16 },
+    { tileX: 24, tileY: 15 }
   ],
   Moji: [
-    { tileX: 13, tileY: 12 },
-    { tileX: 15, tileY: 13 },
-    { tileX: 17, tileY: 12 }
+    { tileX: 13, tileY: 13 },
+    { tileX: 18, tileY: 12 },
+    { tileX: 16, tileY: 15 },
+    { tileX: 22, tileY: 14 }
   ],
   Muji: [
-    { tileX: 18, tileY: 16 },
-    { tileX: 20, tileY: 17 },
-    { tileX: 22, tileY: 15 }
+    { tileX: 18, tileY: 17 },
+    { tileX: 23, tileY: 16 },
+    { tileX: 20, tileY: 13 },
+    { tileX: 26, tileY: 14 }
   ]
 };
 
@@ -210,6 +216,7 @@ export function createDojoScene(Phaser: any) {
     private runMachine?: RunStateMachine;
     private save = loadSave();
     private eventCleanups: Array<() => void> = [];
+    private lastIdleLifeCheck = 0;
     private shippedStamp?: any;
     private scroll?: any;
     private slash?: any;
@@ -276,6 +283,7 @@ export function createDojoScene(Phaser: any) {
       this.actorMap.forEach((actor) => {
         this.updateActorShadow(actor);
       });
+      this.ensureIdleLife();
     }
 
     runDojo() {
@@ -456,7 +464,7 @@ export function createDojoScene(Phaser: any) {
 
         this.actorMap.set(agent, actor);
         this.setActorIdleSprite(actor);
-        this.startIdleLoop(actor, randomBetween(80, 620));
+        this.startIdleLoop(actor, randomBetween(180, 980));
       });
     }
 
@@ -488,7 +496,7 @@ export function createDojoScene(Phaser: any) {
         actor.state = "idle";
         this.updateActorShadow(actor);
         if (options.startPatrol) {
-          this.startIdleLoop(actor, randomBetween(800, 2600));
+          this.startIdleLoop(actor, randomBetween(180, 1200));
         }
       });
       this.moonBeam?.setAlpha(0.22).setScale(1);
@@ -518,26 +526,38 @@ export function createDojoScene(Phaser: any) {
         .setDepth(Math.round(y) - 1);
     }
 
-    private startIdleLoop(actor: ActorRuntime, delay = randomBetween(1600, 4200)) {
+    private ensureIdleLife() {
+      if (this.runMachine?.isRunning() || this.time.now - this.lastIdleLifeCheck < 1400) {
+        return;
+      }
+      this.lastIdleLifeCheck = this.time.now;
+      this.actorMap.forEach((actor) => {
+        if (actor.state === "idle" && !actor.patrolTimer) {
+          this.startIdleLoop(actor, randomBetween(120, 820));
+        }
+      });
+    }
+
+    private startIdleLoop(actor: ActorRuntime, delay = randomBetween(320, 1500)) {
       actor.patrolTimer?.remove?.();
       actor.patrolTimer = this.time.delayedCall(delay, () => {
         if (this.runMachine?.isRunning() || actor.state !== "idle") {
-          this.startIdleLoop(actor, randomBetween(800, 1900));
+          this.startIdleLoop(actor, randomBetween(600, 1400));
           return;
         }
 
-        if (Math.random() < 0.82) {
+        if (Math.random() < 0.9) {
           const target = this.randomPatrolPoint(actor.id);
           this.moveActor(actor, target, {
-            duration: randomBetween(1200, 2200),
-            onComplete: () => this.startIdleLoop(actor, randomBetween(420, 1300)),
+            duration: randomBetween(1700, 3200),
+            onComplete: () => this.startIdleLoop(actor, randomBetween(220, 980)),
             stateAfter: "idle"
           });
         } else {
           if (Math.random() < 0.5) actor.sprite.setFlipX(!actor.sprite.flipX);
           if (Math.random() < 0.5) this.showFloatingBubble(actor, linesFor(actor.id, "idle")[0]);
           if (Math.random() < 0.55) this.playActorAction(actor, "idle");
-          this.startIdleLoop(actor, randomBetween(620, 1500));
+          this.startIdleLoop(actor, randomBetween(460, 1100));
         }
       });
     }
@@ -612,7 +632,7 @@ export function createDojoScene(Phaser: any) {
               if (actor.state === "done" || actor.state === "working") {
                 actor.state = "idle";
                 this.setActorIdleSprite(actor);
-                this.startIdleLoop(actor, randomBetween(350, 1800));
+                this.startIdleLoop(actor, randomBetween(180, 1200));
               }
             });
           });

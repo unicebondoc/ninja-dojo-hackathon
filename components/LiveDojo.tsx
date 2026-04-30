@@ -37,6 +37,18 @@ const stageOrder: RunStage[] = [
   "moonrise"
 ];
 
+const consoleTabs = ["Logs", "Manifest", "Handoffs", "Receipt", "Brain"] as const;
+type ConsoleTab = (typeof consoleTabs)[number];
+
+const pluginRegistry = [
+  ["Codex", "Handoff", "Build prompt prepared", "Connect worker"],
+  ["Claude", "Handoff", "Review prompt prepared", "Deep review"],
+  ["OpenClaw", "Planned", "Local action prompt", "Gateway later"],
+  ["GPT Image 2", "Planned", "Asset prompt archive", "Generate assets"],
+  ["Telegram", "Planned", "Scroll capture route", "Notify run"],
+  ["Manual", "Connected", "Paste tool results", "Save evidence"]
+] as const;
+
 export function LiveDojo() {
   const dojoRef = useRef<PhaserDojoHandle>(null);
   const composerRef = useRef<ScrollComposerHandle>(null);
@@ -49,6 +61,8 @@ export function LiveDojo() {
   const [dialogue, setDialogue] = useState<DojoDialogue[]>([]);
   const [gameReady, setGameReady] = useState(false);
   const [inputPulse, setInputPulse] = useState(false);
+  const [activeTab, setActiveTab] = useState<ConsoleTab>("Logs");
+  const [receiptOpen, setReceiptOpen] = useState(false);
   const [scrollSent, setScrollSent] = useState(false);
   const [scrollPrompt, setScrollPrompt] = useState("");
   const [submittedPrompt, setSubmittedPrompt] = useState("");
@@ -126,6 +140,7 @@ export function LiveDojo() {
       setComplete(false);
       setCurrentStage(0);
       setDialogue([]);
+      setReceiptOpen(false);
       setScrollSent(false);
       setSubmittedPrompt("");
     });
@@ -231,6 +246,7 @@ export function LiveDojo() {
       : "Drop a scroll to create mission state.";
   const visibleChecks =
     activeRun?.judgeResult.requestedItems.filter((item) => item.requested).slice(0, 4) ?? [];
+  const currentStageManifest = activeRun?.stages[currentStage];
 
   return (
     <section className="rpg-hero cockpit" aria-label="Ninja Dojo mission control">
@@ -365,15 +381,15 @@ export function LiveDojo() {
           </section>
 
           <section className="cockpit-actions" aria-label="Mission actions">
-            <Link
-              aria-disabled={!complete}
-              className={!complete ? "is-disabled" : "is-primary"}
-              href={moonriseHref}
-              tabIndex={!complete ? -1 : undefined}
+            <button
+              className={complete ? "is-primary" : "is-disabled"}
+              disabled={!complete}
+              onClick={() => setReceiptOpen(true)}
+              type="button"
             >
               <ExternalLink className="h-4 w-4" />
               View Moonrise Receipt
-            </Link>
+            </button>
             <button
               disabled={!complete || !activeRun}
               onClick={copyRunBrief}
@@ -396,51 +412,107 @@ export function LiveDojo() {
         </aside>
       </div>
 
-      {complete && activeRun ? (
-        <section className="dojo-run-result cockpit-result" aria-live="polite">
-          <div>
-            <p>Meowts Judge Report</p>
-            <h2>{activeRun.judgeResult.verdict}</h2>
-            <span>{activeRun.judgeResult.score}/100 for {activeRun.inferredName}</span>
-          </div>
-          <div className="dojo-run-result__lists">
-            <ul>
-              {activeRun.judgeResult.matched.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-            <ul>
-              {activeRun.judgeResult.improvements.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="dojo-run-result__checks">
-            {activeRun.judgeResult.requestedItems
-              .filter((item) => item.requested)
-              .map((item) => (
-                <span data-included={item.included} key={item.label}>
-                  {item.label}: {item.included ? "included" : "missing"}
-                </span>
-              ))}
-          </div>
-          <div className="dojo-run-result__actions">
-            <a href={mailtoForRun(activeRun)}>
-              <Mail className="h-4 w-4" />
-              Request Real Run
-            </a>
-            <button onClick={copyRunBrief} type="button">
-              <Copy className="h-4 w-4" />
-              Copy Run Brief
+      <section className="cockpit-tabs" aria-label="Mission details">
+        <div className="cockpit-tabs__nav" role="tablist">
+          {consoleTabs.map((tab) => (
+            <button
+              aria-selected={activeTab === tab}
+              data-active={activeTab === tab}
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              role="tab"
+              type="button"
+            >
+              {tab}
             </button>
-            <button onClick={downloadRunManifest} type="button">
-              <Download className="h-4 w-4" />
-              Download Run Manifest
-            </button>
-            {copyStatus ? <span>{copyStatus}</span> : null}
-          </div>
-        </section>
-      ) : null}
+          ))}
+        </div>
+        <div className="cockpit-tabs__panel" role="tabpanel">
+          {activeTab === "Logs" ? (
+            <div className="cockpit-tab-grid">
+              {(dialogue.length > 0 ? dialogue.slice(-5) : [
+                {
+                  createdAt: new Date().toISOString(),
+                  id: "empty-log",
+                  message: "No mission events yet. Send a scroll to create the first receipt trail.",
+                  role: "Standby",
+                  speaker: "Dojo"
+                }
+              ]).map((line) => (
+                <article key={line.id}>
+                  <span>{line.speaker}</span>
+                  <strong>{line.role}</strong>
+                  <p>{line.message}</p>
+                </article>
+              ))}
+            </div>
+          ) : null}
+
+          {activeTab === "Manifest" ? (
+            <div className="cockpit-manifest">
+              <dl>
+                <div>
+                  <dt>Run</dt>
+                  <dd>{activeRun?.runId ?? "not created"}</dd>
+                </div>
+                <div>
+                  <dt>Mission</dt>
+                  <dd>{activeRun?.inferredName ?? "awaiting scroll"}</dd>
+                </div>
+                <div>
+                  <dt>Type</dt>
+                  <dd>{activeRun?.productType ?? "unknown"}</dd>
+                </div>
+                <div>
+                  <dt>Stage owner</dt>
+                  <dd>{currentStageManifest ? `${currentStageManifest.ninja} / ${currentStageManifest.role}` : "Dojo"}</dd>
+                </div>
+              </dl>
+              <p>{activeRun?.scrollText ?? "The manifest appears after the scroll is sent."}</p>
+            </div>
+          ) : null}
+
+          {activeTab === "Handoffs" ? (
+            <div className="cockpit-plugin-table">
+              {pluginRegistry.map(([name, mode, output, action]) => (
+                <article key={name}>
+                  <strong>{name}</strong>
+                  <span>{mode}</span>
+                  <p>{output}</p>
+                  <em>{action}</em>
+                </article>
+              ))}
+            </div>
+          ) : null}
+
+          {activeTab === "Receipt" ? (
+            <div className="cockpit-receipt-mini">
+              <strong>{activeRun?.judgeResult.verdict ?? "Receipt pending"}</strong>
+              <span>{activeRun ? `${activeRun.judgeResult.score}/100 · ${activeRun.inferredName}` : "Send a scroll to form the receipt."}</span>
+              <button disabled={!complete} onClick={() => setReceiptOpen(true)} type="button">
+                Open receipt drawer
+              </button>
+            </div>
+          ) : null}
+
+          {activeTab === "Brain" ? (
+            <div className="cockpit-tab-grid cockpit-tab-grid--brain">
+              {[
+                ["Rules", "Cached-first, no external services required."],
+                ["Memory", `${runHistory.length} local run${runHistory.length === 1 ? "" : "s"}.`],
+                ["Current", activeRun ? activeRun.inferredName : "No active mission."],
+                ["Next", nextAction]
+              ].map(([label, value]) => (
+                <article key={label}>
+                  <span>{label}</span>
+                  <p>{value}</p>
+                </article>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </section>
+
       {runHistory.length > 0 ? (
         <section className="dojo-run-history cockpit-history" aria-label="Recent runs">
           <div className="dojo-run-history__header">
@@ -461,6 +533,73 @@ export function LiveDojo() {
             ))}
           </div>
         </section>
+      ) : null}
+
+      {receiptOpen ? (
+        <div className="receipt-drawer" role="dialog" aria-modal="true" aria-label="Moonrise Receipt">
+          <button
+            aria-label="Close receipt"
+            className="receipt-drawer__scrim"
+            onClick={() => setReceiptOpen(false)}
+            type="button"
+          />
+          <section className="receipt-drawer__panel">
+            <header>
+              <div>
+                <p>Moonrise Receipt</p>
+                <h2>{activeRun?.inferredName ?? "No active mission"}</h2>
+              </div>
+              <button onClick={() => setReceiptOpen(false)} type="button">Close</button>
+            </header>
+            {activeRun ? (
+              <>
+                <dl>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>{activeRun.status}</dd>
+                  </div>
+                  <div>
+                    <dt>Meowts</dt>
+                    <dd>{activeRun.judgeResult.score}/100 · {activeRun.judgeResult.verdict}</dd>
+                  </div>
+                  <div>
+                    <dt>Type</dt>
+                    <dd>{activeRun.productType}</dd>
+                  </div>
+                </dl>
+                <p>{activeRun.scrollText}</p>
+                <div className="receipt-drawer__lists">
+                  <ul>
+                    {activeRun.judgeResult.matched.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                  <ul>
+                    {activeRun.judgeResult.improvements.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                </div>
+                <div className="receipt-drawer__actions">
+                  <Link href={moonriseHref}>
+                    <ExternalLink className="h-4 w-4" />
+                    Open preview
+                  </Link>
+                  <a href={mailtoForRun(activeRun)}>
+                    <Mail className="h-4 w-4" />
+                    Request real run
+                  </a>
+                  <button onClick={copyRunBrief} type="button">
+                    <Copy className="h-4 w-4" />
+                    Copy brief
+                  </button>
+                  <button onClick={downloadRunManifest} type="button">
+                    <Download className="h-4 w-4" />
+                    Download manifest
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p>Send a scroll first. The receipt drawer will collect stage evidence and Meowts judgment.</p>
+            )}
+          </section>
+        </div>
       ) : null}
     </section>
   );

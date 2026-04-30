@@ -72,7 +72,7 @@ export default function Home() {
         <section className="ops-section ops-method" id="method" aria-labelledby="method-title">
           <div className="ops-section__head">
             <p>The Dojo Method</p>
-            <h2 id="method-title">Eight-stage mission trail.</h2>
+            <h2 id="method-title">Stage trail.</h2>
           </div>
           <ol className="ops-timeline">
             {method.map(([number, stage, owner, line]) => (
@@ -89,7 +89,7 @@ export default function Home() {
         <section className="ops-section" id="plugins" aria-labelledby="plugins-title">
           <div className="ops-section__head">
             <p>Plugin Registry</p>
-            <h2 id="plugins-title">Dojo tracks. Plugins do.</h2>
+            <h2 id="plugins-title">Handoffs, not hype.</h2>
           </div>
           <div className="ops-plugin-grid">
             {plugins.map(([name, status, line]) => (
@@ -107,7 +107,7 @@ export default function Home() {
         <section className="ops-section ops-split" id="receipt" aria-labelledby="receipt-title">
           <div className="ops-section__head">
             <p>Moonrise Receipt</p>
-            <h2 id="receipt-title">The run leaves a receipt.</h2>
+            <h2 id="receipt-title">Evidence after every run.</h2>
           </div>
           <article className="ops-receipt">
             <header>
@@ -128,7 +128,7 @@ export default function Home() {
         <section className="ops-section ops-split" id="brain" aria-labelledby="brain-title">
           <div className="ops-section__head">
             <p>Project Brain</p>
-            <h2 id="brain-title">Small memory, clear next action.</h2>
+            <h2 id="brain-title">Memory for the next mission.</h2>
           </div>
           <div className="ops-brain-list">
             {brainRows.map(([label, value]) => (
