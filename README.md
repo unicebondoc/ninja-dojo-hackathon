@@ -6,7 +6,6 @@
 ![Next.js 15](https://img.shields.io/badge/Next.js-15-black)
 ![TypeScript 5](https://img.shields.io/badge/TypeScript-5-blue)
 ![Codex Skills](https://img.shields.io/badge/Codex-Skills-dc2626)
-![Hackathon MVP](https://img.shields.io/badge/Hackathon-MVP-7f1d1d)
 
 Ninja Dojo is a live command center for solo builders coordinating Codex-style agent workflows. You hand the dojo a single scroll — a product idea written in plain English — and watch six specialized ninjas plan, build, attack, review, deploy, and judge the result inside a 2D dojo simulation. When the work passes, the moon rises and the shipped page opens.
 
@@ -40,10 +39,6 @@ Scroll → Plan → Build → Attack → Review → Deploy → Judge → Moonris
 7. **Judge** — Meowts decides: does the moon rise?
 8. **Moonrise** — the shipped page opens at `/demo/oracle`.
 
-## Built at OpenAI Codex Hackathon Sydney 2026
-
-Built on-site at the OpenAI Codex Hackathon in Sydney. The stage demo runs cached-first and survives without Telegram, Vercel, Supabase, or WebSockets — so the moon always rises on stage.
-
 ## Codex-Native Architecture
 
 Ninja Dojo is built around the way Codex actually works:
@@ -56,7 +51,7 @@ Ninja Dojo is built around the way Codex actually works:
   - `meji-review` — reviews architecture for harmony.
   - `muji-deploy` — runs build checks and prepares deploy.
   - `meowts-judge` — decides whether the moon rises.
-- **Worktree story** — each ninja maps to an isolated Codex worktree. The current MVP runs them as cached events; the production direction replaces the local factory with real Codex worktree execution while preserving the `DojoRun` and `DojoRunEvent` shapes.
+- **Worktree story** — each ninja maps to an isolated Codex worktree. The current app runs them as cached events; the production direction replaces the local factory with real Codex worktree execution while preserving the `DojoRun` and `DojoRunEvent` shapes.
 
 ## Run Locally
 
@@ -109,6 +104,7 @@ The whole loop runs offline from cached data, so the demo never blocks on a netw
 
 ## Credits
 
+- **Origin story** — built at OpenAI Codex Hackathon Sydney 2026.
 - **OpenAI APAC team** — for hosting the Codex Hackathon Sydney 2026.
 - **Gabriel Chua** — feedback and encouragement on the Codex-native angle.
 - **Thomas Jeng** — feedback and encouragement on the live dojo direction.

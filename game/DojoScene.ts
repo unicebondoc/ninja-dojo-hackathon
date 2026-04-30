@@ -304,7 +304,7 @@ export function createDojoScene(Phaser: any) {
         .image(scrollPos.x, scrollPos.y, "scroll")
         .setDisplaySize(110, 110)
         .setAlpha(0)
-        .setDepth(700);
+        .setDepth(4);
 
       const moonPos = tilePoint(34, 4);
       this.moonBeam = this.add
@@ -592,6 +592,9 @@ export function createDojoScene(Phaser: any) {
       }
 
       this.finishPreviousWorkers(event.agent);
+      if (event.stage === "build") {
+        this.fadeScrollToFloor();
+      }
       const actor = this.actorMap.get(event.agent);
       if (!actor) return;
 
@@ -789,6 +792,19 @@ export function createDojoScene(Phaser: any) {
             yoyo: true
           });
         }
+      });
+    }
+
+    private fadeScrollToFloor() {
+      if (!this.scroll) return;
+      this.tweens.killTweensOf(this.scroll);
+      this.tweens.add({
+        alpha: 0.18,
+        displayHeight: 96,
+        displayWidth: 96,
+        duration: 520,
+        ease: "Sine.Out",
+        targets: this.scroll
       });
     }
 
