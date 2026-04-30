@@ -7206,3 +7206,241 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+/* Hierarchy repair: the dojo scene is the primary mission window. */
+.cockpit.cockpit {
+  gap: 12px;
+}
+
+.cockpit .cockpit-header {
+  min-height: 72px;
+  padding: 10px 16px;
+}
+
+.cockpit .cockpit-brand .brand-logo {
+  flex: 0 0 174px;
+  width: 174px;
+  max-width: 174px;
+}
+
+.cockpit .cockpit-brand .brand-logo__mark-art {
+  width: 38px;
+}
+
+.cockpit .cockpit-brand .brand-logo__wordmark-art {
+  width: 132px;
+}
+
+.cockpit .cockpit-command {
+  padding: 8px 16px 0;
+}
+
+.cockpit .scroll-composer__paper {
+  min-height: 104px;
+}
+
+.cockpit .scroll-composer textarea {
+  min-height: 52px;
+  resize: none;
+}
+
+.cockpit-grid.cockpit-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr) minmax(270px, 320px);
+  grid-template-areas: "left board right";
+  gap: 12px;
+  align-items: stretch;
+  padding: 0 16px 14px;
+}
+
+.cockpit-grid .cockpit-rail--left {
+  grid-area: left;
+}
+
+.cockpit-grid .cockpit-rail--right {
+  grid-area: right;
+}
+
+.cockpit-grid .rpg-board-shell {
+  grid-area: board;
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 8px;
+}
+
+.cockpit-grid .rpg-board-shell > .rpg-progress {
+  width: 100%;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.cockpit-grid .rpg-board {
+  width: 100%;
+  min-height: clamp(430px, 49vw, 720px);
+  max-height: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  aspect-ratio: 16 / 9;
+}
+
+.cockpit-grid .phaser-dojo__mount,
+.cockpit-grid .phaser-dojo__mount canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.cockpit-grid .rpg-board__status {
+  left: 14px;
+  top: 14px;
+  max-width: min(390px, calc(100% - 28px));
+  padding: 12px 14px;
+}
+
+.cockpit-grid .rpg-board__status strong {
+  font-size: 16px;
+}
+
+.cockpit-grid .rpg-board__status span {
+  font-size: 11px;
+}
+
+.cockpit-grid .cockpit-rail {
+  gap: 10px;
+  min-width: 0;
+}
+
+.cockpit-grid .cockpit-panel,
+.cockpit-grid .rpg-event-log,
+.cockpit-grid .rpg-moon-panel {
+  border-radius: 10px;
+}
+
+.cockpit-grid .rpg-event-log {
+  min-height: 260px;
+  max-height: none;
+}
+
+.cockpit-grid .rpg-event-log__body {
+  max-height: 330px;
+  padding: 10px;
+}
+
+.cockpit-grid .rpg-event-log__item,
+.cockpit-grid .rpg-event-log__empty {
+  padding: 10px;
+  font-size: 12px;
+}
+
+.cockpit-grid .rpg-moon-panel {
+  min-height: auto;
+}
+
+.cockpit-grid .rpg-moon-panel__orb {
+  width: min(62%, 132px);
+}
+
+.cockpit-actions .is-primary {
+  min-height: 48px;
+  border-color: rgba(239, 52, 52, 0.72);
+  box-shadow: 0 14px 34px rgba(239, 52, 52, 0.22);
+}
+
+.cockpit-actions button:not(.is-tertiary) {
+  min-height: 42px;
+}
+
+.cockpit-actions .is-tertiary {
+  min-height: 34px;
+  border-color: rgba(232, 198, 106, 0.12);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.cockpit-history.cockpit-history {
+  margin-top: 0;
+  border-style: solid;
+}
+
+.ops-section.ops-section,
+.ops-cast.ops-cast {
+  padding: 14px 16px;
+}
+
+.ops-section__head h2 {
+  font-size: clamp(18px, 1.25vw, 24px);
+}
+
+.ops-timeline.ops-timeline {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.ops-timeline li,
+.ops-plugin-grid article,
+.ops-receipt,
+.ops-brain-list div {
+  padding: 9px;
+}
+
+.ops-plugin-grid.ops-plugin-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.ops-split.ops-split {
+  grid-template-columns: minmax(210px, 0.36fr) minmax(0, 1fr);
+}
+
+@media (max-width: 1320px) {
+  .cockpit-grid.cockpit-grid {
+    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr) minmax(240px, 290px);
+  }
+
+  .cockpit-grid .rpg-board {
+    min-height: clamp(390px, 46vw, 640px);
+  }
+
+  .ops-timeline.ops-timeline,
+  .ops-plugin-grid.ops-plugin-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1040px) {
+  .cockpit-grid.cockpit-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "board"
+      "left"
+      "right";
+  }
+
+  .cockpit-grid .rpg-board {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 820px) {
+  .cockpit .cockpit-header,
+  .cockpit .cockpit-brand,
+  .cockpit .cockpit-header__ops {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cockpit .scroll-composer {
+    grid-template-columns: 1fr;
+  }
+
+  .cockpit .scroll-composer__submit {
+    width: 100%;
+    min-height: 54px;
+    grid-template-columns: auto auto auto;
+    justify-content: center;
+  }
+
+  .ops-timeline.ops-timeline,
+  .ops-plugin-grid.ops-plugin-grid,
+  .ops-split.ops-split,
+  .ops-brain-list {
+    grid-template-columns: 1fr;
+  }
+}
