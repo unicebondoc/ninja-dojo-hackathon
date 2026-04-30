@@ -194,6 +194,8 @@ export function createDojoScene(Phaser: any) {
   return class DojoScene extends Phaser.Scene implements DojoSceneController {
     private actorMap = new Map<AgentId, ActorRuntime>();
     private moon?: any;
+    private moonBeam?: any;
+    private moonGlow?: any;
     private nightOverlay?: any;
     private runMachine?: RunStateMachine;
     private save = loadSave();
@@ -303,11 +305,29 @@ export function createDojoScene(Phaser: any) {
         .setDepth(2);
 
       const moonPos = tilePoint(34, 4);
+      this.moonBeam = this.add
+        .polygon(moonPos.x - 42, moonPos.y + 36, [
+          0, 0,
+          -165, 320,
+          190, 320,
+          70, 0
+        ], 0xfff2b5, 0.07)
+        .setAlpha(0.42)
+        .setBlendMode("ADD")
+        .setDepth(3);
+
+      this.moonGlow = this.add
+        .ellipse(moonPos.x, moonPos.y, 190, 190, 0xfff2b5, 0.16)
+        .setAlpha(0.32)
+        .setBlendMode("ADD")
+        .setDepth(3.1);
+
       this.moon = this.add
         .image(moonPos.x, moonPos.y, "moon")
         .setDisplaySize(108, 108)
-        .setAlpha(0.18)
-        .setDepth(2);
+        .setAlpha(0.32)
+        .setBlendMode("ADD")
+        .setDepth(3.2);
 
       const slashPos = tilePoint(24, 9);
       this.slash = this.add
@@ -424,7 +444,9 @@ export function createDojoScene(Phaser: any) {
           this.startIdleLoop(actor, randomBetween(800, 2600));
         }
       });
-      this.moon?.setAlpha(0.18).clearTint().setDisplaySize(108, 108);
+      this.moonBeam?.setAlpha(0.42);
+      this.moonGlow?.setAlpha(0.32).setScale(1);
+      this.moon?.setAlpha(0.32).clearTint().setDisplaySize(108, 108);
       this.slash?.setAlpha(0);
     }
 
@@ -500,6 +522,21 @@ export function createDojoScene(Phaser: any) {
             ease: "Sine.Out",
             targets: this.moon,
             yoyo: true
+          });
+          this.tweens.add({
+            alpha: 0.82,
+            duration: 900,
+            ease: "Sine.Out",
+            scaleX: 1.18,
+            scaleY: 1.08,
+            targets: this.moonBeam
+          });
+          this.tweens.add({
+            alpha: 0.68,
+            duration: 900,
+            ease: "Sine.Out",
+            scale: 1.45,
+            targets: this.moonGlow
           });
           this.moon?.setTint(0xfff2b5);
         }),
