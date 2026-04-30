@@ -111,7 +111,7 @@ export const PhaserDojo = forwardRef<PhaserDojoHandle, PhaserDojoProps>(
           <strong>{ready ? boardTitle : "Opening dojo..."}</strong>
           <span>
             {complete
-              ? "Moonrise: shipped."
+              ? "The shipped page is ready to open."
               : "Scroll → Plan → Build → Attack → Review → Deploy → Judge → Moonrise"}
           </span>
         </div>

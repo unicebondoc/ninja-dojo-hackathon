@@ -58,6 +58,15 @@ const assets = [
     prompt: `${transparentPrefix} Small custom cursor asset shaped like a moonlit shuriken pointer, premium minimal, sharp silhouette, slight lantern gold edge and blood red center cut, readable at 24px, no text, no logo. ${palette}`
   },
   {
+    filename: "public/cursors/ninja-pointer.png",
+    size: "1024x1024",
+    quality: "medium",
+    background: "opaque",
+    removeChroma: true,
+    resize: 96,
+    prompt: `${transparentPrefix} Small in-game hover pointer marker for selecting a ninja character, moonlit shuriken arrow pointer with lantern gold edge, blood red center slash, subtle teal moon glint, readable at 32px, premium tactical RPG UI marker, no text, no logo. ${palette}`
+  },
+  {
     filename: "public/icons/scroll-input.png",
     size: "1024x1024",
     quality: "medium",

@@ -34,6 +34,7 @@ type ActorRuntime = {
   nameplate?: any;
   nameplateTimer?: any;
   patrolTimer?: any;
+  pointer?: any;
   role: string;
   shadow: any;
   sprite: any;
@@ -64,8 +65,8 @@ const actorDisplay = {
   shadowHeight: 8,
   shadowOffsetY: 54,
   shadowWidth: 42,
-  walkHeight: 124,
-  walkWidth: 100,
+  walkHeight: 236,
+  walkWidth: 96,
   width: 100
 };
 
@@ -219,6 +220,7 @@ export function createDojoScene(Phaser: any) {
       this.load.image("moon", "/assets/dojo/moon.png");
       this.load.image("slash", "/assets/dojo/slash.png");
       this.load.image("petal", "/assets/dojo/petal.png");
+      this.load.image("ninja-pointer", "/cursors/ninja-pointer.png");
 
       (Object.keys(agentMeta) as AgentId[]).forEach((id) => {
         const file = agentMeta[id].file;
@@ -328,9 +330,8 @@ export function createDojoScene(Phaser: any) {
         .setDepth(3.1);
 
       this.moon = this.add
-        .image(moonPos.x, moonPos.y, "moon")
-        .setDisplaySize(108, 108)
-        .setAlpha(0.26)
+        .ellipse(moonPos.x, moonPos.y, 118, 118, 0x78f0d4, 0.18)
+        .setAlpha(0)
         .setBlendMode("ADD")
         .setDepth(3.2);
 
@@ -413,7 +414,9 @@ export function createDojoScene(Phaser: any) {
         const sprite = this.add
           .sprite(0, 0, `${meta.file}-idle`)
           .setDisplaySize(actorDisplay.width, actorDisplay.height)
-          .setInteractive({ useHandCursor: true });
+          .setInteractive({
+            cursor: 'url("/cursors/ninja-pointer.png") 8 8, pointer'
+          });
 
         container.add([shadow, sprite]);
 
@@ -431,7 +434,11 @@ export function createDojoScene(Phaser: any) {
           workY: work.y
         };
 
-        sprite.on("pointerover", () => this.showNameplate(actor));
+        sprite.on("pointerover", () => {
+          this.showNameplate(actor);
+          this.showSpritePointer(actor);
+        });
+        sprite.on("pointerout", () => this.hideSpritePointer(actor));
         sprite.on("pointerdown", () => this.handleTalk(agent));
 
         this.actorMap.set(agent, actor);
@@ -467,14 +474,17 @@ export function createDojoScene(Phaser: any) {
         actor.bubble = undefined;
         actor.nameplate?.destroy();
         actor.nameplate = undefined;
+        actor.pointer?.destroy();
+        actor.pointer = undefined;
         actor.state = "idle";
+        this.updateActorShadow(actor);
         if (options.startPatrol) {
           this.startIdleLoop(actor, randomBetween(800, 2600));
         }
       });
       this.moonBeam?.setAlpha(0.22).setScale(1);
       this.moonGlow?.setAlpha(0.2).setScale(1);
-      this.moon?.setAlpha(0.26).clearTint().setDisplaySize(108, 108);
+      this.moon?.setAlpha(0).setScale(1).setDisplaySize(118, 118);
       this.slash?.setAlpha(0);
     }
 
@@ -570,7 +580,6 @@ export function createDojoScene(Phaser: any) {
           this.showShippedStamp();
           this.cameras.main.pan(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 900, "Sine.easeOut", true);
           this.cameras.main.zoomTo(1, 900, "Sine.easeOut", true);
-          this.moon?.setTint(0xfff2b5);
         }),
         EventBus.on("run-reset", () => {
           this.actorMap.forEach((actor) => (actor.state = "idle"));
@@ -870,6 +879,39 @@ export function createDojoScene(Phaser: any) {
           plate.destroy();
           actor.nameplate = undefined;
         }
+      });
+    }
+
+    private showSpritePointer(actor: ActorRuntime) {
+      actor.pointer?.destroy();
+      const pointer = this.add
+        .image(0, -78, "ninja-pointer")
+        .setDisplaySize(34, 34)
+        .setAlpha(0.96)
+        .setDepth(715);
+      actor.container.add(pointer);
+      actor.pointer = pointer;
+      this.tweens.add({
+        duration: 760,
+        ease: "Sine.InOut",
+        repeat: -1,
+        targets: pointer,
+        y: -86,
+        yoyo: true
+      });
+    }
+
+    private hideSpritePointer(actor: ActorRuntime) {
+      if (!actor.pointer) return;
+      const pointer = actor.pointer;
+      actor.pointer = undefined;
+      this.tweens.killTweensOf(pointer);
+      this.tweens.add({
+        alpha: 0,
+        duration: 140,
+        ease: "Sine.Out",
+        targets: pointer,
+        onComplete: () => pointer.destroy()
       });
     }
 
