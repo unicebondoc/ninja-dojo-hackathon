@@ -78,76 +78,71 @@ const shadowSpecs: Record<
 };
 
 const workTiles: Record<AgentId, { tileX: number; tileY: number }> = {
-  Maji: { tileX: 23, tileY: 10 },
-  Meji: { tileX: 24, tileY: 14 },
-  Meowts: { tileX: 29, tileY: 9 },
-  Miji: { tileX: 16, tileY: 13 },
-  Moji: { tileX: 18, tileY: 11 },
-  Muji: { tileX: 20, tileY: 15 }
+  Maji: { tileX: 23, tileY: 12 },
+  Meji: { tileX: 24, tileY: 15 },
+  Meowts: { tileX: 27, tileY: 13 },
+  Miji: { tileX: 17, tileY: 14 },
+  Moji: { tileX: 18, tileY: 12 },
+  Muji: { tileX: 20, tileY: 16 }
 };
 
 const patrolTiles: Record<AgentId, Array<{ tileX: number; tileY: number }>> = {
   Maji: [
-    { tileX: 23, tileY: 8 },
-    { tileX: 27, tileY: 10 },
-    { tileX: 25, tileY: 13 }
+    { tileX: 22, tileY: 12 },
+    { tileX: 25, tileY: 13 },
+    { tileX: 23, tileY: 15 }
   ],
   Meji: [
-    { tileX: 27, tileY: 13 },
-    { tileX: 30, tileY: 11 },
-    { tileX: 25, tileY: 15 }
+    { tileX: 23, tileY: 14 },
+    { tileX: 26, tileY: 15 },
+    { tileX: 24, tileY: 16 }
   ],
   Meowts: [
-    { tileX: 30, tileY: 14 },
-    { tileX: 32, tileY: 12 },
-    { tileX: 28, tileY: 16 }
+    { tileX: 26, tileY: 13 },
+    { tileX: 28, tileY: 14 },
+    { tileX: 27, tileY: 16 }
   ],
   Miji: [
-    { tileX: 13, tileY: 9 },
-    { tileX: 16, tileY: 12 },
-    { tileX: 19, tileY: 13 }
+    { tileX: 15, tileY: 13 },
+    { tileX: 17, tileY: 14 },
+    { tileX: 19, tileY: 15 }
   ],
   Moji: [
-    { tileX: 8, tileY: 9 },
-    { tileX: 11, tileY: 12 },
-    { tileX: 15, tileY: 10 }
+    { tileX: 13, tileY: 12 },
+    { tileX: 15, tileY: 13 },
+    { tileX: 17, tileY: 12 }
   ],
   Muji: [
-    { tileX: 18, tileY: 15 },
-    { tileX: 21, tileY: 16 },
-    { tileX: 23, tileY: 14 }
+    { tileX: 18, tileY: 16 },
+    { tileX: 20, tileY: 17 },
+    { tileX: 22, tileY: 15 }
   ]
 };
 
 const stageRoutes: Record<AgentId, Array<{ tileX: number; tileY: number }>> = {
   Maji: [
-    { tileX: 27, tileY: 8 },
-    { tileX: 25, tileY: 10 },
-    { tileX: 23, tileY: 10 }
+    { tileX: 24, tileY: 13 },
+    { tileX: 23, tileY: 12 }
   ],
   Meji: [
-    { tileX: 30, tileY: 12 },
-    { tileX: 27, tileY: 14 },
-    { tileX: 24, tileY: 14 }
+    { tileX: 25, tileY: 16 },
+    { tileX: 24, tileY: 15 }
   ],
   Meowts: [
-    { tileX: 31, tileY: 12 },
-    { tileX: 30, tileY: 10 },
-    { tileX: 29, tileY: 9 }
+    { tileX: 28, tileY: 15 },
+    { tileX: 27, tileY: 13 }
   ],
   Miji: [
-    { tileX: 14, tileY: 9 },
-    { tileX: 16, tileY: 11 },
-    { tileX: 16, tileY: 13 }
+    { tileX: 16, tileY: 14 },
+    { tileX: 17, tileY: 14 }
   ],
   Moji: [
-    { tileX: 9, tileY: 8 },
-    { tileX: 14, tileY: 10 },
-    { tileX: 18, tileY: 11 }
+    { tileX: 15, tileY: 12 },
+    { tileX: 18, tileY: 12 }
   ],
   Muji: [
-    { tileX: 20, tileY: 13 },
-    { tileX: 20, tileY: 15 }
+    { tileX: 20, tileY: 17 },
+    { tileX: 20, tileY: 16 }
   ]
 };
 

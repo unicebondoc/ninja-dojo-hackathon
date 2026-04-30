@@ -26,12 +26,12 @@ export type Station = {
 };
 
 export const stations: Station[] = [
-  { agent: "Moji", tileX: 6, tileY: 6 },
-  { agent: "Miji", tileX: 14, tileY: 6 },
-  { agent: "Maji", tileX: 26, tileY: 6 },
-  { agent: "Meji", tileX: 33, tileY: 8 },
-  { agent: "Muji", tileX: 20, tileY: 12 },
-  { agent: "Meowts", tileX: 33, tileY: 14 }
+  { agent: "Moji", tileX: 13, tileY: 13 },
+  { agent: "Miji", tileX: 17, tileY: 15 },
+  { agent: "Maji", tileX: 24, tileY: 13 },
+  { agent: "Meji", tileX: 25, tileY: 16 },
+  { agent: "Muji", tileX: 20, tileY: 17 },
+  { agent: "Meowts", tileX: 29, tileY: 15 }
 ];
 
 function buildGrid(): TileCode[][] {
