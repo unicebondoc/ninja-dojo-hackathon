@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Ninja Dojo",
-  description: "One scroll in. Five Codex worktrees out."
+  description: "One scroll in. Six ninjas ship it."
 };
 
 export default function RootLayout({

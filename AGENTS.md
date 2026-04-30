@@ -5,7 +5,7 @@
 Ninja Dojo is a commercial AI command center for solo builders to coordinate parallel Codex-style workflows.
 
 Claim:
-One scroll in. Live ninjas out. One shipped result.
+One scroll in. Six ninjas ship it.
 
 ## The Cast
 

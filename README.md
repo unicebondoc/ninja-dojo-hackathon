@@ -1,6 +1,6 @@
 # Ninja Dojo
 
-> A live dojo for coordinating Codex-style agent workflows. One scroll in. Five Codex worktrees out. One shipped result.
+> A live dojo for coordinating Codex-style agent workflows. One scroll in. Six ninjas ship it.
 
 ![License MIT](https://img.shields.io/badge/license-MIT-f6e7b1)
 ![Next.js 15](https://img.shields.io/badge/Next.js-15-black)

@@ -61,6 +61,9 @@ const agentMeta: Record<AgentId, { busy: string; done: string; file: string; rol
 
 const actorDisplay = {
   height: 124,
+  shadowHeight: 8,
+  shadowOffsetY: 54,
+  shadowWidth: 42,
   walkHeight: 124,
   walkWidth: 100,
   width: 100
@@ -397,7 +400,16 @@ export function createDojoScene(Phaser: any) {
           .container(home.x, home.y)
           .setDepth(Math.round(home.y));
 
-        const shadow = this.add.ellipse(0, 47, 58, 13, 0x000000, 0.46);
+        const shadow = this.add
+          .ellipse(
+            0,
+            actorDisplay.shadowOffsetY,
+            actorDisplay.shadowWidth,
+            actorDisplay.shadowHeight,
+            0x000000,
+            0.42
+          )
+          .setDepth(-1);
         const sprite = this.add
           .sprite(0, 0, `${meta.file}-idle`)
           .setDisplaySize(actorDisplay.width, actorDisplay.height)
@@ -688,6 +700,7 @@ export function createDojoScene(Phaser: any) {
         .setTexture(`${actor.file}-walk`)
         .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight)
         .play(`${actor.file}-walk-cycle`);
+      this.updateActorShadow(actor);
       this.updateActorDepth(actor);
       this.tweens.killTweensOf(actor.container);
 
@@ -699,6 +712,7 @@ export function createDojoScene(Phaser: any) {
             .setTexture(`${actor.file}-idle`)
             .setDisplaySize(actorDisplay.width, actorDisplay.height);
           actor.sprite.stop?.();
+          this.updateActorShadow(actor);
           this.updateActorDepth(actor);
           options.onComplete?.();
           return;
@@ -741,6 +755,7 @@ export function createDojoScene(Phaser: any) {
         .setTexture(`${actor.file}-walk`)
         .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight)
         .play(`${actor.file}-walk-cycle`);
+      this.updateActorShadow(actor);
       actor.sprite.setFlipX(target.x < actor.container.x);
       this.updateActorDepth(actor);
 
@@ -757,6 +772,7 @@ export function createDojoScene(Phaser: any) {
             .setTexture(`${actor.file}-idle`)
             .setDisplaySize(actorDisplay.width, actorDisplay.height);
           actor.sprite.stop?.();
+          this.updateActorShadow(actor);
           this.updateActorDepth(actor);
           options.onComplete?.();
         },
@@ -823,6 +839,7 @@ export function createDojoScene(Phaser: any) {
         .setTexture(`${actor.file}-idle`)
         .setDisplaySize(actorDisplay.width, actorDisplay.height);
       actor.sprite.stop?.();
+      this.updateActorShadow(actor);
       this.updateActorDepth(actor);
     }
 
@@ -830,20 +847,20 @@ export function createDojoScene(Phaser: any) {
       actor.nameplate?.destroy();
       actor.nameplateTimer?.remove?.();
 
-      const plate = this.add.container(0, 72).setDepth(710);
+      const plate = this.add.container(0, 70).setDepth(710);
       const text = this.add
         .text(0, 0, `${actor.id} / ${actor.role}`, {
-          color: "#f6e7b1",
+          color: "#fff7d6",
           fontFamily: "monospace",
-          fontSize: "16px",
+          fontSize: "17px",
           fontStyle: "bold",
           resolution: 2
         })
         .setOrigin(0.5);
       const bounds = text.getBounds();
       const bg = this.add
-        .rectangle(0, 0, bounds.width + 22, bounds.height + 12, 0x050505, 0.9)
-        .setStrokeStyle(1, 0xf6e7b1, 0.58);
+        .rectangle(0, 0, bounds.width + 26, bounds.height + 14, 0x050505, 0.94)
+        .setStrokeStyle(2, 0xf6e7b1, 0.7);
       plate.add([bg, text]);
       actor.container.add(plate);
       actor.nameplate = plate;
@@ -858,22 +875,22 @@ export function createDojoScene(Phaser: any) {
 
     private showFloatingBubble(actor: ActorRuntime, message: string) {
       actor.bubble?.destroy();
-      const bubble = this.add.container(0, -94).setDepth(720);
+      const bubble = this.add.container(0, -96).setDepth(720);
       const text = this.add
         .text(0, 0, message, {
           align: "center",
           color: "#ffffff",
           fontFamily: "monospace",
-          fontSize: "18px",
+          fontSize: "20px",
           fontStyle: "bold",
           resolution: 2,
-          wordWrap: { width: 260 }
+          wordWrap: { width: 300 }
         })
         .setOrigin(0.5);
       const bounds = text.getBounds();
       const bg = this.add
-        .rectangle(0, 0, bounds.width + 28, bounds.height + 20, 0x050505, 0.94)
-        .setStrokeStyle(2, 0xf6e7b1, 0.72);
+        .rectangle(0, 0, bounds.width + 34, bounds.height + 24, 0x050505, 0.96)
+        .setStrokeStyle(3, 0xf6e7b1, 0.82);
       bubble.add([bg, text]);
       actor.container.add(bubble);
       actor.bubble = bubble;
@@ -978,6 +995,13 @@ export function createDojoScene(Phaser: any) {
 
     private updateActorDepth(actor: ActorRuntime) {
       actor.container.setDepth(Math.round(actor.container.y));
+    }
+
+    private updateActorShadow(actor: ActorRuntime) {
+      actor.shadow
+        ?.setPosition(0, actorDisplay.shadowOffsetY)
+        .setDisplaySize(actorDisplay.shadowWidth, actorDisplay.shadowHeight)
+        .setAlpha(actor.state === "walking" ? 0.38 : 0.42);
     }
 
     private tintNightForStage(stage: RunStage) {

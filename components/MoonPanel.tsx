@@ -29,21 +29,21 @@ export function MoonPanel({
       className="rpg-moon-panel"
       data-complete={isComplete}
       data-running={isRunning}
-      style={{ "--deploy-clip": `${(1 - phase) * 100}%` } as CSSProperties}
+      style={
+        {
+          "--deploy-glow-opacity": phase * 0.86,
+          "--deploy-glow-scale": 0.62 + phase * 0.36,
+          "--deploy-progress": phase
+        } as CSSProperties
+      }
     >
       <div className="rpg-panel-title">
         <span>Deploy Moon</span>
         <i />
       </div>
       <div className="rpg-moon-panel__orb" data-visible={isRunning || isComplete}>
+        <span aria-hidden="true" className="rpg-moon-panel__charge" />
         <img alt="" draggable={false} src="/assets/dojo/moon.png" />
-        <img
-          alt=""
-          aria-hidden="true"
-          className="rpg-moon-panel__phase"
-          draggable={false}
-          src="/assets/dojo/moon.png"
-        />
       </div>
       <h2>{status}</h2>
       <p>

@@ -1,5 +1,14 @@
 import { LiveDojo } from "@/components/LiveDojo";
 
+const cast = [
+  ["Moji", "Plan", "Maps the route before the scroll moves."],
+  ["Miji", "Build", "Turns the plan into the first working pass."],
+  ["Maji", "Attack", "Stress-tests the weak spots."],
+  ["Meji", "Review", "Catches mistakes before they ship."],
+  ["Muji", "Deploy", "Opens the gate to production."],
+  ["Meowts", "Judge", "Judges the run under moonlight."]
+];
+
 export default function Home() {
   return (
     <main className="rpg-page">
@@ -27,6 +36,22 @@ export default function Home() {
               ready.
             </span>
           </article>
+        </section>
+
+        <section className="rpg-cast-section" aria-labelledby="meet-the-cast">
+          <div>
+            <p>Meet the cast</p>
+            <h2 id="meet-the-cast">Six ninjas. One shipped run.</h2>
+          </div>
+          <div className="rpg-cast-grid">
+            {cast.map(([name, role, line]) => (
+              <article key={name}>
+                <strong>{name}</strong>
+                <span>{role}</span>
+                <p>{line}</p>
+              </article>
+            ))}
+          </div>
         </section>
       </section>
     </main>
