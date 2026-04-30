@@ -1,19 +1,22 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import type { RunManifest } from "@/lib/runs/types";
 
 type MoonPanelProps = {
   currentStage: number;
   isComplete: boolean;
   isRunning: boolean;
   prompt?: string;
+  run?: RunManifest | null;
 };
 
 export function MoonPanel({
   currentStage,
   isComplete,
   isRunning,
-  prompt
+  prompt,
+  run
 }: MoonPanelProps) {
   const phase = isComplete
     ? 1
@@ -58,7 +61,7 @@ export function MoonPanel({
       <div className="rpg-moon-panel__stats">
         <span>
           <strong>Run Type</strong>
-          Dojo Preview
+          {run ? run.productType : "Dojo Preview"}
         </span>
         <span>
           <strong>Moonrise</strong>
@@ -68,6 +71,12 @@ export function MoonPanel({
           <strong>Status</strong>
           {isComplete ? "Ready" : isRunning ? "Running" : "Idle"}
         </span>
+        {isComplete && run ? (
+          <span>
+            <strong>Judge</strong>
+            {run.judgeResult.score}/100 · {run.judgeResult.verdict}
+          </span>
+        ) : null}
       </div>
     </aside>
   );

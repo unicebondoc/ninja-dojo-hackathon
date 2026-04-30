@@ -7,7 +7,7 @@
 ![TypeScript 5](https://img.shields.io/badge/TypeScript-5-blue)
 ![Codex Skills](https://img.shields.io/badge/Codex-Skills-dc2626)
 
-Ninja Dojo is a live command center for solo builders coordinating Codex-style agent workflows. You write a product request into the Scroll Composer, seal it, and watch six specialized ninjas plan, build, attack, review, deploy, and judge the result inside a 2D dojo simulation. When the work passes, the moon rises and the shipped page opens.
+Ninja Dojo is a live command center for solo builders coordinating Codex-style agent workflows. You write a product request into the Scroll Composer, seal it, and watch six specialized ninjas plan, build, attack, review, deploy, and judge the result inside a 2D dojo simulation. When the work passes, the moon rises, a shipped preview opens, and the browser saves a run manifest you can reuse.
 
 ## What it is
 
@@ -51,6 +51,8 @@ Ninja Dojo is built around the way Codex actually works:
   - `meji-review` — reviews architecture for harmony.
   - `muji-deploy` — runs build checks and prepares deploy.
   - `meowts-judge` — decides whether the moon rises.
+- **Run Manifest** — every scroll becomes structured data: requirements, stages, generated preview, Moonrise URL, and Meowts judge result.
+- **Local run history** — runs are stored in browser storage first, keeping the loop Vercel-safe without requiring a database.
 - **Worktree story** — each ninja maps to an isolated Codex worktree. The current app runs them as cached events; the production direction replaces the local factory with real Codex worktree execution while preserving the `DojoRun` and `DojoRunEvent` shapes.
 
 ## Run Locally
@@ -77,9 +79,37 @@ What a first-time visitor sees:
 
 The whole loop runs offline from cached data, so the product never blocks on a network call.
 
+## Run Manifest
+
+Each submitted scroll creates a local manifest with:
+
+- `runId`, `createdAt`, and `scrollText`
+- inferred product type and product name
+- requested requirements
+- stage summaries for Moji, Miji, Maji, Meji, Muji, and Meowts
+- generated Moonrise preview data
+- Meowts judge result, score, and suggested improvements
+- Moonrise URL and copyable run brief
+
+This is the contract future orchestration can fulfill with real workers.
+
+## Offers
+
+### Starter Dojo Run
+
+From $199. For simple landing pages and launch previews: one scroll, branded landing page, copy polish, and Moonrise preview.
+
+### Founder Dojo Run
+
+From $499. For fuller product pages and waitlists: landing page, generated sections, pricing/testimonials/CTA, and deploy-ready polish.
+
+### Custom Agentic Build
+
+Custom. For tools, dashboards, and repo-connected workflows: planning, build pass, review, deploy guidance, and custom workflow.
+
 ## Future Live App Builder Architecture
 
-The current product is cached-first and stage-safe. The live app-builder path is designed to connect without changing the user-facing flow:
+The current product is cached-first and Vercel-safe. The live app-builder path is designed to connect without changing the user-facing flow:
 
 1. **Scroll Composer submits prompt** — the user sends a plain-English product request.
 2. **`/api/runs` creates a run** — the backend stores the prompt and returns a `runId`.
@@ -87,6 +117,7 @@ The current product is cached-first and stage-safe. The live app-builder path is
 4. **Codex workers build in isolated worktrees** — Miji and the specialist ninjas work in parallel without touching the main branch.
 5. **Review/test/deploy stages stream events** — the UI receives live stage updates through the run event stream.
 6. **Moonrise returns preview metadata** — Muji and Meowts return the preview URL, repo, branch, and next-step summary.
+7. **Future integrations plug in** — Codex, Claude, GPT Image 2, GitHub, Vercel, and OpenClaw can attach to the manifest layer.
 
 ## Tech Stack
 
@@ -100,29 +131,18 @@ The current product is cached-first and stage-safe. The live app-builder path is
 
 - `/` — live dojo dashboard.
 - `/moonrise?scroll=...` — generated shipped preview based on the submitted scroll.
-- `/demo/oracle` — backwards-compatible legacy preview page.
 - `/api/runs` — run creation API.
 - `/api/runs/[runId]/events` — SSE run stream.
 - `/api/train` — cached compatibility API.
 
 ## What's Next
 
-- Live deploy with a public URL.
 - Real Codex worktree execution behind the run factory.
 - Audio: koto loop, footsteps, scroll-receive, moonrise SFX.
 - Persistent run archive — past scrolls become collectible artifacts.
 - Account login, workspace membership, and run ownership for teams.
 - Production deploy adapter for Muji.
 - Observability: event logs, run replay, agent quality metrics.
-
-## Credits
-
-- **Origin story** — built at OpenAI Codex Hackathon Sydney 2026.
-- **OpenAI APAC team** — for hosting the Codex Hackathon Sydney 2026.
-- **Gabriel Chua** — feedback and encouragement on the Codex-native angle.
-- **Thomas Jeng** — feedback and encouragement on the live dojo direction.
-- **Arafat Tehsin** — feedback and encouragement on the agent flow.
-- **Unice Bondoc** — solo builder.
 
 ## License
 

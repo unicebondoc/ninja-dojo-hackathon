@@ -1,9 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import {
-  generateMoonrisePreview,
-  sanitizePrompt
-} from "@/lib/moonrise-generator";
+import { createRunManifest } from "@/lib/runs/createRunManifest";
+import { sanitizePrompt } from "@/lib/runs/generatePreview";
 
 type MoonrisePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -12,13 +10,19 @@ type MoonrisePageProps = {
 export default async function MoonrisePage({ searchParams }: MoonrisePageProps) {
   const params = await searchParams;
   const rawScroll = params.scroll ?? params.prompt;
+  const rawRunId = params.run;
   const prompt = sanitizePrompt(Array.isArray(rawScroll) ? rawScroll[0] ?? "" : rawScroll ?? "");
+  const runId = Array.isArray(rawRunId) ? rawRunId[0] : rawRunId;
 
   if (!prompt) {
     return <EmptyMoonrise />;
   }
 
-  const preview = generateMoonrisePreview(prompt);
+  const manifest = createRunManifest(prompt, {
+    runId: runId || undefined,
+    status: "shipped"
+  });
+  const preview = manifest.generatedPreview;
   const pageStyle = {
     "--moonrise-accent": preview.palette.accent,
     "--moonrise-glow": preview.palette.glow,
@@ -103,7 +107,30 @@ export default async function MoonrisePage({ searchParams }: MoonrisePageProps) 
                 This preview is generated locally and deterministically by Ninja Dojo, so the Moonrise loop stays instant and reliable.
               </p>
             </div>
+            <div className="rounded-3xl border border-white/10 bg-black/32 p-5">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moonrise-glow)]">
+                Meowts verdict
+              </p>
+              <strong className="mt-3 block text-3xl font-black capitalize text-white">
+                {manifest.judgeResult.verdict}
+              </strong>
+              <p className="mt-2 text-sm text-white/68">
+                Score: {manifest.judgeResult.score}/100
+              </p>
+            </div>
           </aside>
+        </section>
+
+        <section className="grid gap-4 border-t border-white/10 px-6 py-8 sm:px-10 lg:grid-cols-3 lg:px-14">
+          {preview.features.map((feature) => (
+            <article
+              className="rounded-2xl border border-[color:var(--moonrise-accent)]/22 bg-black/34 p-5"
+              key={feature.title}
+            >
+              <h3 className="text-xl font-black text-white">{feature.title}</h3>
+              <p className="mt-3 text-sm leading-7 text-white/68">{feature.body}</p>
+            </article>
+          ))}
         </section>
 
         <section className="grid gap-4 border-t border-white/10 px-6 py-8 sm:px-10 lg:grid-cols-3 lg:px-14">
@@ -175,6 +202,57 @@ export default async function MoonrisePage({ searchParams }: MoonrisePageProps) 
             </div>
           </section>
         ) : null}
+
+        <section className="border-t border-white/10 px-6 py-8 sm:px-10 lg:px-14">
+          <div className="grid gap-5 rounded-3xl border border-[color:var(--moonrise-glow)]/20 bg-black/34 p-6 lg:grid-cols-[0.7fr_1fr_1fr]">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-[color:var(--moonrise-glow)]">
+                Judge result
+              </p>
+              <h2 className="mt-3 text-4xl font-black capitalize text-white">
+                {manifest.judgeResult.verdict}
+              </h2>
+              <p className="mt-3 text-lg font-bold text-white/72">
+                {manifest.judgeResult.score}/100
+              </p>
+            </div>
+            <div>
+              <h3 className="font-black text-white">Matched the scroll</h3>
+              <ul className="mt-4 grid gap-2">
+                {manifest.judgeResult.matched.map((item) => (
+                  <li className="text-sm leading-6 text-white/72" key={item}>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-black text-white">Next polish pass</h3>
+              <ul className="mt-4 grid gap-2">
+                {manifest.judgeResult.improvements.map((item) => (
+                  <li className="text-sm leading-6 text-white/72" key={item}>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="lg:col-span-3">
+              <h3 className="font-black text-white">Requested item checks</h3>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {manifest.judgeResult.requestedItems
+                  .filter((item) => item.requested)
+                  .map((item) => (
+                    <span
+                      className="rounded-full border border-white/12 bg-black/42 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/72"
+                      key={item.label}
+                    >
+                      {item.label}: {item.included ? "included" : "missing"}
+                    </span>
+                  ))}
+              </div>
+            </div>
+          </div>
+        </section>
 
         <section
           className="border-t border-white/10 px-6 py-8 sm:px-10 lg:px-14"

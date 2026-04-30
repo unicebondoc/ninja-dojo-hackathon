@@ -63,7 +63,7 @@ Live adapters may exist behind feature flags. They must never be required for th
 
 ## Example Scroll
 
-Build a landing page for a magical oracle deck with a waitlist CTA.
+Build me a landing page for a moonlit ramen shop with online booking, pricing, and testimonials.
 
 ## Pitch
 

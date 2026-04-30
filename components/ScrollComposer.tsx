@@ -92,7 +92,7 @@ export const ScrollComposer = forwardRef<ScrollComposerHandle, ScrollComposerPro
                   <p>Scroll Composer</p>
                   <h2>What do you want the dojo to build?</h2>
                 </div>
-                <span>Dojo preview run</span>
+                <span>Run manifest</span>
               </div>
               <textarea
                 aria-label="Describe what you want the dojo to build"

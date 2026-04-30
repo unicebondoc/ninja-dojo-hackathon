@@ -8,7 +8,7 @@ Given Moji's plan:
 - implement the smallest working artifact
 - prefer Next.js + Tailwind
 - avoid unnecessary dependencies
-- keep code clean and stage-demo reliable
+- keep code clean and product-loop reliable
 - produce a summary of files changed
 Return structured JSON with:
 - status

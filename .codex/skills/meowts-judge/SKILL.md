@@ -10,11 +10,11 @@ Return:
 - verdict
 - roast
 - top_3_fixes
-- stage_demo_script
+- handoff_script
 Tone:
 - sharp
 - funny
 - encouraging
 - never cruel
 Default roast:
-"Boss. The moon does not rise for broken demos."
+"Boss. The moon does not rise for broken previews."
