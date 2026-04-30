@@ -25,16 +25,15 @@ export function DojoProgress({
   return (
     <div className="rpg-progress" aria-label="Dojo run progress">
       {steps.map((label, index) => {
-        const hasStarted = isRunning || isComplete || currentStage > 0;
-        const isDone = isComplete || (hasStarted && index < currentStage);
+        const isDone = isComplete || currentStage > index;
         const isActive =
-          (hasStarted && currentStage === index) ||
-          (isComplete && index === steps.length - 1);
+          currentStage === index || (isComplete && index === steps.length - 1);
 
         return (
           <span
             data-active={isActive}
             data-complete={isDone}
+            data-running={isRunning}
             key={label}
           >
             <i>{String(index + 1).padStart(2, "0")}</i>
