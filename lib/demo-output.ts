@@ -1,22 +1,22 @@
 import type { DojoDemoOutput } from "@/lib/types";
 
 export const demoOutput: DojoDemoOutput = {
-  scroll: "Build a landing page for a magical oracle deck with a waitlist CTA.",
+  scroll: "Build me a landing page for a moonlit ramen shop with online booking, pricing, and testimonials.",
   status: "shipped",
-  previewPath: "/demo/oracle",
+  previewPath: "/moonrise",
   agents: [
     {
       name: "Moji",
       role: "Plan",
       status: "complete",
       output:
-        "Spec created: hero, product story, oracle deck benefits, waitlist CTA."
+        "Spec created: hero, product story, proof sections, and conversion CTA."
     },
     {
       name: "Miji",
       role: "Build",
       status: "complete",
-      output: "Built a dark mystical landing page with waitlist CTA."
+      output: "Built a personalized Moonrise preview with a clear CTA."
     },
     {
       name: "Maji",
@@ -35,7 +35,7 @@ export const demoOutput: DojoDemoOutput = {
       name: "Muji",
       role: "Deploy",
       status: "complete",
-      output: "Build passed. Live stream and preview ready at /demo/oracle."
+      output: "Build passed. Live stream and Moonrise preview ready."
     },
     {
       name: "Meowts",

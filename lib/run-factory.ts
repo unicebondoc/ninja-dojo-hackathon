@@ -5,11 +5,11 @@ export const defaultArtifacts: DojoArtifact[] = [
   {
     kind: "plan",
     title: "Moji plan",
-    summary: "Landing page scope, acceptance criteria, and build handoff.",
+    summary: "Request scope, acceptance criteria, and build handoff.",
     body: [
-      "Objective: ship a complete magical oracle deck landing page with a waitlist CTA.",
-      "Sections: mystical hero, product promise, how it works, what buyers receive, audience fit.",
-      "Acceptance: clear copy, mobile-safe layout, replayable artifacts, preview at /demo/oracle."
+      "Objective: turn the submitted scroll into a believable shipped preview.",
+      "Sections: hero, product promise, proof, offer details, and conversion CTA.",
+      "Acceptance: clear copy, mobile-safe layout, replayable artifacts, prompt-matched Moonrise preview."
     ]
   },
   {
@@ -17,9 +17,9 @@ export const defaultArtifacts: DojoArtifact[] = [
     title: "Miji build",
     summary: "Next.js route and polished Tailwind interface.",
     body: [
-      "Implemented /demo/oracle as a static shipped page.",
+      "Implemented Moonrise as a generated shipped preview route.",
       "Used local visual assets built from CSS and Tailwind rather than external media.",
-      "Kept the CTA visual-only until the production waitlist adapter is connected."
+      "Kept the CTA visual-only until the production adapter is connected."
     ]
   },
   {
@@ -28,7 +28,7 @@ export const defaultArtifacts: DojoArtifact[] = [
     summary: "Product risks called out before the ship moment.",
     body: [
       "CTA needed to be clear above the fold.",
-      "Mobile spacing needed to keep the oracle card and headline readable.",
+      "Mobile spacing needed to keep the shipped preview and headline readable.",
       "External integrations stay behind adapters until the core run loop is stable."
     ]
   },
@@ -48,7 +48,7 @@ export const defaultArtifacts: DojoArtifact[] = [
     summary: "Build path and preview route are verified for deployment.",
     body: [
       "Production build passes with Next.js 15.",
-      "Local preview paths: /, /demo/oracle, /api/runs, and /api/train.",
+      "Local preview paths: /, /moonrise, /api/runs, and /api/train.",
       "SSE run streaming works locally before production adapters are connected."
     ]
   },

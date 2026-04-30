@@ -68,6 +68,18 @@ const actorDisplay = {
   walkWidth: 96
 };
 
+const shadowSpecs: Record<
+  AgentId,
+  { alpha: number; height: number; offsetY: number; width: number }
+> = {
+  Maji: { alpha: 0.58, height: 14, offsetY: 76, width: 60 },
+  Meji: { alpha: 0.56, height: 13, offsetY: 78, width: 58 },
+  Meowts: { alpha: 0.54, height: 11, offsetY: 66, width: 48 },
+  Miji: { alpha: 0.58, height: 14, offsetY: 76, width: 60 },
+  Moji: { alpha: 0.58, height: 14, offsetY: 74, width: 58 },
+  Muji: { alpha: 0.56, height: 13, offsetY: 76, width: 58 }
+};
+
 const workTiles: Record<AgentId, { tileX: number; tileY: number }> = {
   Maji: { tileX: 23, tileY: 10 },
   Meji: { tileX: 24, tileY: 14 },
@@ -446,11 +458,7 @@ export function createDojoScene(Phaser: any) {
           workY: work.y
         };
 
-        sprite.on("pointerover", () => {
-          this.showNameplate(actor);
-          this.showSpritePointer(actor);
-        });
-        sprite.on("pointerout", () => this.hideSpritePointer(actor));
+        sprite.on("pointerover", () => this.showNameplate(actor));
         sprite.on("pointerdown", () => this.handleTalk(agent));
 
         this.actorMap.set(agent, actor);
@@ -504,17 +512,17 @@ export function createDojoScene(Phaser: any) {
     }
 
     private createNinjaShadow(x: number, y: number, id: AgentId) {
-      const isSmall = id === "Meowts";
+      const spec = shadowSpecs[id];
       return this.add
         .ellipse(
           x,
-          y + actorDisplay.shadowOffsetY,
-          isSmall ? 36 : actorDisplay.shadowWidth,
-          isSmall ? 8 : actorDisplay.shadowHeight,
+          y + spec.offsetY,
+          spec.width,
+          spec.height,
           0x000000,
-          isSmall ? 0.38 : 0.46
+          spec.alpha
         )
-        .setDepth(Math.round(y) - 2);
+        .setDepth(Math.round(y) - 1);
     }
 
     private startIdleLoop(actor: ActorRuntime, delay = randomBetween(1600, 4200)) {
@@ -663,7 +671,7 @@ export function createDojoScene(Phaser: any) {
         }
       });
 
-      const replies = stageReplies[event.stage] ?? [];
+      const replies = (stageReplies[event.stage] ?? []).slice(0, 1);
       replies.forEach((reply, index) => {
         const replyActor = this.actorMap.get(reply.from);
         if (replyActor) {
@@ -933,6 +941,12 @@ export function createDojoScene(Phaser: any) {
     }
 
     private showFloatingBubble(actor: ActorRuntime, message: string) {
+      this.actorMap.forEach((other) => {
+        if (other.id !== actor.id) {
+          other.bubble?.destroy();
+          other.bubble = undefined;
+        }
+      });
       actor.bubble?.destroy();
       const bubble = this.add.container(0, -96).setDepth(720);
       const text = this.add
@@ -954,7 +968,7 @@ export function createDojoScene(Phaser: any) {
       actor.container.add(bubble);
       actor.bubble = bubble;
 
-      this.time.delayedCall(2800, () => {
+      this.time.delayedCall(2300, () => {
         if (actor.bubble === bubble) {
           bubble.destroy();
           actor.bubble = undefined;
@@ -1130,15 +1144,12 @@ export function createDojoScene(Phaser: any) {
     }
 
     private updateActorShadow(actor: ActorRuntime) {
-      const isSmall = actor.id === "Meowts";
+      const spec = shadowSpecs[actor.id];
       actor.shadow
-        ?.setPosition(actor.container.x, actor.container.y + actorDisplay.shadowOffsetY)
-        .setDisplaySize(
-          isSmall ? 36 : actorDisplay.shadowWidth,
-          isSmall ? 8 : actorDisplay.shadowHeight
-        )
-        .setAlpha(actor.state === "walking" ? 0.4 : isSmall ? 0.38 : 0.46)
-        .setDepth(Math.round(actor.container.y) - 2);
+        ?.setPosition(actor.container.x, actor.container.y + spec.offsetY)
+        .setDisplaySize(spec.width, spec.height)
+        .setAlpha(actor.state === "walking" ? spec.alpha + 0.06 : spec.alpha)
+        .setDepth(Math.round(actor.container.y) - 1);
     }
 
     private tintNightForStage(stage: RunStage) {

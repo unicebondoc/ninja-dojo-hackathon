@@ -23,7 +23,7 @@ const trees: Record<AgentId, DialogueTree> = {
   Miji: {
     done: ["First pass built. Ready for review."],
     idle: ["Busy building. Watch your step.", "Tools sharp. Worktree clean."],
-    working: ["Building the first pass.", "Assembling the oracle page."]
+    working: ["Building the first pass.", "Assembling the preview."]
   },
   Moji: {
     done: ["Plan complete. The route is clear."],

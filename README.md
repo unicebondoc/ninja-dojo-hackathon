@@ -60,7 +60,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`, type a build request into the Scroll Composer, and watch the dojo go to work. The shipped page remains available at `/demo/oracle` for compatibility.
+Open `http://localhost:3000`, type a build request into the Scroll Composer, and watch the dojo go to work. When the moon rises, Ninja Dojo opens a generated Moonrise preview at `/moonrise?scroll=...` based on the scroll you submitted.
 
 ## Product Flow
 
@@ -99,7 +99,8 @@ The current product is cached-first and stage-safe. The live app-builder path is
 ## Routes
 
 - `/` — live dojo dashboard.
-- `/demo/oracle` — backwards-compatible moonrise page.
+- `/moonrise?scroll=...` — generated shipped preview based on the submitted scroll.
+- `/demo/oracle` — backwards-compatible legacy preview page.
 - `/api/runs` — run creation API.
 - `/api/runs/[runId]/events` — SSE run stream.
 - `/api/train` — cached compatibility API.

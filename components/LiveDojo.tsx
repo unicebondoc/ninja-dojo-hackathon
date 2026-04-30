@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ExternalLink, Play, RotateCcw } from "lucide-react";
+import { ExternalLink, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DojoEventLog } from "@/components/DojoEventLog";
 import { DojoProgress } from "@/components/DojoProgress";
@@ -14,7 +14,6 @@ import {
 } from "@/components/ScrollComposer";
 import { EventBus } from "@/game/events";
 import type { RunStage, RunStageEvent } from "@/game/run/RunStateMachine";
-import { demoOutput } from "@/lib/demo-output";
 import type { DojoDialogue } from "@/lib/types";
 
 const stageOrder: RunStage[] = [
@@ -116,10 +115,17 @@ export function LiveDojo() {
     setComplete(false);
     setCurrentStage(0);
     setDialogue([]);
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem("ninja-dojo:last-scroll", cleanPrompt);
+    }
     dojoRef.current?.runDojo();
   }
 
   const activeScroll = submittedPrompt || scrollPrompt;
+  const moonriseHref =
+    complete && submittedPrompt
+      ? `/moonrise?scroll=${encodeURIComponent(submittedPrompt)}`
+      : "/moonrise";
   const boardTitle = complete
     ? "Moonrise: shipped."
     : running
@@ -154,11 +160,6 @@ export function LiveDojo() {
             shouldPulse={inputPulse}
             value={scrollPrompt}
           />
-          <DojoProgress
-            currentStage={currentStage}
-            isComplete={complete}
-            isRunning={running}
-          />
         </div>
       </header>
 
@@ -166,6 +167,11 @@ export function LiveDojo() {
         <DojoEventLog dialogue={dialogue} />
 
         <div className="rpg-board-shell">
+          <DojoProgress
+            currentStage={currentStage}
+            isComplete={complete}
+            isRunning={running}
+          />
           <PhaserDojo
             boardTitle={boardTitle}
             complete={complete}
@@ -189,10 +195,6 @@ export function LiveDojo() {
       </div>
 
       <div className="rpg-controls">
-        <button disabled={running} onClick={runDojo} type="button">
-          <Play className="h-5 w-5" />
-          {complete ? "Run Again" : running ? "Training..." : "Send Scroll"}
-        </button>
         {running || complete || dialogue.length > 0 ? (
           <button
             className="is-secondary"
@@ -206,7 +208,7 @@ export function LiveDojo() {
         <Link
           aria-disabled={!complete}
           className={!complete ? "is-disabled" : undefined}
-          href={demoOutput.previewPath}
+          href={moonriseHref}
           tabIndex={!complete ? -1 : undefined}
         >
           <ExternalLink className="h-5 w-5" />

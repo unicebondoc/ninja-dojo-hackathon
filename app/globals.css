@@ -3862,7 +3862,12 @@ textarea {
   position: relative;
   display: grid;
   min-width: 0;
-  place-items: center;
+  align-content: start;
+  gap: 10px;
+}
+
+.rpg-board-shell > .rpg-progress {
+  width: 100%;
 }
 
 .rpg-board {
@@ -5329,17 +5334,9 @@ textarea {
 }
 
 /* GPT Image 2 generated brand assets */
-.rpg-page {
-  cursor: url("/cursors/moon-shuriken-cursor.png") 8 8, auto;
-}
-
-.rpg-page button,
-.rpg-page a,
-.rpg-page [role="button"],
-.rpg-page .cast-card,
-.rpg-page .rpg-how-grid article,
-.rpg-page .rpg-info-grid article {
-  cursor: url("/cursors/moon-shuriken-cursor.png") 8 8, pointer;
+.phaser-dojo,
+.phaser-dojo canvas {
+  cursor: auto;
 }
 
 .rpg-page::after {

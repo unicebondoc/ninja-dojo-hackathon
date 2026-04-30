@@ -48,7 +48,7 @@ const steps: Step[] = [
     agent: "Miji",
     duration: 4200,
     effect: "build",
-    message: "Miji is building the oracle page...",
+    message: "Miji is building the first pass...",
     role: "Build",
     stage: "build"
   },

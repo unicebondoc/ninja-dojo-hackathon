@@ -16,7 +16,7 @@ const howItWorks = [
   [
     "scroll",
     "Describe the build",
-    "Write what you want: a landing page, waitlist, dashboard, or product MVP."
+    "Write what you want: a landing page, waitlist, dashboard, or product preview."
   ],
   [
     "agents",
