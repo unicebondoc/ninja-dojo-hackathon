@@ -6,12 +6,14 @@ type MoonPanelProps = {
   currentStage: number;
   isComplete: boolean;
   isRunning: boolean;
+  prompt?: string;
 };
 
 export function MoonPanel({
   currentStage,
   isComplete,
-  isRunning
+  isRunning,
+  prompt
 }: MoonPanelProps) {
   const phase = isComplete
     ? 1
@@ -48,25 +50,30 @@ export function MoonPanel({
       <h2>{status}</h2>
       <p>
         {isComplete
-          ? "The second moon is full. The oracle page is ready to open."
+          ? `The dojo shipped a first pass${prompt ? ` for: ${summarizePrompt(prompt)}` : ""}.`
           : isRunning
             ? "The deploy moon fills as the scroll passes through every station."
             : "Two moons watch every build. One eternal, one earned."}
       </p>
       <div className="rpg-moon-panel__stats">
         <span>
-          <strong>Mode</strong>
-          Cached-first
+          <strong>Run Type</strong>
+          Dojo Preview
         </span>
         <span>
           <strong>Moonrise</strong>
-          Shipped page
+          {isComplete ? "Ready to open" : "Ready after run"}
         </span>
         <span>
-          <strong>Signal</strong>
+          <strong>Status</strong>
           {isComplete ? "Ready" : isRunning ? "Running" : "Idle"}
         </span>
       </div>
     </aside>
   );
+}
+
+function summarizePrompt(prompt: string) {
+  const clean = prompt.trim().replace(/\s+/g, " ");
+  return clean.length > 74 ? `${clean.slice(0, 71)}...` : clean;
 }

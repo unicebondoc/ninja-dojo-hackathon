@@ -40,6 +40,19 @@ export type DojoRun = DojoDemoOutput & {
   streamPath?: string;
 };
 
+export type ScrollRequest = {
+  prompt: string;
+  createdAt: string;
+  runId: string;
+};
+
+export type DojoRunResult = {
+  runId: string;
+  prompt: string;
+  status: "idle" | "running" | "shipped" | "failed";
+  moonriseUrl?: string;
+};
+
 export type DojoDialogue = {
   id: string;
   speaker: string;

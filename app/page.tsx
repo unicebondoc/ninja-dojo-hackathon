@@ -15,18 +15,18 @@ const cast = [
 const howItWorks = [
   [
     "scroll",
-    "Drop the Scroll",
-    "Send one request into the dojo. The run begins instantly."
+    "Describe the build",
+    "Write what you want: a landing page, waitlist, dashboard, or product MVP."
   ],
   [
     "agents",
-    "Ninjas Coordinate",
-    "Each ninja owns a stage: plan, build, attack, review, deploy, and judge."
+    "Watch the run",
+    "Six ninjas move through plan, build, attack, review, deploy, and judge."
   ],
   [
     "moon",
-    "Moonrise Ships",
-    "When the moon rises, the dojo declares the run shipped."
+    "Open Moonrise",
+    "Get a shipped preview and the next steps for turning it into a real app."
   ]
 ] satisfies ReadonlyArray<readonly [SectionIconVariant, string, string]>;
 
@@ -35,13 +35,13 @@ const proofCards = [
     "timeline",
     "What happened in the dojo?",
     "The scroll became a shipped page.",
-    "The cached run moves from scroll intake through planning, building, adversarial attack, architecture review, deployment checks, and Meowts judgment before opening the oracle landing page."
+    "The preview run moves from scroll intake through planning, building, adversarial attack, architecture review, deployment checks, and Meowts judgment before opening Moonrise."
   ],
   [
     "cast",
     "Codex-native proof",
     "Built around the way Codex actually works.",
-    "Ninja Dojo keeps AGENTS.md, six Codex Skills, and cached /api/train output in the repo today, with room for future App Server and worktree streaming when the live orchestration layer is ready."
+    "Ninja Dojo keeps AGENTS.md, six Codex Skills, and clean run-event shapes in the repo today, with room for future App Server and worktree streaming when the live orchestration layer is ready."
   ]
 ] satisfies ReadonlyArray<readonly [SectionIconVariant, string, string, string]>;
 
@@ -58,8 +58,8 @@ export default function Home() {
 
         <section className="rpg-how-section" aria-labelledby="how-it-works">
           <div className="rpg-section-heading">
-            <p>How it works</p>
-            <h2 id="how-it-works">A product run you can watch.</h2>
+            <p>Build mode</p>
+            <h2 id="how-it-works">From scroll to shipped app.</h2>
           </div>
           <div className="rpg-how-grid">
             {howItWorks.map(([icon, title, line]) => (

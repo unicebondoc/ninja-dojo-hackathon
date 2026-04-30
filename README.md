@@ -7,7 +7,7 @@
 ![TypeScript 5](https://img.shields.io/badge/TypeScript-5-blue)
 ![Codex Skills](https://img.shields.io/badge/Codex-Skills-dc2626)
 
-Ninja Dojo is a live command center for solo builders coordinating Codex-style agent workflows. You hand the dojo a single scroll — a product idea written in plain English — and watch six specialized ninjas plan, build, attack, review, deploy, and judge the result inside a 2D dojo simulation. When the work passes, the moon rises and the shipped page opens.
+Ninja Dojo is a live command center for solo builders coordinating Codex-style agent workflows. You write a product request into the Scroll Composer, seal it, and watch six specialized ninjas plan, build, attack, review, deploy, and judge the result inside a 2D dojo simulation. When the work passes, the moon rises and the shipped page opens.
 
 ## What it is
 
@@ -60,21 +60,33 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`, send the scroll, and watch the dojo go to work. The shipped page remains available at `/demo/oracle` for compatibility.
+Open `http://localhost:3000`, type a build request into the Scroll Composer, and watch the dojo go to work. The shipped page remains available at `/demo/oracle` for compatibility.
 
 ## Product Flow
 
 What a first-time visitor sees:
 
 1. The dojo loads — six ninjas at their stations under a dark sky.
-2. Send the scroll and watch the dojo go to work.
-3. Moji writes the plan. Miji starts building.
-4. Maji attacks the build. A katana slash flashes on screen.
-5. Meji reviews the architecture. Muji runs deploy checks.
-6. Meowts delivers the verdict from the pagoda roof.
-7. The moon rises. The shipped page is ready to open.
+2. Type a build request into the moonlit parchment Scroll Composer.
+3. Send the scroll and watch the dojo go to work.
+4. Moji writes the plan. Miji starts building.
+5. Maji attacks the build. A katana slash flashes on screen.
+6. Meji reviews the architecture. Muji runs deploy checks.
+7. Meowts delivers the verdict from the pagoda roof.
+8. The moon rises. The shipped page is ready to open.
 
 The whole loop runs offline from cached data, so the product never blocks on a network call.
+
+## Future Live App Builder Architecture
+
+The current product is cached-first and stage-safe. The live app-builder path is designed to connect without changing the user-facing flow:
+
+1. **Scroll Composer submits prompt** — the user sends a plain-English product request.
+2. **`/api/runs` creates a run** — the backend stores the prompt and returns a `runId`.
+3. **Orchestrator creates plan** — Moji turns the scroll into implementation scope and acceptance criteria.
+4. **Codex workers build in isolated worktrees** — Miji and the specialist ninjas work in parallel without touching the main branch.
+5. **Review/test/deploy stages stream events** — the UI receives live stage updates through the run event stream.
+6. **Moonrise returns preview metadata** — Muji and Meowts return the preview URL, repo, branch, and next-step summary.
 
 ## Tech Stack
 

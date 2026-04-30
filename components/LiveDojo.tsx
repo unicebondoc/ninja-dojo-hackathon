@@ -8,6 +8,10 @@ import { DojoProgress } from "@/components/DojoProgress";
 import { BrandLogo } from "@/components/BrandLogo";
 import { MoonPanel } from "@/components/MoonPanel";
 import { PhaserDojo, type PhaserDojoHandle } from "@/components/PhaserDojo";
+import {
+  ScrollComposer,
+  type ScrollComposerHandle
+} from "@/components/ScrollComposer";
 import { EventBus } from "@/game/events";
 import type { RunStage, RunStageEvent } from "@/game/run/RunStateMachine";
 import { demoOutput } from "@/lib/demo-output";
@@ -26,10 +30,16 @@ const stageOrder: RunStage[] = [
 
 export function LiveDojo() {
   const dojoRef = useRef<PhaserDojoHandle>(null);
+  const composerRef = useRef<ScrollComposerHandle>(null);
+  const promptRef = useRef("");
   const [complete, setComplete] = useState(false);
   const [currentStage, setCurrentStage] = useState(0);
   const [dialogue, setDialogue] = useState<DojoDialogue[]>([]);
   const [gameReady, setGameReady] = useState(false);
+  const [inputPulse, setInputPulse] = useState(false);
+  const [scrollSent, setScrollSent] = useState(false);
+  const [scrollPrompt, setScrollPrompt] = useState("");
+  const [submittedPrompt, setSubmittedPrompt] = useState("");
   const [running, setRunning] = useState(false);
 
   const handleGameReady = useCallback(() => {
@@ -40,6 +50,7 @@ export function LiveDojo() {
     const offStage = EventBus.on<RunStageEvent>("run-stage", (event) => {
       if (!event) return;
       const index = stageOrder.indexOf(event.stage);
+      const activePrompt = promptRef.current;
       if (index >= 0) setCurrentStage(index);
       setDialogue((current) =>
         [
@@ -47,7 +58,7 @@ export function LiveDojo() {
           {
             createdAt: new Date().toISOString(),
             id: `stage-${Date.now()}-${event.index}`,
-            message: `${formatTime(event.index)} ${event.message}`,
+            message: formatEventMessage(event, activePrompt),
             role: event.role,
             speaker: event.agent ?? "Dojo"
           }
@@ -70,6 +81,8 @@ export function LiveDojo() {
       setComplete(false);
       setCurrentStage(0);
       setDialogue([]);
+      setScrollSent(false);
+      setSubmittedPrompt("");
     });
 
     const offSave = EventBus.on<{ runsCompleted: number }>("dojo-save", () => {});
@@ -89,12 +102,24 @@ export function LiveDojo() {
 
   function runDojo() {
     if (running) return;
+    const cleanPrompt = scrollPrompt.trim();
+    if (!cleanPrompt) {
+      composerRef.current?.focus();
+      setInputPulse(true);
+      window.setTimeout(() => setInputPulse(false), 760);
+      return;
+    }
+
+    promptRef.current = cleanPrompt;
+    setSubmittedPrompt(cleanPrompt);
+    setScrollSent(true);
     setComplete(false);
     setCurrentStage(0);
     setDialogue([]);
     dojoRef.current?.runDojo();
   }
 
+  const activeScroll = submittedPrompt || scrollPrompt;
   const boardTitle = complete
     ? "Moonrise: shipped."
     : running
@@ -119,13 +144,16 @@ export function LiveDojo() {
           </span>
         </div>
         <div className="rpg-command-stack">
-          <div className="rpg-scroll-brief">
-            <div>
-              <p>Active Scroll</p>
-              <strong>Magical oracle deck landing page</strong>
-            </div>
-            <span>{complete ? "Moonrise ready" : running ? "Ninjas coordinating" : "Standing by"}</span>
-          </div>
+          <ScrollComposer
+            isComplete={complete}
+            isRunning={running}
+            isSent={scrollSent}
+            onChange={setScrollPrompt}
+            onSubmit={runDojo}
+            ref={composerRef}
+            shouldPulse={inputPulse}
+            value={scrollPrompt}
+          />
           <DojoProgress
             currentStage={currentStage}
             isComplete={complete}
@@ -156,6 +184,7 @@ export function LiveDojo() {
           currentStage={currentStage}
           isComplete={complete}
           isRunning={running}
+          prompt={activeScroll}
         />
       </div>
 
@@ -186,6 +215,30 @@ export function LiveDojo() {
       </div>
     </section>
   );
+}
+
+function formatEventMessage(event: RunStageEvent, prompt: string) {
+  const time = formatTime(event.index);
+  const shortPrompt = summarizePrompt(prompt);
+
+  if (event.stage === "idle" && shortPrompt) {
+    return `${time} Scroll received: "${shortPrompt}"`;
+  }
+
+  if (event.stage === "plan" && shortPrompt) {
+    return `${time} Reading scroll: "${shortPrompt}"`;
+  }
+
+  if (event.stage === "moonrise" && shortPrompt) {
+    return `${time} The dojo shipped a first pass for: ${shortPrompt}`;
+  }
+
+  return `${time} ${event.message}`;
+}
+
+function summarizePrompt(prompt: string) {
+  const clean = prompt.trim().replace(/\s+/g, " ");
+  return clean.length > 62 ? `${clean.slice(0, 59)}...` : clean;
 }
 
 function formatTime(index: number) {
