@@ -61,23 +61,20 @@ const agentMeta: Record<AgentId, { busy: string; done: string; file: string; rol
 };
 
 const actorDisplay = {
-  shadowHeight: 10,
-  shadowOffsetY: 58,
-  shadowWidth: 46,
-  walkHeight: 236,
-  walkWidth: 96
+  walkHeight: 224,
+  walkWidth: 92
 };
 
 const shadowSpecs: Record<
   AgentId,
-  { alpha: number; height: number; offsetY: number; width: number }
+  { alpha: number; anchorY: number; height: number; offsetY: number; width: number }
 > = {
-  Maji: { alpha: 0.58, height: 14, offsetY: 76, width: 60 },
-  Meji: { alpha: 0.56, height: 13, offsetY: 78, width: 58 },
-  Meowts: { alpha: 0.54, height: 11, offsetY: 66, width: 48 },
-  Miji: { alpha: 0.58, height: 14, offsetY: 76, width: 60 },
-  Moji: { alpha: 0.58, height: 14, offsetY: 74, width: 58 },
-  Muji: { alpha: 0.56, height: 13, offsetY: 76, width: 58 }
+  Maji: { alpha: 0.48, anchorY: 0.75, height: 12, offsetY: 3, width: 52 },
+  Meji: { alpha: 0.46, anchorY: 0.76, height: 12, offsetY: 3, width: 50 },
+  Meowts: { alpha: 0.44, anchorY: 0.75, height: 10, offsetY: 3, width: 44 },
+  Miji: { alpha: 0.48, anchorY: 0.74, height: 12, offsetY: 3, width: 52 },
+  Moji: { alpha: 0.48, anchorY: 0.73, height: 12, offsetY: 3, width: 50 },
+  Muji: { alpha: 0.46, anchorY: 0.75, height: 12, offsetY: 3, width: 50 }
 };
 
 const workTiles: Record<AgentId, { tileX: number; tileY: number }> = {
@@ -439,6 +436,7 @@ export function createDojoScene(Phaser: any) {
         const shadow = this.createNinjaShadow(home.x, home.y, agent);
         const sprite = this.add
           .sprite(0, 0, `${meta.file}-walk`, 0)
+          .setOrigin(0.5, shadowSpecs[agent].anchorY)
           .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight)
           .setInteractive({ useHandCursor: true });
 
@@ -463,7 +461,7 @@ export function createDojoScene(Phaser: any) {
 
         this.actorMap.set(agent, actor);
         this.setActorIdleSprite(actor);
-        this.startIdleLoop(actor, randomBetween(120, 900));
+        this.startIdleLoop(actor, randomBetween(80, 620));
       });
     }
 
@@ -529,22 +527,22 @@ export function createDojoScene(Phaser: any) {
       actor.patrolTimer?.remove?.();
       actor.patrolTimer = this.time.delayedCall(delay, () => {
         if (this.runMachine?.isRunning() || actor.state !== "idle") {
-          this.startIdleLoop(actor, randomBetween(1400, 3200));
+          this.startIdleLoop(actor, randomBetween(800, 1900));
           return;
         }
 
-        if (Math.random() < 0.68) {
+        if (Math.random() < 0.82) {
           const target = this.randomPatrolPoint(actor.id);
           this.moveActor(actor, target, {
-            duration: randomBetween(1600, 2700),
-            onComplete: () => this.startIdleLoop(actor, randomBetween(700, 1900)),
+            duration: randomBetween(1200, 2200),
+            onComplete: () => this.startIdleLoop(actor, randomBetween(420, 1300)),
             stateAfter: "idle"
           });
         } else {
           if (Math.random() < 0.5) actor.sprite.setFlipX(!actor.sprite.flipX);
-          if (Math.random() < 0.72) this.showFloatingBubble(actor, linesFor(actor.id, "idle")[0]);
+          if (Math.random() < 0.5) this.showFloatingBubble(actor, linesFor(actor.id, "idle")[0]);
           if (Math.random() < 0.55) this.playActorAction(actor, "idle");
-          this.startIdleLoop(actor, randomBetween(900, 2400));
+          this.startIdleLoop(actor, randomBetween(620, 1500));
         }
       });
     }
@@ -614,6 +612,15 @@ export function createDojoScene(Phaser: any) {
           this.showShippedStamp();
           this.cameras.main.pan(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 900, "Sine.easeOut", true);
           this.cameras.main.zoomTo(1, 900, "Sine.easeOut", true);
+          this.time.delayedCall(1700, () => {
+            this.actorMap.forEach((actor) => {
+              if (actor.state === "done" || actor.state === "working") {
+                actor.state = "idle";
+                this.setActorIdleSprite(actor);
+                this.startIdleLoop(actor, randomBetween(350, 1800));
+              }
+            });
+          });
         }),
         EventBus.on("run-reset", () => {
           this.actorMap.forEach((actor) => (actor.state = "idle"));
@@ -881,7 +888,7 @@ export function createDojoScene(Phaser: any) {
       actor.nameplate?.destroy();
       actor.nameplateTimer?.remove?.();
 
-      const plate = this.add.container(0, 70).setDepth(710);
+      const plate = this.add.container(0, -132).setDepth(710);
       const text = this.add
         .text(0, 0, `${actor.id} / ${actor.role}`, {
           color: "#fff7d6",
@@ -910,7 +917,7 @@ export function createDojoScene(Phaser: any) {
     private showSpritePointer(actor: ActorRuntime) {
       actor.pointer?.destroy();
       const pointer = this.add
-        .image(0, -78, "ninja-pointer")
+        .image(0, -152, "ninja-pointer")
         .setDisplaySize(22, 22)
         .setAlpha(0.86)
         .setDepth(715);
@@ -921,7 +928,7 @@ export function createDojoScene(Phaser: any) {
         ease: "Sine.InOut",
         repeat: -1,
         targets: pointer,
-        y: -86,
+        y: -160,
         yoyo: true
       });
     }
@@ -948,7 +955,7 @@ export function createDojoScene(Phaser: any) {
         }
       });
       actor.bubble?.destroy();
-      const bubble = this.add.container(0, -96).setDepth(720);
+      const bubble = this.add.container(0, -166).setDepth(720);
       const text = this.add
         .text(0, 0, message, {
           align: "center",
@@ -979,6 +986,7 @@ export function createDojoScene(Phaser: any) {
     private setActorIdleSprite(actor: ActorRuntime) {
       actor.sprite
         .setTexture(`${actor.file}-walk`, 0)
+        .setOrigin(0.5, shadowSpecs[actor.id].anchorY)
         .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight);
       actor.sprite.stop?.();
       actor.sprite.setFrame(0);
@@ -987,6 +995,7 @@ export function createDojoScene(Phaser: any) {
     private setActorWalkingSprite(actor: ActorRuntime) {
       actor.sprite
         .setTexture(`${actor.file}-walk`)
+        .setOrigin(0.5, shadowSpecs[actor.id].anchorY)
         .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight)
         .play(`${actor.file}-walk-cycle`, true);
     }
@@ -1006,6 +1015,7 @@ export function createDojoScene(Phaser: any) {
       this.tweens.killTweensOf(actor.sprite);
       actor.sprite
         .setTexture(`${actor.file}-action`, 0)
+        .setOrigin(0.5, shadowSpecs[actor.id].anchorY)
         .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight)
         .play(`${actor.file}-action-cycle`, true);
       this.playTaskPulse(actor, pulseColor);
@@ -1050,7 +1060,7 @@ export function createDojoScene(Phaser: any) {
 
     private playTaskPulse(actor: ActorRuntime, color: number) {
       const ring = this.add
-        .ellipse(0, 42, 70, 18, color, 0.16)
+        .ellipse(0, 4, 70, 18, color, 0.16)
         .setStrokeStyle(2, color, 0.55)
         .setDepth(1);
       actor.container.addAt(ring, 0);

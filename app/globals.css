@@ -6126,3 +6126,99 @@ textarea {
     height: 72px;
   }
 }
+
+/* Composition pass: make the live dojo the product focus on common laptop widths. */
+.rpg-hero {
+  min-height: auto;
+  gap: 16px;
+}
+
+.rpg-hero__header {
+  grid-template-columns: minmax(280px, 0.62fr) minmax(420px, 1fr);
+  align-items: center;
+  padding: 18px 18px 0;
+}
+
+.rpg-title-block span {
+  max-width: 560px;
+}
+
+.rpg-hero__layout {
+  grid-template-columns: minmax(280px, 1fr) minmax(260px, 0.72fr);
+  grid-template-areas:
+    "board board"
+    "log moon";
+  gap: 14px;
+  align-items: start;
+  padding: 0 18px;
+}
+
+.rpg-board-shell {
+  grid-area: board;
+}
+
+.rpg-event-log {
+  grid-area: log;
+  min-height: 260px;
+  max-height: 320px;
+}
+
+.rpg-moon-panel {
+  grid-area: moon;
+  min-height: 260px;
+  max-height: 320px;
+}
+
+.rpg-event-log__body {
+  overflow: auto;
+}
+
+.rpg-board {
+  max-height: min(70vh, 780px);
+}
+
+.rpg-board__status {
+  max-width: min(430px, calc(100% - 32px));
+  padding: 14px 16px;
+  opacity: 0.86;
+}
+
+.rpg-board__status strong {
+  font-size: clamp(15px, 1.1vw, 18px);
+}
+
+.rpg-board__status span {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.rpg-controls {
+  padding-top: 2px;
+}
+
+@media (min-width: 1580px) {
+  .rpg-hero__layout {
+    grid-template-columns: minmax(230px, 0.5fr) minmax(900px, 3fr) minmax(230px, 0.5fr);
+    grid-template-areas: "log board moon";
+  }
+
+  .rpg-event-log,
+  .rpg-moon-panel {
+    min-height: 100%;
+    max-height: none;
+  }
+}
+
+@media (max-width: 1080px) {
+  .rpg-hero__header {
+    grid-template-columns: 1fr;
+  }
+
+  .rpg-hero__layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "board"
+      "log"
+      "moon";
+  }
+}
