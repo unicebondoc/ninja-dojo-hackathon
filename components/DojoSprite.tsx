@@ -9,7 +9,9 @@ type SpriteEffect = "idle" | "plan" | "build" | "attack" | "review" | "deploy" |
 type DojoSpriteProps = {
   agent: DojoAgent;
   effect: SpriteEffect;
+  facing: "left" | "right";
   isActive: boolean;
+  isWalking: boolean;
   x: number;
   y: number;
 };
@@ -21,6 +23,15 @@ const spriteFiles: Record<string, string> = {
   Renegade: "renegade.png",
   Sensei: "sensei.png",
   Tester: "tester.png"
+};
+
+const walkSpriteFiles: Record<string, string> = {
+  Meowts: "meowts-walk.png",
+  Miji: "miji-walk.png",
+  Moji: "moji-walk.png",
+  Renegade: "renegade-walk.png",
+  Sensei: "sensei-walk.png",
+  Tester: "tester-walk.png"
 };
 
 function getMotion(effect: SpriteEffect, isActive: boolean) {
@@ -54,9 +65,18 @@ function getMotion(effect: SpriteEffect, isActive: boolean) {
   };
 }
 
-export function DojoSprite({ agent, effect, isActive, x, y }: DojoSpriteProps) {
+export function DojoSprite({
+  agent,
+  effect,
+  facing,
+  isActive,
+  isWalking,
+  x,
+  y
+}: DojoSpriteProps) {
   const isComplete = agent.status === "complete";
   const fileName = spriteFiles[agent.name] ?? "moji.png";
+  const walkFileName = walkSpriteFiles[agent.name] ?? "moji-walk.png";
 
   return (
     <motion.div
@@ -69,11 +89,14 @@ export function DojoSprite({ agent, effect, isActive, x, y }: DojoSpriteProps) {
       data-active={isActive}
       data-complete={isComplete}
       data-effect={effect}
+      data-facing={facing}
       data-status={agent.status}
+      data-walking={isWalking}
       style={
         {
           "--sprite-x": `${x}%`,
-          "--sprite-y": `${y}%`
+          "--sprite-y": `${y}%`,
+          "--walk-sheet": `url("/assets/dojo/${walkFileName}")`
         } as CSSProperties
       }
       transition={{
@@ -92,12 +115,20 @@ export function DojoSprite({ agent, effect, isActive, x, y }: DojoSpriteProps) {
         <strong>{agent.name.toUpperCase()}</strong>
         <em>{agent.role}</em>
       </span>
-      <img
-        alt={`${agent.name} ${agent.role} ninja sprite`}
-        className="rpg-sprite__image"
-        draggable={false}
-        src={`/assets/dojo/${fileName}`}
-      />
+      {isWalking ? (
+        <span
+          aria-label={`${agent.name} walking ${agent.role} ninja sprite`}
+          className="rpg-sprite__walk"
+          role="img"
+        />
+      ) : (
+        <img
+          alt={`${agent.name} ${agent.role} ninja sprite`}
+          className="rpg-sprite__image"
+          draggable={false}
+          src={`/assets/dojo/${fileName}`}
+        />
+      )}
       <span className="rpg-sprite__shadow" />
       {isComplete ? <span className="rpg-sprite__check">✓</span> : null}
     </motion.div>

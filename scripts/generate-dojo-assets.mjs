@@ -14,6 +14,9 @@ const organization = process.env.OPENAI_ORG_ID || process.env.OPENAI_ORGANIZATIO
 const spritePrefix =
   "Final-production 2D tactical RPG character sprite on a flat pure green chroma key background (#00FF00), one full-body character only, centered, no text, no logo, no label, no frame, no scenery, no background texture. Top-down/isometric hybrid 3/4 view, facing slightly toward camera, chibi proportions with large head and compact body, crisp silhouette, subtle dark outline, dramatic warm rim light, small shadow under feet, readable at 72-96px, painterly pixel-art inspired cel shading, original character, game-ready sprite asset, not sticker, not portrait, not illustration, avoid green clothing or green glow.";
 
+const walkingSpritePrefix =
+  "Final-production 2D tactical RPG walking spritesheet on flat pure green chroma key background (#00FF00), one original chibi ninja character repeated in 4 animation frames in a single horizontal row, consistent scale and outfit across all frames, top-down/isometric hybrid 3/4 view, readable at 72-96px, crisp silhouette, subtle outline, painterly pixel-art inspired cel shading, no text, no logo, no label, no UI frame. Frames left to right: idle standing, left foot forward walking, idle standing, right foot forward walking. Avoid green clothing or green glow.";
+
 const assets = [
   {
     filename: "dojo-background.png",
@@ -107,6 +110,54 @@ const assets = [
     removeChroma: true,
     prompt:
       "Final-production 2D RPG particle asset on flat pure green chroma key background (#00FF00), one cherry blossom petal only, centered, no text, no logo, no label, no frame, soft pink petal, slight rotation, delicate highlight, crisp silhouette, game-ready particle asset."
+  },
+  {
+    filename: "moji-walk.png",
+    size: "1536x1024",
+    quality: "medium",
+    background: "opaque",
+    removeChroma: true,
+    prompt: `${walkingSpritePrefix} Character: dark ninja outfit, muted gold headband, small gold sash, holding parchment scroll.`
+  },
+  {
+    filename: "miji-walk.png",
+    size: "1536x1024",
+    quality: "medium",
+    background: "opaque",
+    removeChroma: true,
+    prompt: `${walkingSpritePrefix} Character: dark ninja outfit, blood-red scarf, holding small builder hammer or wrench.`
+  },
+  {
+    filename: "renegade-walk.png",
+    size: "1536x1024",
+    quality: "medium",
+    background: "opaque",
+    removeChroma: true,
+    prompt: `${walkingSpritePrefix} Character: dark ninja outfit, blood-red flame accent, twin short blades.`
+  },
+  {
+    filename: "sensei-walk.png",
+    size: "1536x1024",
+    quality: "medium",
+    background: "opaque",
+    removeChroma: true,
+    prompt: `${walkingSpritePrefix} Character: white-gray robe over dark ninja outfit, holding short staff or scroll.`
+  },
+  {
+    filename: "tester-walk.png",
+    size: "1536x1024",
+    quality: "medium",
+    background: "opaque",
+    removeChroma: true,
+    prompt: `${walkingSpritePrefix} Character: dark ninja outfit with deep blue accent scarf, holding checklist tablet.`
+  },
+  {
+    filename: "meowts-walk.png",
+    size: "1536x1024",
+    quality: "medium",
+    background: "opaque",
+    removeChroma: true,
+    prompt: `${walkingSpritePrefix} Character: small chibi ninja cat, dark hood, pink and muted gold accents, judge bell or scroll.`
   }
 ];
 

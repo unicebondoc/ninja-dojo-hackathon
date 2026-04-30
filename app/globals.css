@@ -3895,16 +3895,35 @@ textarea {
   font-weight: 900;
 }
 
-.rpg-sprite__image {
+.rpg-sprite__image,
+.rpg-sprite__walk {
   position: relative;
   z-index: 2;
   width: 100%;
-  height: auto;
   margin-top: -4px;
-  object-fit: contain;
   animation: rpg-sprite-idle 3.1s ease-in-out infinite;
   filter: drop-shadow(0 14px 13px rgba(0, 0, 0, 0.46));
   user-select: none;
+}
+
+.rpg-sprite__image {
+  height: auto;
+  object-fit: contain;
+}
+
+.rpg-sprite__walk {
+  display: block;
+  width: clamp(88px, 6vw, 108px);
+  height: clamp(118px, 8.2vw, 146px);
+  background-image: var(--walk-sheet);
+  background-position: 0 50%;
+  background-repeat: no-repeat;
+  background-size: 400% 100%;
+  animation: rpg-walk-cycle 0.62s steps(4) infinite;
+}
+
+.rpg-sprite[data-facing="left"] .rpg-sprite__walk {
+  transform: scaleX(-1);
 }
 
 .rpg-sprite__shadow {
@@ -3928,11 +3947,17 @@ textarea {
     0 8px 20px rgba(0, 0, 0, 0.34);
 }
 
-.rpg-sprite[data-active="true"] .rpg-sprite__image {
+.rpg-sprite[data-active="true"] .rpg-sprite__image,
+.rpg-sprite[data-active="true"] .rpg-sprite__walk {
   animation-duration: 1s;
   filter:
     drop-shadow(0 16px 14px rgba(0, 0, 0, 0.5))
     drop-shadow(0 0 22px rgba(220, 38, 38, 0.42));
+}
+
+.rpg-sprite[data-walking="true"] .rpg-sprite__label {
+  border-color: rgba(246, 231, 177, 0.5);
+  background: rgba(67, 38, 12, 0.8);
 }
 
 .rpg-sprite[data-effect="attack"] .rpg-sprite__label {
@@ -3940,15 +3965,21 @@ textarea {
   background: rgba(124, 12, 12, 0.88);
 }
 
-.rpg-sprite[data-effect="attack"] .rpg-sprite__image {
+.rpg-sprite[data-effect="attack"] .rpg-sprite__image,
+.rpg-sprite[data-effect="attack"] .rpg-sprite__walk {
   animation: rpg-sprite-attack 0.32s steps(2, end) infinite;
   filter:
     drop-shadow(0 18px 14px rgba(0, 0, 0, 0.54))
     drop-shadow(0 0 30px rgba(220, 38, 38, 0.72));
 }
 
+.rpg-sprite[data-walking="true"] .rpg-sprite__walk {
+  animation: rpg-walk-cycle 0.62s steps(4) infinite;
+}
+
 .rpg-sprite[data-effect="review"] .rpg-sprite__label,
-.rpg-sprite[data-effect="review"] .rpg-sprite__image {
+.rpg-sprite[data-effect="review"] .rpg-sprite__image,
+.rpg-sprite[data-effect="review"] .rpg-sprite__walk {
   filter:
     drop-shadow(0 16px 14px rgba(0, 0, 0, 0.5))
     drop-shadow(0 0 24px rgba(246, 231, 177, 0.58));
@@ -3959,7 +3990,8 @@ textarea {
   background: rgba(8, 47, 73, 0.82);
 }
 
-.rpg-sprite[data-effect="deploy"] .rpg-sprite__image {
+.rpg-sprite[data-effect="deploy"] .rpg-sprite__image,
+.rpg-sprite[data-effect="deploy"] .rpg-sprite__walk {
   filter:
     drop-shadow(0 16px 14px rgba(0, 0, 0, 0.5))
     drop-shadow(0 0 26px rgba(103, 232, 249, 0.68));
@@ -3970,14 +4002,16 @@ textarea {
   background: rgba(83, 21, 55, 0.82);
 }
 
-.rpg-sprite[data-effect="judge"] .rpg-sprite__image {
+.rpg-sprite[data-effect="judge"] .rpg-sprite__image,
+.rpg-sprite[data-effect="judge"] .rpg-sprite__walk {
   filter:
     drop-shadow(0 16px 14px rgba(0, 0, 0, 0.5))
     drop-shadow(0 0 26px rgba(249, 168, 212, 0.68))
     drop-shadow(0 0 20px rgba(246, 231, 177, 0.34));
 }
 
-.rpg-sprite[data-complete="true"] .rpg-sprite__image {
+.rpg-sprite[data-complete="true"] .rpg-sprite__image,
+.rpg-sprite[data-complete="true"] .rpg-sprite__walk {
   filter:
     drop-shadow(0 14px 13px rgba(0, 0, 0, 0.46))
     drop-shadow(0 0 16px rgba(246, 231, 177, 0.22));
@@ -4203,6 +4237,15 @@ textarea {
   }
   50% {
     transform: translateX(5px) rotate(-2deg);
+  }
+}
+
+@keyframes rpg-walk-cycle {
+  from {
+    background-position: 0 50%;
+  }
+  to {
+    background-position: 100% 50%;
   }
 }
 

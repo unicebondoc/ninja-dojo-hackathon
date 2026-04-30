@@ -150,14 +150,6 @@ function getAgentOutput(agentName: string) {
 }
 
 function nextAgentState(agent: DojoAgent, activeAgent?: string): DojoAgent {
-  if (agent.name === activeAgent) {
-    return {
-      ...agent,
-      output: getAgentOutput(agent.name),
-      status: "working"
-    };
-  }
-
   if (agent.status === "working") {
     return {
       ...agent,
@@ -179,6 +171,7 @@ export function LiveDojo(_legacyProps: LegacyLiveDojoProps = {}) {
   const [running, setRunning] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
   const [showSlash, setShowSlash] = useState(false);
+  const [walkingAgent, setWalkingAgent] = useState<string | undefined>();
   const timersRef = useRef<number[]>([]);
 
   useEffect(() => {
@@ -201,6 +194,7 @@ export function LiveDojo(_legacyProps: LegacyLiveDojoProps = {}) {
     setRunning(false);
     setShowScroll(false);
     setShowSlash(false);
+    setWalkingAgent(undefined);
   }
 
   function appendLog(step: TimelineStep) {
@@ -243,6 +237,7 @@ export function LiveDojo(_legacyProps: LegacyLiveDojoProps = {}) {
     setRunning(true);
     setShowScroll(false);
     setShowSlash(false);
+    setWalkingAgent(undefined);
 
     timeline.forEach((step) => {
       const timer = window.setTimeout(() => {
@@ -256,9 +251,28 @@ export function LiveDojo(_legacyProps: LegacyLiveDojoProps = {}) {
         }
 
         if (step.activeAgent) {
+          setWalkingAgent(step.activeAgent);
           setAgents((current) =>
             current.map((agent) => nextAgentState(agent, step.activeAgent))
           );
+
+          const walkTimer = window.setTimeout(() => {
+            setWalkingAgent((current) =>
+              current === step.activeAgent ? undefined : current
+            );
+            setAgents((current) =>
+              current.map((agent) =>
+                agent.name === step.activeAgent
+                  ? {
+                      ...agent,
+                      output: getAgentOutput(agent.name),
+                      status: "working"
+                    }
+                  : agent
+              )
+            );
+          }, 1000);
+          timersRef.current.push(walkTimer);
         }
 
         if (step.effect === "attack") {
@@ -274,6 +288,7 @@ export function LiveDojo(_legacyProps: LegacyLiveDojoProps = {}) {
           setComplete(true);
           setRunning(false);
           setShowSlash(false);
+          setWalkingAgent(undefined);
         }
       }, step.at);
 
@@ -371,12 +386,16 @@ export function LiveDojo(_legacyProps: LegacyLiveDojoProps = {}) {
                 };
                 const isActive = activeAgent === agent.name;
                 const position = isActive ? positions.active : positions.idle;
+                const isWalking = walkingAgent === agent.name;
+                const facing = positions.active.x < positions.idle.x ? "left" : "right";
 
                 return (
                   <DojoSprite
                     agent={agent}
+                    facing={facing}
                     effect={isActive ? agentEffect : "idle"}
                     isActive={isActive}
+                    isWalking={isWalking}
                     key={agent.name}
                     x={position.x}
                     y={position.y}

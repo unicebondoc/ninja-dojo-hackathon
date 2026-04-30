@@ -15,7 +15,13 @@ const assetNames = [
   "scroll.png",
   "moon.png",
   "slash.png",
-  "petal.png"
+  "petal.png",
+  "moji-walk.png",
+  "miji-walk.png",
+  "renegade-walk.png",
+  "sensei-walk.png",
+  "tester-walk.png",
+  "meowts-walk.png"
 ];
 
 const assetDir = path.join(process.cwd(), "public", "assets", "dojo");
