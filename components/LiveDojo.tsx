@@ -118,11 +118,20 @@ export function LiveDojo() {
             Watch Moji, Miji, Maji, Meji, Muji, and Meowts plan, build, attack, review, deploy, and judge a product run in real time.
           </span>
         </div>
-        <DojoProgress
-          currentStage={currentStage}
-          isComplete={complete}
-          isRunning={running}
-        />
+        <div className="rpg-command-stack">
+          <div className="rpg-scroll-brief">
+            <div>
+              <p>Active Scroll</p>
+              <strong>Magical oracle deck landing page</strong>
+            </div>
+            <span>{complete ? "Moonrise ready" : running ? "Ninjas coordinating" : "Standing by"}</span>
+          </div>
+          <DojoProgress
+            currentStage={currentStage}
+            isComplete={complete}
+            isRunning={running}
+          />
+        </div>
       </header>
 
       <div className="rpg-hero__layout">
@@ -155,15 +164,16 @@ export function LiveDojo() {
           <Play className="h-5 w-5" />
           {complete ? "Run Again" : running ? "Training..." : "Send Scroll"}
         </button>
-        <button
-          className="is-secondary"
-          disabled={!running && !complete && dialogue.length === 0}
-          onClick={resetDojo}
-          type="button"
-        >
-          <RotateCcw className="h-5 w-5" />
-          Reset Dojo
-        </button>
+        {running || complete || dialogue.length > 0 ? (
+          <button
+            className="is-secondary"
+            onClick={resetDojo}
+            type="button"
+          >
+            <RotateCcw className="h-5 w-5" />
+            Reset Run
+          </button>
+        ) : null}
         <Link
           aria-disabled={!complete}
           className={!complete ? "is-disabled" : undefined}

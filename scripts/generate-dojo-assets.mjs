@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import OpenAI from "openai";
 import sharp from "sharp";
@@ -11,11 +11,16 @@ const outputDir = path.join(process.cwd(), "public", "assets", "dojo");
 const rawOutputDir = path.join(outputDir, "raw");
 const organization = process.env.OPENAI_ORG_ID || process.env.OPENAI_ORGANIZATION;
 
+await loadLocalEnv();
+
 const spritePrefix =
-  "Final-production 2D tactical RPG character sprite on a flat pure green chroma key background (#00FF00), one full-body character only, centered, no text, no logo, no label, no frame, no scenery, no background texture. Top-down/isometric hybrid 3/4 view, facing slightly toward camera, chibi proportions with large head and compact body, crisp silhouette, subtle dark outline, dramatic warm rim light, small shadow under feet, readable at 72-96px, painterly pixel-art inspired cel shading, original character, game-ready sprite asset, not sticker, not portrait, not illustration, avoid green clothing or green glow.";
+  "Final-production 2D tactical RPG female ninja character sprite on a flat pure green chroma key background (#00FF00), one full-body character only, centered, no text, no logo, no label, no frame, no scenery, no background texture. Top-down/isometric hybrid 3/4 view, facing slightly toward camera, chibi proportions with large head and compact body, expressive face visible, crisp silhouette, subtle dark outline, dramatic warm rim light, small shadow under feet, readable at 72-96px, painterly pixel-art inspired cel shading, original fantasy ninja character, game-ready sprite asset, not sticker, not portrait, not illustration, avoid green clothing or green glow. Original cozy fantasy ninja RPG mood, no existing game or anime IP.";
 
 const walkingSpritePrefix =
-  "Final-production 2D tactical RPG walking spritesheet on flat pure green chroma key background (#00FF00), one original chibi ninja character repeated in 4 animation frames in a single horizontal row, consistent scale and outfit across all frames, top-down/isometric hybrid 3/4 view, readable at 72-96px, crisp silhouette, subtle outline, painterly pixel-art inspired cel shading, no text, no logo, no label, no UI frame. Frames left to right: idle standing, left foot forward walking, idle standing, right foot forward walking. Avoid green clothing or green glow.";
+  "Final-production 2D tactical RPG female ninja walking spritesheet on flat pure green chroma key background (#00FF00), one original chibi ninja character repeated in 4 animation frames in a single horizontal row, consistent face, hair, scale, outfit, and props across all frames, top-down/isometric hybrid 3/4 view, readable at 72-96px, crisp silhouette, subtle outline, expressive face visible, painterly pixel-art inspired cel shading, no text, no logo, no label, no UI frame. Frames left to right: idle standing, left foot forward walking, idle standing, right foot forward walking. Avoid green clothing or green glow. Original cozy fantasy ninja RPG mood, no existing game or anime IP.";
+
+const actionSpritePrefix =
+  "Final-production 2D tactical RPG female ninja action spritesheet on flat pure green chroma key background (#00FF00), one original chibi ninja character repeated in 4 animation frames in a single horizontal row, consistent face, hair, scale, outfit, and props across all frames, top-down/isometric hybrid 3/4 view, readable at 72-96px, crisp silhouette, subtle outline, expressive face visible, painterly pixel-art inspired cel shading, no text, no logo, no label, no UI frame. Frames left to right: ready pose, role action pose, impact/magic pose, celebrate/complete pose. Avoid green clothing or green glow. Original cozy fantasy ninja RPG mood, no existing game or anime IP.";
 
 const assets = [
   {
@@ -33,7 +38,7 @@ const assets = [
     quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${spritePrefix} Dark ninja outfit, muted gold headband, small gold sash, holding a parchment scroll, calm strategist pose, wise planner energy.`
+    prompt: `${spritePrefix} Moji: female planner ninja, warm amber eyes, long black hair in a high ponytail with muted gold ribbon, dark indigo ninja outfit, muted gold headband, small gold sash, holding a parchment scroll, calm strategist pose, wise planner energy.`
   },
   {
     filename: "miji.png",
@@ -41,7 +46,7 @@ const assets = [
     quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${spritePrefix} Dark ninja outfit, blood-red scarf trailing slightly, holding a small builder hammer or wrench, ready-to-build stance, focused builder energy.`
+    prompt: `${spritePrefix} Miji: female builder ninja, copper-orange bob haircut with side bangs, dark charcoal ninja outfit, blood-red scarf trailing slightly, holding a small builder hammer or wrench, ready-to-build stance, focused builder energy.`
   },
   {
     filename: "maji.png",
@@ -49,7 +54,7 @@ const assets = [
     quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${spritePrefix} Dark ninja outfit, blood-red flame accent, twin short blades, aggressive attack stance, one blade raised, dynamic adversary energy, strong action silhouette.`
+    prompt: `${spritePrefix} Maji: female attack ninja, crimson short spiky hair, dark ninja outfit with blood-red flame accent, twin short blades, aggressive attack stance, one blade raised, dynamic adversary energy, strong action silhouette.`
   },
   {
     filename: "meji.png",
@@ -57,7 +62,7 @@ const assets = [
     quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${spritePrefix} White-gray robe layered over dark ninja outfit, holding a small scroll or short staff, calm architect pose, still and wise, elegant mentor silhouette.`
+    prompt: `${spritePrefix} Meji: female review ninja, silver-white long braided hair, white-gray robe layered over dark ninja outfit, holding a small scroll or short staff, calm architect pose, still and wise, elegant mentor silhouette.`
   },
   {
     filename: "muji.png",
@@ -65,7 +70,7 @@ const assets = [
     quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${spritePrefix} Dark ninja outfit with deep blue accent scarf, holding checklist tablet and tiny deploy tool, precise deployer stance, focused and reliable.`
+    prompt: `${spritePrefix} Muji: female deploy ninja, deep teal shoulder-length hair in a practical half-up style, dark ninja outfit with moonlight teal accent scarf, holding checklist tablet and tiny deploy tool, precise deployer stance, focused and reliable.`
   },
   {
     filename: "meowts.png",
@@ -73,7 +78,7 @@ const assets = [
     quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${spritePrefix} Small chibi ninja cat, dark hood, pink and muted gold accents, tiny judge bell or scroll, mischievous wise expression, catlike judge pose, readable silhouette.`
+    prompt: `${spritePrefix} Meowts: female chibi white cat ninja judge, soft white fur, bright teal eyes, small pink hair tuft and muted gold accents, dark hood framing the white face, tiny judge bell or scroll, mischievous wise expression, catlike judge pose, readable silhouette.`
   },
   {
     filename: "scroll.png",
@@ -117,7 +122,7 @@ const assets = [
     quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${walkingSpritePrefix} Character: dark ninja outfit, muted gold headband, small gold sash, holding parchment scroll.`
+    prompt: `${walkingSpritePrefix} Character: Moji, female planner ninja, warm amber eyes, long black hair in a high ponytail with muted gold ribbon, dark indigo ninja outfit, muted gold headband, small gold sash, holding parchment scroll.`
   },
   {
     filename: "miji-walk.png",
@@ -125,7 +130,7 @@ const assets = [
     quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${walkingSpritePrefix} Character: dark ninja outfit, blood-red scarf, holding small builder hammer or wrench.`
+    prompt: `${walkingSpritePrefix} Character: Miji, female builder ninja, copper-orange bob haircut with side bangs, dark charcoal ninja outfit, blood-red scarf, holding small builder hammer or wrench.`
   },
   {
     filename: "maji-walk.png",
@@ -133,7 +138,7 @@ const assets = [
     quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${walkingSpritePrefix} Character: dark ninja outfit, blood-red flame accent, twin short blades.`
+    prompt: `${walkingSpritePrefix} Character: Maji, female attack ninja, crimson short spiky hair, dark ninja outfit, blood-red flame accent, twin short blades.`
   },
   {
     filename: "meji-walk.png",
@@ -141,7 +146,7 @@ const assets = [
     quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${walkingSpritePrefix} Character: white-gray robe over dark ninja outfit, holding short staff or scroll.`
+    prompt: `${walkingSpritePrefix} Character: Meji, female review ninja, silver-white long braided hair, white-gray robe over dark ninja outfit, holding short staff or scroll.`
   },
   {
     filename: "muji-walk.png",
@@ -149,7 +154,7 @@ const assets = [
     quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${walkingSpritePrefix} Character: dark ninja outfit with deep blue accent scarf, holding checklist tablet.`
+    prompt: `${walkingSpritePrefix} Character: Muji, female deploy ninja, deep teal shoulder-length hair in a practical half-up style, dark ninja outfit with moonlight teal accent scarf, holding checklist tablet.`
   },
   {
     filename: "meowts-walk.png",
@@ -157,7 +162,55 @@ const assets = [
     quality: "medium",
     background: "opaque",
     removeChroma: true,
-    prompt: `${walkingSpritePrefix} Character: small chibi ninja cat, dark hood, pink and muted gold accents, judge bell or scroll.`
+    prompt: `${walkingSpritePrefix} Character: Meowts, female chibi white cat ninja judge, soft white fur, bright teal eyes, small pink hair tuft, dark hood framing the white face, pink and muted gold accents, judge bell or scroll.`
+  },
+  {
+    filename: "moji-action.png",
+    size: "1536x1024",
+    quality: "medium",
+    background: "opaque",
+    removeChroma: true,
+    prompt: `${actionSpritePrefix} Character: Moji, female planner ninja, warm amber eyes, long black hair in a high ponytail with muted gold ribbon, dark indigo ninja outfit, muted gold headband, small gold sash, parchment scroll glowing with warm planning magic. Action poses: reading scroll, drawing plan symbols, scroll sparkle, confident nod.`
+  },
+  {
+    filename: "miji-action.png",
+    size: "1536x1024",
+    quality: "medium",
+    background: "opaque",
+    removeChroma: true,
+    prompt: `${actionSpritePrefix} Character: Miji, female builder ninja, copper-orange bob haircut with side bangs, dark charcoal ninja outfit, blood-red scarf, small builder hammer or wrench. Action poses: tool raised, hammer strike, forge spark, satisfied build pose.`
+  },
+  {
+    filename: "maji-action.png",
+    size: "1536x1024",
+    quality: "medium",
+    background: "opaque",
+    removeChroma: true,
+    prompt: `${actionSpritePrefix} Character: Maji, female attack ninja, crimson short spiky hair, dark ninja outfit, blood-red flame accent, twin short blades. Action poses: ready stance, blade slash, spinning attack impact, victorious guard pose.`
+  },
+  {
+    filename: "meji-action.png",
+    size: "1536x1024",
+    quality: "medium",
+    background: "opaque",
+    removeChroma: true,
+    prompt: `${actionSpritePrefix} Character: Meji, female review ninja, silver-white long braided hair, white-gray robe over dark ninja outfit, short staff or scroll. Action poses: calm review stance, raising seal, checking scroll, approved mentor pose.`
+  },
+  {
+    filename: "muji-action.png",
+    size: "1536x1024",
+    quality: "medium",
+    background: "opaque",
+    removeChroma: true,
+    prompt: `${actionSpritePrefix} Character: Muji, female deploy ninja, deep teal shoulder-length hair in a practical half-up style, dark ninja outfit with moonlight teal accent scarf, checklist tablet. Action poses: checking tablet, opening deploy gate, teal signal pulse, reliable complete pose.`
+  },
+  {
+    filename: "meowts-action.png",
+    size: "1536x1024",
+    quality: "medium",
+    background: "opaque",
+    removeChroma: true,
+    prompt: `${actionSpritePrefix} Character: Meowts, female chibi white cat ninja judge, soft white fur, bright teal eyes, small pink hair tuft, dark hood framing the white face, pink and muted gold accents, judge bell or scroll. Action poses: judge stance, bell raised, verdict sparkle, smug moonlit approval pose.`
   }
 ];
 
@@ -367,4 +420,20 @@ function printSummary() {
 
 function money(value) {
   return `$${value.toFixed(4)} USD`;
+}
+
+async function loadLocalEnv() {
+  if (process.env.OPENAI_API_KEY) return;
+  for (const filename of [".env.local", ".env"]) {
+    try {
+      const contents = await readFile(path.join(process.cwd(), filename), "utf8");
+      for (const line of contents.split(/\r?\n/)) {
+        const match = line.match(/^\s*OPENAI_API_KEY\s*=\s*(.+?)\s*$/);
+        if (match?.[1]) {
+          process.env.OPENAI_API_KEY = match[1].replace(/^["']|["']$/g, "");
+          return;
+        }
+      }
+    } catch {}
+  }
 }

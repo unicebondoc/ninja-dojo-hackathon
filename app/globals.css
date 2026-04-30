@@ -3584,6 +3584,7 @@ textarea {
 }
 
 .rpg-title-block p,
+.rpg-scroll-brief p,
 .rpg-cast-section > div > p,
 .rpg-info-grid p {
   margin: 0 0 8px;
@@ -3592,6 +3593,58 @@ textarea {
   font-weight: 950;
   letter-spacing: 0.22em;
   text-transform: uppercase;
+}
+
+.rpg-command-stack {
+  display: grid;
+  gap: 12px;
+  align-self: stretch;
+  align-content: end;
+}
+
+.rpg-scroll-brief {
+  display: flex;
+  min-height: 94px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid rgba(232, 198, 106, 0.2);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 86% 22%, rgba(120, 240, 212, 0.14), transparent 34%),
+    linear-gradient(135deg, rgba(239, 52, 52, 0.14), transparent 44%),
+    rgba(5, 5, 5, 0.56);
+  padding: 16px 18px;
+  box-shadow:
+    inset 0 0 0 1px rgba(244, 232, 193, 0.04),
+    0 18px 42px rgba(0, 0, 0, 0.24);
+}
+
+.rpg-scroll-brief p {
+  margin-bottom: 8px;
+}
+
+.rpg-scroll-brief strong {
+  display: block;
+  color: #fff;
+  font-size: clamp(20px, 1.65vw, 30px);
+  font-weight: 950;
+  line-height: 1.02;
+}
+
+.rpg-scroll-brief > span {
+  display: inline-flex;
+  flex: 0 0 auto;
+  border: 1px solid rgba(120, 240, 212, 0.28);
+  border-radius: 999px;
+  background: rgba(5, 5, 5, 0.58);
+  padding: 8px 11px;
+  color: #78f0d4;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: 0 0 24px rgba(120, 240, 212, 0.08);
 }
 
 .rpg-logo-lockup {
@@ -4613,6 +4666,10 @@ textarea {
     grid-template-columns: 1fr;
   }
 
+  .rpg-command-stack {
+    align-content: stretch;
+  }
+
   .rpg-hero__layout {
     grid-template-areas:
       "board"
@@ -4650,6 +4707,11 @@ textarea {
 
   .rpg-progress {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .rpg-scroll-brief {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .rpg-title-block h1 {

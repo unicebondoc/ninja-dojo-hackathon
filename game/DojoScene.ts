@@ -61,13 +61,11 @@ const agentMeta: Record<AgentId, { busy: string; done: string; file: string; rol
 };
 
 const actorDisplay = {
-  height: 124,
   shadowHeight: 10,
   shadowOffsetY: 58,
   shadowWidth: 46,
   walkHeight: 236,
-  walkWidth: 96,
-  width: 100
+  walkWidth: 96
 };
 
 const workTiles: Record<AgentId, { tileX: number; tileY: number }> = {
@@ -144,27 +142,31 @@ const stageRoutes: Record<AgentId, Array<{ tileX: number; tileY: number }>> = {
   ]
 };
 
-const stageReplies: Partial<Record<RunStage, { from?: AgentId; line?: string }>> = {
-  attack: {
-    from: "Miji",
-    line: "Patch fast. Keep the page standing."
-  },
-  build: {
-    from: "Moji",
-    line: "Plan is clean. Miji, take the forge."
-  },
-  deploy: {
-    from: "Meji",
-    line: "Muji, prove the moon deserves to rise."
-  },
-  judge: {
-    from: "Muji",
-    line: "Checks are green. Your turn, Meowts."
-  },
-  review: {
-    from: "Maji",
-    line: "Found the cracks. Meji, read the scars."
-  }
+const stageReplies: Partial<Record<RunStage, Array<{ from: AgentId; line: string }>>> = {
+  attack: [
+    { from: "Miji", line: "Patch fast. Keep the page standing." },
+    { from: "Moji", line: "Maji, test the edge cases." }
+  ],
+  build: [
+    { from: "Moji", line: "Plan is clean. Miji, take the forge." },
+    { from: "Meji", line: "I am watching structure." }
+  ],
+  deploy: [
+    { from: "Meji", line: "Muji, prove the moon deserves to rise." },
+    { from: "Meowts", line: "I smell a verdict." }
+  ],
+  judge: [
+    { from: "Muji", line: "Checks are green. Your turn, Meowts." },
+    { from: "Moji", line: "The scroll path is complete." }
+  ],
+  plan: [
+    { from: "Miji", line: "I have tools ready." },
+    { from: "Maji", line: "I will look for cracks." }
+  ],
+  review: [
+    { from: "Maji", line: "Found the cracks. Meji, read the scars." },
+    { from: "Muji", line: "Deploy gate is warming." }
+  ]
 };
 
 function loadSave(): { runsCompleted: number } {
@@ -224,7 +226,10 @@ export function createDojoScene(Phaser: any) {
 
       (Object.keys(agentMeta) as AgentId[]).forEach((id) => {
         const file = agentMeta[id].file;
-        this.load.image(`${file}-idle`, `/assets/dojo/${file}.png`);
+        this.load.spritesheet(`${file}-action`, `/assets/dojo/${file}-action.png`, {
+          frameHeight: 1024,
+          frameWidth: 384
+        });
         this.load.spritesheet(`${file}-walk`, `/assets/dojo/${file}-walk.png`, {
           frameHeight: 1024,
           frameWidth: 384
@@ -382,17 +387,31 @@ export function createDojoScene(Phaser: any) {
 
     private createAnimations() {
       [...new Set(Object.values(agentMeta).map((m) => m.file))].forEach((file) => {
-        const key = `${file}-walk-cycle`;
-        if (this.anims.exists(key)) return;
-        this.anims.create({
-          frameRate: 7,
-          frames: this.anims.generateFrameNumbers(`${file}-walk`, {
-            end: 3,
-            start: 0
-          }),
-          key,
-          repeat: -1
-        });
+        const walkKey = `${file}-walk-cycle`;
+        if (!this.anims.exists(walkKey)) {
+          this.anims.create({
+            frameRate: 7,
+            frames: this.anims.generateFrameNumbers(`${file}-walk`, {
+              end: 3,
+              start: 0
+            }),
+            key: walkKey,
+            repeat: -1
+          });
+        }
+
+        const actionKey = `${file}-action-cycle`;
+        if (!this.anims.exists(actionKey)) {
+          this.anims.create({
+            frameRate: 8,
+            frames: this.anims.generateFrameNumbers(`${file}-action`, {
+              end: 3,
+              start: 0
+            }),
+            key: actionKey,
+            repeat: 0
+          });
+        }
       });
     }
 
@@ -407,8 +426,8 @@ export function createDojoScene(Phaser: any) {
 
         const shadow = this.createNinjaShadow(home.x, home.y, agent);
         const sprite = this.add
-          .sprite(0, 0, `${meta.file}-idle`)
-          .setDisplaySize(actorDisplay.width, actorDisplay.height)
+          .sprite(0, 0, `${meta.file}-walk`, 0)
+          .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight)
           .setInteractive({ useHandCursor: true });
 
         container.add([sprite]);
@@ -435,7 +454,8 @@ export function createDojoScene(Phaser: any) {
         sprite.on("pointerdown", () => this.handleTalk(agent));
 
         this.actorMap.set(agent, actor);
-        this.startIdleLoop(actor, randomBetween(800, 2600));
+        this.setActorIdleSprite(actor);
+        this.startIdleLoop(actor, randomBetween(120, 900));
       });
     }
 
@@ -456,13 +476,8 @@ export function createDojoScene(Phaser: any) {
         this.tweens.killTweensOf(actor.sprite);
         actor.container.setPosition(actor.homeX, actor.homeY);
         this.updateActorDepth(actor);
-        actor.sprite
-          .setTexture(`${actor.file}-idle`)
-          .setDisplaySize(actorDisplay.width, actorDisplay.height)
-          .clearTint()
-          .setAlpha(1)
-          .setFlipX(false);
-        actor.sprite.stop?.();
+        this.setActorIdleSprite(actor);
+        actor.sprite.clearTint().setAlpha(1).setFlipX(false);
         actor.bubble?.destroy();
         actor.bubble = undefined;
         actor.nameplate?.destroy();
@@ -513,14 +528,15 @@ export function createDojoScene(Phaser: any) {
         if (Math.random() < 0.68) {
           const target = this.randomPatrolPoint(actor.id);
           this.moveActor(actor, target, {
-            duration: randomBetween(1700, 3100),
-            onComplete: () => this.startIdleLoop(actor, randomBetween(1000, 2800)),
+            duration: randomBetween(1600, 2700),
+            onComplete: () => this.startIdleLoop(actor, randomBetween(700, 1900)),
             stateAfter: "idle"
           });
         } else {
           if (Math.random() < 0.5) actor.sprite.setFlipX(!actor.sprite.flipX);
-          if (Math.random() < 0.45) this.showFloatingBubble(actor, linesFor(actor.id, "idle")[0]);
-          this.startIdleLoop(actor, randomBetween(1800, 4300));
+          if (Math.random() < 0.72) this.showFloatingBubble(actor, linesFor(actor.id, "idle")[0]);
+          if (Math.random() < 0.55) this.playActorAction(actor, "idle");
+          this.startIdleLoop(actor, randomBetween(900, 2400));
         }
       });
     }
@@ -546,6 +562,9 @@ export function createDojoScene(Phaser: any) {
       this.showNameplate(actor);
       this.showFloatingBubble(actor, text);
       this.playTaskPulse(actor, 0xf6e7b1);
+      if (actor.state !== "walking") {
+        this.playActorAction(actor, "idle");
+      }
     }
 
     private subscribeToRunEvents() {
@@ -614,7 +633,10 @@ export function createDojoScene(Phaser: any) {
           this.revealScroll();
         }
         if (event.stage === "moonrise") {
-          this.actorMap.forEach((actor) => this.markDone(actor));
+          this.actorMap.forEach((actor) => {
+            this.markDone(actor);
+            this.time.delayedCall(randomBetween(0, 520), () => this.playActorAction(actor, event.stage));
+          });
         }
         return;
       }
@@ -641,16 +663,19 @@ export function createDojoScene(Phaser: any) {
         }
       });
 
-      const reply = stageReplies[event.stage];
-      if (reply?.from && reply.line) {
+      const replies = stageReplies[event.stage] ?? [];
+      replies.forEach((reply, index) => {
         const replyActor = this.actorMap.get(reply.from);
         if (replyActor) {
-          this.time.delayedCall(delay + 1200, () => {
-            this.showFloatingBubble(replyActor, reply.line ?? "");
+          this.time.delayedCall(delay + 900 + index * 850, () => {
+            this.showFloatingBubble(replyActor, reply.line);
             this.playTaskPulse(replyActor, 0xf6e7b1);
+            if (replyActor.state !== "walking") {
+              this.playActorAction(replyActor, event.stage);
+            }
           });
         }
-      }
+      });
     }
 
     private walkActorToWork(actor: ActorRuntime, stage: RunStage) {
@@ -666,6 +691,7 @@ export function createDojoScene(Phaser: any) {
       this.moveActorAlongPath(actor, route, {
         duration: stage === "attack" ? 1800 : 2600,
         onComplete: () => {
+          this.playActorAction(actor, stage);
           if (stage === "attack") this.playSlash();
           if (stage === "judge") {
             this.tweens.add({
@@ -712,10 +738,7 @@ export function createDojoScene(Phaser: any) {
       const minSegmentDuration = options.stage === "attack" ? 320 : 420;
 
       actor.state = "walking";
-      actor.sprite
-        .setTexture(`${actor.file}-walk`)
-        .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight)
-        .play(`${actor.file}-walk-cycle`);
+      this.setActorWalkingSprite(actor);
       this.updateActorShadow(actor);
       this.updateActorDepth(actor);
       this.tweens.killTweensOf(actor.container);
@@ -724,10 +747,7 @@ export function createDojoScene(Phaser: any) {
         const target = points[index];
         if (!target) {
           actor.state = options.stateAfter;
-          actor.sprite
-            .setTexture(`${actor.file}-idle`)
-            .setDisplaySize(actorDisplay.width, actorDisplay.height);
-          actor.sprite.stop?.();
+          this.setActorIdleSprite(actor);
           this.updateActorShadow(actor);
           this.updateActorDepth(actor);
           options.onComplete?.();
@@ -767,10 +787,7 @@ export function createDojoScene(Phaser: any) {
       }
     ) {
       actor.state = "walking";
-      actor.sprite
-        .setTexture(`${actor.file}-walk`)
-        .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight)
-        .play(`${actor.file}-walk-cycle`);
+      this.setActorWalkingSprite(actor);
       this.updateActorShadow(actor);
       actor.sprite.setFlipX(target.x < actor.container.x);
       this.updateActorDepth(actor);
@@ -784,10 +801,7 @@ export function createDojoScene(Phaser: any) {
         y: target.y,
         onComplete: () => {
           actor.state = options.stateAfter;
-          actor.sprite
-            .setTexture(`${actor.file}-idle`)
-            .setDisplaySize(actorDisplay.width, actorDisplay.height);
-          actor.sprite.stop?.();
+          this.setActorIdleSprite(actor);
           this.updateActorShadow(actor);
           this.updateActorDepth(actor);
           options.onComplete?.();
@@ -795,7 +809,6 @@ export function createDojoScene(Phaser: any) {
         onUpdate: () => this.updateActorDepth(actor)
       });
     }
-
     private revealScroll() {
       const scrollPos = tilePoint(20, 11);
       const startPos = tilePoint(33, 2);
@@ -851,10 +864,7 @@ export function createDojoScene(Phaser: any) {
 
     private markDone(actor: ActorRuntime) {
       actor.state = "done";
-      actor.sprite
-        .setTexture(`${actor.file}-idle`)
-        .setDisplaySize(actorDisplay.width, actorDisplay.height);
-      actor.sprite.stop?.();
+      this.setActorIdleSprite(actor);
       this.updateActorShadow(actor);
       this.updateActorDepth(actor);
     }
@@ -948,6 +958,78 @@ export function createDojoScene(Phaser: any) {
         if (actor.bubble === bubble) {
           bubble.destroy();
           actor.bubble = undefined;
+        }
+      });
+    }
+
+    private setActorIdleSprite(actor: ActorRuntime) {
+      actor.sprite
+        .setTexture(`${actor.file}-walk`, 0)
+        .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight);
+      actor.sprite.stop?.();
+      actor.sprite.setFrame(0);
+    }
+
+    private setActorWalkingSprite(actor: ActorRuntime) {
+      actor.sprite
+        .setTexture(`${actor.file}-walk`)
+        .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight)
+        .play(`${actor.file}-walk-cycle`, true);
+    }
+
+    private playActorAction(actor: ActorRuntime, stage: RunStage | "idle") {
+      if (actor.state === "walking") return;
+
+      const pulseColor =
+        actor.id === "Maji" || stage === "attack"
+          ? 0xdc2626
+          : actor.id === "Muji" || stage === "deploy"
+            ? 0x78f0d4
+            : actor.id === "Meowts" || stage === "judge" || stage === "moonrise"
+              ? 0xf6d365
+              : 0xf6e7b1;
+
+      this.tweens.killTweensOf(actor.sprite);
+      actor.sprite
+        .setTexture(`${actor.file}-action`, 0)
+        .setDisplaySize(actorDisplay.walkWidth, actorDisplay.walkHeight)
+        .play(`${actor.file}-action-cycle`, true);
+      this.playTaskPulse(actor, pulseColor);
+
+      if (stage === "attack" && actor.id === "Maji") {
+        this.time.delayedCall(280, () => this.playSlash());
+        this.tweens.add({
+          duration: 90,
+          ease: "Sine.InOut",
+          repeat: 3,
+          targets: actor.container,
+          x: actor.container.x + (actor.sprite.flipX ? -7 : 7),
+          yoyo: true,
+          onUpdate: () => this.updateActorDepth(actor)
+        });
+      }
+
+      if (stage === "judge" || actor.id === "Meowts") {
+        this.tweens.add({
+          duration: 220,
+          ease: "Sine.Out",
+          targets: actor.container,
+          y: actor.container.y - 12,
+          yoyo: true,
+          onUpdate: () => this.updateActorDepth(actor)
+        });
+      }
+
+      this.time.delayedCall(720, () => {
+        if (actor.state !== "walking") {
+          actor.sprite.stop?.();
+          actor.sprite.setFrame(3);
+        }
+      });
+
+      this.time.delayedCall(1850, () => {
+        if (actor.state !== "walking") {
+          this.setActorIdleSprite(actor);
         }
       });
     }
