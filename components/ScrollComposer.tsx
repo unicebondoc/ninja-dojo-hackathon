@@ -34,7 +34,7 @@ const examples = [
       "Build me a cinematic portfolio for a freelance product designer with case studies and a contact CTA."
   },
   {
-    label: "Product page",
+    label: "Product",
     prompt:
       "Build me a product page for a magical desk lamp with features, reviews, pricing, and checkout CTA."
   },
@@ -92,7 +92,7 @@ export const ScrollComposer = forwardRef<ScrollComposerHandle, ScrollComposerPro
                   <p>Scroll Composer</p>
                   <h2>What mission should the dojo track?</h2>
                 </div>
-                <span>Run manifest</span>
+                <span>Manifest</span>
               </div>
               <textarea
                 aria-label="Describe the shipping mission"
@@ -100,11 +100,10 @@ export const ScrollComposer = forwardRef<ScrollComposerHandle, ScrollComposerPro
                 value={value}
                 onChange={(event) => onChange(event.target.value)}
                 placeholder="Build me a landing page for a moonlit ramen shop with online booking, pricing, and testimonials..."
-                rows={4}
+                rows={2}
               />
               <p className="scroll-composer__helper">
-                Describe the intent, constraints, and desired handoff. The dojo
-                turns it into a Run Manifest, stage trail, and Moonrise Receipt.
+                Intent + constraints in. Manifest, stage trail, and receipt out.
               </p>
               <div className="scroll-composer__examples" aria-label="Example scrolls">
                 {examples.map((example) => (

@@ -223,9 +223,17 @@ export function LiveDojo() {
     : running
       ? stageOrder[currentStage]?.toUpperCase() ?? "Training"
       : "Mission console standing by";
+  const currentStageLabel = stageOrder[currentStage] ?? "idle";
+  const nextAction = complete
+    ? "Open receipt or copy the run brief."
+    : running
+      ? "Watch stage output and judge signal."
+      : "Drop a scroll to create mission state.";
+  const visibleChecks =
+    activeRun?.judgeResult.requestedItems.filter((item) => item.requested).slice(0, 4) ?? [];
 
   return (
-    <section className="rpg-hero" aria-label="Live Ninja Dojo RPG interface">
+    <section className="rpg-hero cockpit" aria-label="Ninja Dojo mission control">
       <img
         alt=""
         aria-hidden="true"
@@ -233,32 +241,80 @@ export function LiveDojo() {
         draggable={false}
         src="/icons/fantasy-brand-accents.png"
       />
-      <header className="rpg-hero__header">
-        <div className="rpg-title-block">
+      <header className="cockpit-header">
+        <div className="cockpit-brand">
           <BrandLogo />
-          <p className="rpg-brand-line">NINJA DOJO</p>
-          <h1>Mission control for AI shipping.</h1>
-          <p className="rpg-hero-kicker">One scroll in. Six ninjas track the mission.</p>
-          <span>
-            Track every scroll from intent to plugin handoff, stage result, Meowts judgment, and Moonrise Receipt.
-          </span>
+          <div>
+            <p>Ninja Dojo</p>
+            <h1>Mission control for AI shipping</h1>
+            <span>Track scrolls, plugin handoffs, stage results, and Moonrise Receipts in one live console.</span>
+          </div>
         </div>
-        <div className="rpg-command-stack">
-          <ScrollComposer
-            isComplete={complete}
-            isRunning={running}
-            isSent={scrollSent}
-            onChange={setScrollPrompt}
-            onSubmit={runDojo}
-            ref={composerRef}
-            shouldPulse={inputPulse}
-            value={scrollPrompt}
-          />
+        <div className="cockpit-header__ops">
+          <span data-state={complete ? "complete" : running ? "running" : "idle"}>
+            {complete ? "Receipt ready" : running ? "Mission running" : "Awaiting scroll"}
+          </span>
+          <a href="#method">Method</a>
+          <a href="#plugins">Plugins</a>
+          <a href="#receipt">Receipt</a>
         </div>
       </header>
 
-      <div className="rpg-hero__layout">
-        <DojoEventLog dialogue={dialogue} />
+      <div className="cockpit-command">
+        <ScrollComposer
+          isComplete={complete}
+          isRunning={running}
+          isSent={scrollSent}
+          onChange={setScrollPrompt}
+          onSubmit={runDojo}
+          ref={composerRef}
+          shouldPulse={inputPulse}
+          value={scrollPrompt}
+        />
+      </div>
+
+      <div className="cockpit-grid">
+        <aside className="cockpit-rail cockpit-rail--left">
+          <section className="cockpit-panel">
+            <div className="cockpit-panel__title">
+              <span>Current mission</span>
+              <i>{activeRun ? activeRun.status : "idle"}</i>
+            </div>
+            <strong>{activeRun?.inferredName ?? "No active scroll"}</strong>
+            <p>{activeScroll ? summarizePrompt(activeScroll) : "Drop a scroll to start tracking intent."}</p>
+          </section>
+
+          <section className="cockpit-panel cockpit-panel--meta">
+            <div className="cockpit-panel__title">
+              <span>Mission state</span>
+              <i>{String(currentStage + 1).padStart(2, "0")}/08</i>
+            </div>
+            <dl>
+              <div>
+                <dt>Stage</dt>
+                <dd>{currentStageLabel}</dd>
+              </div>
+              <div>
+                <dt>Plugin mode</dt>
+                <dd>Handoff-only</dd>
+              </div>
+              <div>
+                <dt>Project memory</dt>
+                <dd>{runHistory.length} local runs</dd>
+              </div>
+            </dl>
+          </section>
+
+          <DojoEventLog dialogue={dialogue} />
+
+          <section className="cockpit-panel">
+            <div className="cockpit-panel__title">
+              <span>Next action</span>
+              <i>now</i>
+            </div>
+            <p>{nextAction}</p>
+          </section>
+        </aside>
 
         <div className="rpg-board-shell">
           <DojoProgress
@@ -280,44 +336,68 @@ export function LiveDojo() {
           ) : null}
         </div>
 
-        <MoonPanel
-          currentStage={currentStage}
-          isComplete={complete}
-          isRunning={running}
-          prompt={activeScroll}
-          run={activeRun}
-        />
+        <aside className="cockpit-rail cockpit-rail--right">
+          <MoonPanel
+            currentStage={currentStage}
+            isComplete={complete}
+            isRunning={running}
+            prompt={activeScroll}
+            run={activeRun}
+          />
+
+          <section className="cockpit-panel cockpit-panel--judge">
+            <div className="cockpit-panel__title">
+              <span>Meowts</span>
+              <i>{activeRun?.judgeResult.verdict ?? "pending"}</i>
+            </div>
+            <strong>{activeRun ? `${activeRun.judgeResult.score}/100` : "No score yet"}</strong>
+            <div className="cockpit-checks">
+              {visibleChecks.length > 0 ? (
+                visibleChecks.map((item) => (
+                  <span data-included={item.included} key={item.label}>
+                    {item.label}
+                  </span>
+                ))
+              ) : (
+                <span>Checks appear after judging</span>
+              )}
+            </div>
+          </section>
+
+          <section className="cockpit-actions" aria-label="Mission actions">
+            <Link
+              aria-disabled={!complete}
+              className={!complete ? "is-disabled" : "is-primary"}
+              href={moonriseHref}
+              tabIndex={!complete ? -1 : undefined}
+            >
+              <ExternalLink className="h-4 w-4" />
+              View Moonrise Receipt
+            </Link>
+            <button
+              disabled={!complete || !activeRun}
+              onClick={copyRunBrief}
+              type="button"
+            >
+              <Copy className="h-4 w-4" />
+              Copy Brief
+            </button>
+            <button
+              className="is-tertiary"
+              disabled={!running && !complete && dialogue.length === 0}
+              onClick={resetDojo}
+              type="button"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reset
+            </button>
+            {copyStatus ? <span>{copyStatus}</span> : null}
+          </section>
+        </aside>
       </div>
 
-      <div className="rpg-controls">
-        {complete && activeRun ? (
-          <a href={mailtoForRun(activeRun)}>
-            <Mail className="h-5 w-5" />
-            Request a Real Dojo Run
-          </a>
-        ) : null}
-        {running || complete || dialogue.length > 0 ? (
-          <button
-            className="is-secondary"
-            onClick={resetDojo}
-            type="button"
-          >
-            <RotateCcw className="h-5 w-5" />
-            Reset Run
-          </button>
-        ) : null}
-        <Link
-          aria-disabled={!complete}
-          className={!complete ? "is-disabled" : undefined}
-          href={moonriseHref}
-          tabIndex={!complete ? -1 : undefined}
-        >
-          <ExternalLink className="h-5 w-5" />
-          View Moonrise Receipt
-        </Link>
-      </div>
       {complete && activeRun ? (
-        <section className="dojo-run-result" aria-live="polite">
+        <section className="dojo-run-result cockpit-result" aria-live="polite">
           <div>
             <p>Meowts Judge Report</p>
             <h2>{activeRun.judgeResult.verdict}</h2>
@@ -345,6 +425,10 @@ export function LiveDojo() {
               ))}
           </div>
           <div className="dojo-run-result__actions">
+            <a href={mailtoForRun(activeRun)}>
+              <Mail className="h-4 w-4" />
+              Request Real Run
+            </a>
             <button onClick={copyRunBrief} type="button">
               <Copy className="h-4 w-4" />
               Copy Run Brief
@@ -358,7 +442,7 @@ export function LiveDojo() {
         </section>
       ) : null}
       {runHistory.length > 0 ? (
-        <section className="dojo-run-history" aria-label="Recent runs">
+        <section className="dojo-run-history cockpit-history" aria-label="Recent runs">
           <div className="dojo-run-history__header">
             <p>Mission History</p>
             <span>Local project memory in this browser</span>

@@ -1,59 +1,52 @@
 import type { CSSProperties } from "react";
-import { CastCard } from "@/components/CastCard";
 import { LiveDojo } from "@/components/LiveDojo";
-import { SectionIcon, type SectionIconVariant } from "@/components/SectionIcon";
 
 const method = [
-  ["01", "Scroll", "Capture intent", "The original request becomes mission state instead of a disappearing chat prompt."],
-  ["02", "Plan", "Moji writes the manifest", "Scope, constraints, requirements, and acceptance signals are made explicit."],
-  ["03", "Build", "Miji prepares the handoff", "The builder plugin gets a focused prompt and expected artifact shape."],
-  ["04", "Attack", "Maji checks weak spots", "Risks, missing proof, vague claims, and likely breakpoints are surfaced early."],
-  ["05", "Review", "Meji reviews quality", "Architecture, copy, UX, and project constraints get checked before receipt."],
-  ["06", "Deploy", "Muji checks readiness", "Launch path, test posture, and preview expectations are recorded."],
-  ["07", "Judge", "Meowts gives the verdict", "The run receives a score, pass/fail notes, and next fix prompt."],
-  ["08", "Moonrise", "Receipt produced", "The final artifact is a shareable receipt with the mission trail attached."]
+  ["01", "Scroll", "Dojo", "Capture intent"],
+  ["02", "Plan", "Moji", "Write manifest"],
+  ["03", "Build", "Miji", "Prepare handoff"],
+  ["04", "Attack", "Maji", "Check weak spots"],
+  ["05", "Review", "Meji", "Review quality"],
+  ["06", "Deploy", "Muji", "Check readiness"],
+  ["07", "Judge", "Meowts", "Score evidence"],
+  ["08", "Moonrise", "Dojo", "Produce receipt"]
 ] as const;
 
 const plugins = [
-  ["Codex", "Build handoff prompts now, real execution later."],
-  ["Claude", "Review prompts now, deeper critique later."],
-  ["OpenClaw", "Local action prompts now, gateway actions later."],
-  ["GPT Image 2", "Asset prompts now, generation integration later."],
-  ["Telegram", "Scroll capture and mission updates."],
-  ["Manual", "Paste results from any tool and save them to mission state."]
+  ["Codex", "Handoff-only", "Build prompts now; execution later."],
+  ["Claude", "Handoff-only", "Review prompts now; deep review later."],
+  ["OpenClaw", "Planned", "Local action prompts now."],
+  ["GPT Image 2", "Planned", "Asset prompts now."],
+  ["Telegram", "Planned", "Scroll capture and updates."],
+  ["Manual", "Connected", "Paste results into mission state."]
 ] as const;
 
-const receiptItems = [
-  "Original scroll",
-  "Inferred requirements",
-  "Stage summaries",
-  "Plugin handoffs",
-  "Pasted or plugin results",
-  "Judge score",
-  "Pass/fail notes",
-  "Next fix prompt",
-  "Client/project summary"
+const receiptRows = [
+  ["Scroll", "Original intent"],
+  ["Requirements", "Inferred asks"],
+  ["Stages", "Plan to judge trail"],
+  ["Handoffs", "Plugin prompts/results"],
+  ["Meowts", "Score + pass/fail notes"],
+  ["Next", "Fix prompt"]
 ] as const;
 
-const brainItems = [
-  ["Repo rules", "What the project allows, forbids, and expects."],
-  ["Product constraints", "Positioning, audience, offer, and launch boundaries."],
-  ["Decisions", "Why the run moved the way it did."],
-  ["Active plugins", "Which worker or tool owns the next handoff."],
-  ["Memory summary", "What changed since the last scroll."],
-  ["Next action", "The single best follow-up after Meowts judges."]
+const brainRows = [
+  ["Rules", "Repo and product constraints"],
+  ["Decisions", "What changed and why"],
+  ["Plugins", "Active handoffs"],
+  ["Latest", "Current run state"],
+  ["Memory", "Useful context"],
+  ["Next", "Best follow-up"]
 ] as const;
 
 const cast = [
-  ["Moji", "Plan", "Turns intent into a Run Manifest.", "gold"],
-  ["Miji", "Build", "Prepares the build handoff.", "red"],
-  ["Maji", "Attack", "Finds weak spots before they ship.", "teal"],
-  ["Meji", "Review", "Checks quality and architecture.", "cream"],
-  ["Muji", "Deploy", "Tracks launch readiness.", "ash"],
-  ["Meowts", "Judge", "Scores the receipt under moonlight.", "pink"]
+  ["Moji", "Plan"],
+  ["Miji", "Build"],
+  ["Maji", "Attack"],
+  ["Meji", "Review"],
+  ["Muji", "Deploy"],
+  ["Meowts", "Judge"]
 ] as const;
-
-const receiptIconMap: SectionIconVariant[] = ["scroll", "timeline", "moon"];
 
 export default function Home() {
   return (
@@ -64,118 +57,96 @@ export default function Home() {
         ))}
       </div>
       <section className="rpg-page-shell">
-        <nav className="rpg-topnav" aria-label="Ninja Dojo sections">
+        <nav className="rpg-topnav ops-topnav" aria-label="Ninja Dojo sections">
           <a href="#dojo">Console</a>
           <a href="#method">Method</a>
           <a href="#plugins">Plugins</a>
           <a href="#receipt">Receipt</a>
-          <a href="#brain">Project Brain</a>
-          <a href="#cast">Cast</a>
+          <a href="#brain">Brain</a>
         </nav>
 
         <div id="dojo">
           <LiveDojo />
         </div>
 
-        <section className="rpg-method-section" id="method" aria-labelledby="method-title">
-          <div className="rpg-section-heading">
+        <section className="ops-section ops-method" id="method" aria-labelledby="method-title">
+          <div className="ops-section__head">
             <p>The Dojo Method</p>
-            <h2 id="method-title">Eight stages from intent to receipt.</h2>
+            <h2 id="method-title">Eight-stage mission trail.</h2>
           </div>
-          <div className="rpg-method-grid">
-            {method.map(([number, stage, title, line]) => (
-              <article key={stage}>
+          <ol className="ops-timeline">
+            {method.map(([number, stage, owner, line]) => (
+              <li key={stage}>
                 <i>{number}</i>
                 <strong>{stage}</strong>
-                <h3>{title}</h3>
+                <span>{owner}</span>
                 <p>{line}</p>
-              </article>
+              </li>
             ))}
-          </div>
+          </ol>
         </section>
 
-        <section className="rpg-plugin-section" id="plugins" aria-labelledby="plugins-title">
-          <div className="rpg-section-heading">
-            <p>Plugins Do the Work</p>
-            <h2 id="plugins-title">Dojo tracks the mission. Plugins execute the handoff.</h2>
+        <section className="ops-section" id="plugins" aria-labelledby="plugins-title">
+          <div className="ops-section__head">
+            <p>Plugin Registry</p>
+            <h2 id="plugins-title">Dojo tracks. Plugins do.</h2>
           </div>
-          <div className="rpg-plugin-grid">
-            {plugins.map(([name, line]) => (
+          <div className="ops-plugin-grid">
+            {plugins.map(([name, status, line]) => (
               <article key={name}>
-                <span>{name.slice(0, 2)}</span>
-                <h3>{name} plugin</h3>
+                <div>
+                  <strong>{name}</strong>
+                  <span>{status}</span>
+                </div>
                 <p>{line}</p>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="rpg-receipt-section" id="receipt" aria-labelledby="receipt-title">
-          <div className="rpg-section-heading">
+        <section className="ops-section ops-split" id="receipt" aria-labelledby="receipt-title">
+          <div className="ops-section__head">
             <p>Moonrise Receipt</p>
-            <h2 id="receipt-title">The artifact is the audit trail.</h2>
+            <h2 id="receipt-title">The run leaves a receipt.</h2>
           </div>
-          <div className="rpg-receipt-layout">
-            <article className="rpg-receipt-card">
-              <div>
-                <span>Moonrise Receipt</span>
-                <strong>meowts-verdict.shipped</strong>
-              </div>
-              <ul>
-                {receiptItems.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </article>
-            <div className="rpg-receipt-notes">
-              {receiptIconMap.map((icon, index) => (
-                <article key={icon}>
-                  <SectionIcon variant={icon} />
-                  <h3>{["Mission memory", "Judge evidence", "Next fix prompt"][index]}</h3>
-                  <p>
-                    {[
-                      "Every scroll keeps its intent, requirements, and stage summaries.",
-                      "Meowts records what passed, what failed, and why the score landed.",
-                      "The receipt ends with a concrete next prompt for the next plugin or human."
-                    ][index]}
-                  </p>
-                </article>
+          <article className="ops-receipt">
+            <header>
+              <span>moonrise.receipt</span>
+              <strong>meowts-verdict.shipped</strong>
+            </header>
+            <dl>
+              {receiptRows.map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
               ))}
-            </div>
-          </div>
+            </dl>
+          </article>
         </section>
 
-        <section className="rpg-brain-section" id="brain" aria-labelledby="brain-title">
-          <div className="rpg-section-heading">
+        <section className="ops-section ops-split" id="brain" aria-labelledby="brain-title">
+          <div className="ops-section__head">
             <p>Project Brain</p>
-            <h2 id="brain-title">Project memory without a giant database UI.</h2>
+            <h2 id="brain-title">Small memory, clear next action.</h2>
           </div>
-          <div className="rpg-brain-grid">
-            {brainItems.map(([title, line]) => (
-              <article key={title}>
-                <h3>{title}</h3>
-                <p>{line}</p>
-              </article>
+          <div className="ops-brain-list">
+            {brainRows.map(([label, value]) => (
+              <div key={label}>
+                <strong>{label}</strong>
+                <span>{value}</span>
+              </div>
             ))}
           </div>
         </section>
 
-        <section className="rpg-cast-section" id="cast" aria-labelledby="cast-title">
-          <div className="rpg-section-heading">
-            <p>Meet the cast</p>
-            <h2 id="cast-title">Six ninjas keep the receipt honest.</h2>
-          </div>
-          <div className="rpg-cast-grid rpg-cast-grid--compact">
-            {cast.map(([name, role, line, accent]) => (
-              <CastCard
-                accent={accent}
-                key={name}
-                line={line}
-                name={name}
-                role={role}
-              />
-            ))}
-          </div>
+        <section className="ops-cast" aria-label="Ninja cast">
+          {cast.map(([name, role]) => (
+            <span key={name}>
+              <strong>{name}</strong>
+              {role}
+            </span>
+          ))}
         </section>
       </section>
     </main>
