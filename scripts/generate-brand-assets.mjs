@@ -23,6 +23,9 @@ const transparentPrefix =
 const palette =
   "Palette: void black #050505, dojo charcoal #11100E, blood red #EF3434, lantern gold #E8C66A, scroll cream #F4E8C1, moonlight teal #78F0D4, muted ash #8B8982.";
 
+const fantasyDirection =
+  "Original cozy fantasy ninja RPG mood: moonlit village adventure, colorful lantern magic, friendly tactical RPG energy, handcrafted pixel-painterly charm, whimsical but premium, warm and inviting, not grim, not horror, not generic SaaS, no existing game or anime IP.";
+
 const assets = [
   {
     filename: "public/brand/logo-mark.png",
@@ -30,7 +33,7 @@ const assets = [
     quality: "high",
     background: "opaque",
     removeChroma: true,
-    prompt: `${transparentPrefix} Premium minimal Ninja Dojo logo mark, moon and dojo gate combined with subtle katana slash and shuriken geometry, dark arcade product demo plus moonlit RPG feel, sharp vector-like edges, premium tech game brand, memorable but not cartoonish, no text, no letters, no logo watermark. ${palette}`
+    prompt: `${transparentPrefix} Premium Ninja Dojo logo mark featuring a heroic ninja cat mascot face with small hood, bright readable eyes, crescent moon halo, tiny shuriken ears, subtle dojo gate silhouette, lantern gold trim and moonlight teal glow, polished game product brand, charming fantasy ninja energy, not childish, not scary, no text, no letters, no watermark. ${fantasyDirection} ${palette}`
   },
   {
     filename: "public/brand/logo-lockup.png",
@@ -38,7 +41,7 @@ const assets = [
     quality: "high",
     background: "opaque",
     removeChroma: true,
-    prompt: `${transparentPrefix} Premium horizontal brand lockup for Ninja Dojo, left side moon-dojo-gate-katana mark, right side clean readable wordmark text exactly "NINJA DOJO", dark arcade product demo plus moonlit RPG feel, minimal and premium, no subtitle, no extra words, no mockup, no watermark. ${palette}`
+    prompt: `${transparentPrefix} Premium horizontal brand lockup for a fantasy game product called Ninja Dojo. Left side: heroic ninja cat moon/shuriken mascot mark. Right side: large clean readable wordmark text exactly "NINJA DOJO" in custom fantasy arcade lettering, scroll cream letters with lantern gold edge and subtle blood red slash underline. No subtitle, no extra words, no mockup, no watermark. ${fantasyDirection} ${palette}`
   },
   {
     filename: "public/backgrounds/moonlit-command-bg.png",
@@ -46,7 +49,7 @@ const assets = [
     quality: "high",
     background: "opaque",
     removeChroma: false,
-    prompt: `Final production abstract moonlit AI game/product landing page background, dark ink wash, faint dojo roof silhouettes, moon glow, subtle workflow constellation lines, tiny dust and petal particles, premium arcade command center mood, low contrast so UI can sit on top, no characters, no text, no logo, no UI panels, no mockup. ${palette}`
+    prompt: `Final production fantasy ninja product landing page background, moonlit cozy ninja village and dojo gardens at night, magical lantern paths, cherry blossoms, soft teal moonlight, warm gold windows, subtle floating petal particles, faint AI workflow constellation lines in the sky, adventurous handcrafted RPG atmosphere, polished pixel-painterly detail, low contrast center area so UI can sit on top, no characters, no text, no logo, no UI panels, no mockup. ${fantasyDirection} ${palette}`
   },
   {
     filename: "public/cursors/moon-shuriken-cursor.png",
@@ -64,7 +67,7 @@ const assets = [
     background: "opaque",
     removeChroma: true,
     resize: 96,
-    prompt: `${transparentPrefix} Small in-game hover pointer marker for selecting a ninja character, moonlit shuriken arrow pointer with lantern gold edge, blood red center slash, subtle teal moon glint, readable at 32px, premium tactical RPG UI marker, no text, no logo. ${palette}`
+    prompt: `${transparentPrefix} Small in-game hover pointer marker for selecting a ninja character, cute premium ninja cat paw combined with shuriken arrow, lantern gold edge, blood red center slash, subtle teal moon glint, readable at 32px, premium fantasy tactical RPG UI marker, no text, no logo. ${fantasyDirection} ${palette}`
   },
   {
     filename: "public/icons/scroll-input.png",
