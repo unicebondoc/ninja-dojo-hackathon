@@ -43,7 +43,7 @@ export function MoonPanel({
       }
     >
       <div className="rpg-panel-title">
-        <span>Deploy Moon</span>
+        <span>Mission Status</span>
         <i />
       </div>
       <div className="rpg-moon-panel__orb" data-visible={isRunning || isComplete}>
@@ -53,18 +53,18 @@ export function MoonPanel({
       <h2>{status}</h2>
       <p>
         {isComplete
-          ? `The dojo shipped a first pass${prompt ? ` for: ${summarizePrompt(prompt)}` : ""}.`
+          ? `Moonrise Receipt produced${prompt ? ` for: ${summarizePrompt(prompt)}` : ""}.`
           : isRunning
-            ? "The deploy moon fills as the scroll passes through every station."
-            : "Two moons watch every build. One eternal, one earned."}
+            ? "The receipt forms as each plugin handoff and stage result lands."
+            : "Awaiting a scroll. The dojo will track mission state and receipt evidence."}
       </p>
       <div className="rpg-moon-panel__stats">
         <span>
-          <strong>Run Type</strong>
+          <strong>Mission Type</strong>
           {run ? run.productType : "Dojo Preview"}
         </span>
         <span>
-          <strong>Moonrise</strong>
+          <strong>Receipt</strong>
           {isComplete ? "Ready to open" : "Ready after run"}
         </span>
         <span>
@@ -73,7 +73,7 @@ export function MoonPanel({
         </span>
         {isComplete && run ? (
           <span>
-            <strong>Judge</strong>
+          <strong>Meowts</strong>
             {run.judgeResult.score}/100 · {run.judgeResult.verdict}
           </span>
         ) : null}

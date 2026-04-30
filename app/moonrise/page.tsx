@@ -297,7 +297,7 @@ function EmptyMoonrise() {
         </p>
         <h1 className="mt-4 text-4xl font-black">Send a scroll first.</h1>
         <p className="mt-4 text-white/68">
-          Ninja Dojo opens a shipped preview after a run completes. Return to the dojo, describe what you want built, and send the scroll.
+          Ninja Dojo opens a Moonrise Receipt after a mission completes. Return to the dojo, describe the shipping mission, and send the scroll.
         </p>
         <Link
           className="mt-7 inline-flex min-h-12 items-center justify-center rounded-xl bg-[#ef3434] px-6 text-sm font-black uppercase tracking-[0.16em] text-white"

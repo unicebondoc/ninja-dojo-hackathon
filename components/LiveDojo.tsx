@@ -100,7 +100,7 @@ export function LiveDojo() {
             role: event.role,
             speaker: event.agent ?? "Dojo"
           }
-        ].slice(-24)
+        ].slice(-8)
       );
     });
 
@@ -219,10 +219,10 @@ export function LiveDojo() {
       ? activeRun.moonriseUrl
       : "/moonrise";
   const boardTitle = complete
-    ? "Moonrise: shipped."
+    ? "Moonrise Receipt ready."
     : running
       ? stageOrder[currentStage]?.toUpperCase() ?? "Training"
-      : "Live dojo standing by";
+      : "Mission console standing by";
 
   return (
     <section className="rpg-hero" aria-label="Live Ninja Dojo RPG interface">
@@ -236,9 +236,11 @@ export function LiveDojo() {
       <header className="rpg-hero__header">
         <div className="rpg-title-block">
           <BrandLogo />
-          <p className="rpg-hero-kicker">One scroll in. Six ninjas ship it.</p>
+          <p className="rpg-brand-line">NINJA DOJO</p>
+          <h1>Mission control for AI shipping.</h1>
+          <p className="rpg-hero-kicker">One scroll in. Six ninjas track the mission.</p>
           <span>
-            Watch Moji, Miji, Maji, Meji, Muji, and Meowts plan, build, attack, review, deploy, and judge a product run in real time.
+            Track every scroll from intent to plugin handoff, stage result, Meowts judgment, and Moonrise Receipt.
           </span>
         </div>
         <div className="rpg-command-stack">
@@ -311,13 +313,13 @@ export function LiveDojo() {
           tabIndex={!complete ? -1 : undefined}
         >
           <ExternalLink className="h-5 w-5" />
-          View Moonrise
+          View Moonrise Receipt
         </Link>
       </div>
       {complete && activeRun ? (
         <section className="dojo-run-result" aria-live="polite">
           <div>
-            <p>Meowts Judge Result</p>
+            <p>Meowts Judge Report</p>
             <h2>{activeRun.judgeResult.verdict}</h2>
             <span>{activeRun.judgeResult.score}/100 for {activeRun.inferredName}</span>
           </div>
@@ -358,11 +360,11 @@ export function LiveDojo() {
       {runHistory.length > 0 ? (
         <section className="dojo-run-history" aria-label="Recent runs">
           <div className="dojo-run-history__header">
-            <p>Recent Runs</p>
-            <span>Stored locally in this browser</span>
+            <p>Mission History</p>
+            <span>Local project memory in this browser</span>
           </div>
           <div className="dojo-run-history__list">
-            {runHistory.map((run) => (
+            {runHistory.slice(0, 4).map((run) => (
               <button
                 data-active={run.runId === activeRun?.runId}
                 key={run.runId}
@@ -393,7 +395,7 @@ function formatEventMessage(event: RunStageEvent, prompt: string) {
   }
 
   if (event.stage === "moonrise" && shortPrompt) {
-    return `${time} The dojo shipped a first pass for: ${shortPrompt}`;
+    return `${time} Moonrise Receipt produced for: ${shortPrompt}`;
   }
 
   return `${time} ${event.message}`;

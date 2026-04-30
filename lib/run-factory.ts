@@ -7,17 +7,17 @@ export const defaultArtifacts: DojoArtifact[] = [
     title: "Moji plan",
     summary: "Request scope, acceptance criteria, and build handoff.",
     body: [
-      "Objective: turn the submitted scroll into a believable shipped preview.",
-      "Sections: hero, product promise, proof, offer details, and conversion CTA.",
-      "Acceptance: clear copy, mobile-safe layout, replayable artifacts, prompt-matched Moonrise preview."
+      "Objective: turn the submitted scroll into a mission manifest and receipt-ready handoff.",
+      "Sections: intent, requirements, proof, stage results, and next action.",
+      "Acceptance: clear mission state, replayable artifacts, and prompt-matched Moonrise Receipt."
     ]
   },
   {
     kind: "build",
     title: "Miji build",
-    summary: "Next.js route and polished Tailwind interface.",
+    summary: "Next.js route and polished mission interface.",
     body: [
-      "Implemented Moonrise as a generated shipped preview route.",
+      "Implemented Moonrise as a generated receipt and preview route.",
       "Used local visual assets built from CSS and Tailwind rather than external media.",
       "Kept the CTA visual-only until the production adapter is connected."
     ]
@@ -25,10 +25,10 @@ export const defaultArtifacts: DojoArtifact[] = [
   {
     kind: "attack",
     title: "Maji attack",
-    summary: "Product risks called out before the ship moment.",
+    summary: "Product risks called out before receipt.",
     body: [
       "CTA needed to be clear above the fold.",
-      "Mobile spacing needed to keep the shipped preview and headline readable.",
+      "Mobile spacing needed to keep the receipt and headline readable.",
       "External integrations stay behind adapters until the core run loop is stable."
     ]
   },
@@ -37,7 +37,7 @@ export const defaultArtifacts: DojoArtifact[] = [
     title: "Meji review",
     summary: "Architecture stays simple and Codex-native.",
     body: [
-      "App Router routes cover the dashboard, shipped preview, cached API, and SSE run stream.",
+      "App Router routes cover the console, Moonrise Receipt, cached API, and SSE run stream.",
       "AGENTS.md documents the Dojo Law and product constraints.",
       "Six Codex Skills map directly to the visible ninja roles."
     ]
@@ -45,7 +45,7 @@ export const defaultArtifacts: DojoArtifact[] = [
   {
     kind: "deploy",
     title: "Muji deploy",
-    summary: "Build path and preview route are verified for deployment.",
+    summary: "Build path and receipt route are verified for deployment.",
     body: [
       "Production build passes with Next.js 15.",
       "Local preview paths: /, /moonrise, /api/runs, and /api/train.",
@@ -57,9 +57,9 @@ export const defaultArtifacts: DojoArtifact[] = [
     title: "Meowts judgment",
     summary: "The moon rises only after the packet is complete.",
     body: [
-      "Approved: the scroll becomes a visible shipped page.",
+      "Approved: the scroll becomes mission state and a visible receipt.",
       "Roast preserved for memorability.",
-      "Next step: replace local run generation with real worktree orchestration."
+      "Next step: replace local run generation with real plugin orchestration."
     ]
   }
 ];

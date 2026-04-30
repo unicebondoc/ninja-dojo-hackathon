@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Ninja Dojo",
-  description: "One scroll in. Six ninjas ship it."
+  description: "Mission control for AI shipping."
 };
 
 export default function RootLayout({

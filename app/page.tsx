@@ -3,76 +3,57 @@ import { CastCard } from "@/components/CastCard";
 import { LiveDojo } from "@/components/LiveDojo";
 import { SectionIcon, type SectionIconVariant } from "@/components/SectionIcon";
 
+const method = [
+  ["01", "Scroll", "Capture intent", "The original request becomes mission state instead of a disappearing chat prompt."],
+  ["02", "Plan", "Moji writes the manifest", "Scope, constraints, requirements, and acceptance signals are made explicit."],
+  ["03", "Build", "Miji prepares the handoff", "The builder plugin gets a focused prompt and expected artifact shape."],
+  ["04", "Attack", "Maji checks weak spots", "Risks, missing proof, vague claims, and likely breakpoints are surfaced early."],
+  ["05", "Review", "Meji reviews quality", "Architecture, copy, UX, and project constraints get checked before receipt."],
+  ["06", "Deploy", "Muji checks readiness", "Launch path, test posture, and preview expectations are recorded."],
+  ["07", "Judge", "Meowts gives the verdict", "The run receives a score, pass/fail notes, and next fix prompt."],
+  ["08", "Moonrise", "Receipt produced", "The final artifact is a shareable receipt with the mission trail attached."]
+] as const;
+
+const plugins = [
+  ["Codex", "Build handoff prompts now, real execution later."],
+  ["Claude", "Review prompts now, deeper critique later."],
+  ["OpenClaw", "Local action prompts now, gateway actions later."],
+  ["GPT Image 2", "Asset prompts now, generation integration later."],
+  ["Telegram", "Scroll capture and mission updates."],
+  ["Manual", "Paste results from any tool and save them to mission state."]
+] as const;
+
+const receiptItems = [
+  "Original scroll",
+  "Inferred requirements",
+  "Stage summaries",
+  "Plugin handoffs",
+  "Pasted or plugin results",
+  "Judge score",
+  "Pass/fail notes",
+  "Next fix prompt",
+  "Client/project summary"
+] as const;
+
+const brainItems = [
+  ["Repo rules", "What the project allows, forbids, and expects."],
+  ["Product constraints", "Positioning, audience, offer, and launch boundaries."],
+  ["Decisions", "Why the run moved the way it did."],
+  ["Active plugins", "Which worker or tool owns the next handoff."],
+  ["Memory summary", "What changed since the last scroll."],
+  ["Next action", "The single best follow-up after Meowts judges."]
+] as const;
+
 const cast = [
-  ["Moji", "Plan", "Maps the route before the scroll moves.", "gold"],
-  ["Miji", "Build", "Turns the plan into the first working pass.", "red"],
-  ["Maji", "Attack", "Stress-tests the weak spots.", "teal"],
-  ["Meji", "Review", "Catches mistakes before they ship.", "cream"],
-  ["Muji", "Deploy", "Opens the gate to production.", "ash"],
-  ["Meowts", "Judge", "Judges the run under moonlight.", "pink"]
+  ["Moji", "Plan", "Turns intent into a Run Manifest.", "gold"],
+  ["Miji", "Build", "Prepares the build handoff.", "red"],
+  ["Maji", "Attack", "Finds weak spots before they ship.", "teal"],
+  ["Meji", "Review", "Checks quality and architecture.", "cream"],
+  ["Muji", "Deploy", "Tracks launch readiness.", "ash"],
+  ["Meowts", "Judge", "Scores the receipt under moonlight.", "pink"]
 ] as const;
 
-const howItWorks = [
-  [
-    "scroll",
-    "Describe the build",
-    "Write what you want: a landing page, waitlist, dashboard, or product preview."
-  ],
-  [
-    "agents",
-    "Watch the run",
-    "Six ninjas move through plan, build, attack, review, deploy, and judge."
-  ],
-  [
-    "moon",
-    "Open Moonrise",
-    "Get a shipped preview and the next steps for turning it into a real app."
-  ]
-] satisfies ReadonlyArray<readonly [SectionIconVariant, string, string]>;
-
-const proofCards = [
-  [
-    "timeline",
-    "What happened in the dojo?",
-    "The scroll became a shipped page.",
-    "The preview run moves from scroll intake through planning, building, adversarial attack, architecture review, deployment checks, and Meowts judgment before opening Moonrise."
-  ],
-  [
-    "cast",
-    "Codex-native proof",
-    "Built around the way Codex actually works.",
-    "Ninja Dojo keeps AGENTS.md, six Codex Skills, and clean run-event shapes in the repo today, with room for future App Server and worktree streaming when the live orchestration layer is ready."
-  ]
-] satisfies ReadonlyArray<readonly [SectionIconVariant, string, string, string]>;
-
-const offers = [
-  [
-    "Starter Dojo Run",
-    "From $199",
-    "For simple landing pages and launch previews.",
-    ["one scroll", "branded landing page", "copy polish", "Moonrise preview"]
-  ],
-  [
-    "Founder Dojo Run",
-    "From $499",
-    "For fuller product pages and waitlists.",
-    ["landing page", "generated sections", "pricing/testimonials/CTA", "deploy-ready polish"]
-  ],
-  [
-    "Custom Agentic Build",
-    "Custom",
-    "For tools, dashboards, and repo-connected workflows.",
-    ["planning", "build pass", "review", "deploy guidance", "custom workflow"]
-  ]
-] as const;
-
-const architecture = [
-  ["Scroll input", "Plain-English product requests enter the dojo."],
-  ["Run Manifest", "Every scroll becomes structured stages, requirements, preview data, and judge output."],
-  ["Ninja workflow", "Moji, Miji, Maji, Meji, Muji, and Meowts own the shipping path."],
-  ["Preview + judge", "Moonrise generates a shipped page and Meowts scores the match."],
-  ["Future integrations", "Codex, Claude, GPT Image 2, GitHub, Vercel, and OpenClaw can plug into the manifest layer."]
-] as const;
+const receiptIconMap: SectionIconVariant[] = ["scroll", "timeline", "moon"];
 
 export default function Home() {
   return (
@@ -84,27 +65,28 @@ export default function Home() {
       </div>
       <section className="rpg-page-shell">
         <nav className="rpg-topnav" aria-label="Ninja Dojo sections">
-          <a href="#dojo">Dojo</a>
-          <a href="#how-it-works">How it works</a>
-          <a href="#meet-the-cast">Cast</a>
-          <a href="#pricing">Pricing</a>
-          <a href="#architecture">Architecture</a>
-          <a href="#request-run">Request Run</a>
+          <a href="#dojo">Console</a>
+          <a href="#method">Method</a>
+          <a href="#plugins">Plugins</a>
+          <a href="#receipt">Receipt</a>
+          <a href="#brain">Project Brain</a>
+          <a href="#cast">Cast</a>
         </nav>
 
         <div id="dojo">
           <LiveDojo />
         </div>
 
-        <section className="rpg-how-section" aria-labelledby="how-it-works">
+        <section className="rpg-method-section" id="method" aria-labelledby="method-title">
           <div className="rpg-section-heading">
-            <p>Build mode</p>
-            <h2 id="how-it-works">From scroll to shipped app.</h2>
+            <p>The Dojo Method</p>
+            <h2 id="method-title">Eight stages from intent to receipt.</h2>
           </div>
-          <div className="rpg-how-grid">
-            {howItWorks.map(([icon, title, line]) => (
-              <article key={title}>
-                <SectionIcon variant={icon} />
+          <div className="rpg-method-grid">
+            {method.map(([number, stage, title, line]) => (
+              <article key={stage}>
+                <i>{number}</i>
+                <strong>{stage}</strong>
                 <h3>{title}</h3>
                 <p>{line}</p>
               </article>
@@ -112,23 +94,78 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="rpg-info-grid">
-          {proofCards.map(([icon, eyebrow, title, line]) => (
-            <article key={eyebrow}>
-              <SectionIcon variant={icon} />
-              <p>{eyebrow}</p>
-              <h2>{title}</h2>
-              <span>{line}</span>
-            </article>
-          ))}
+        <section className="rpg-plugin-section" id="plugins" aria-labelledby="plugins-title">
+          <div className="rpg-section-heading">
+            <p>Plugins Do the Work</p>
+            <h2 id="plugins-title">Dojo tracks the mission. Plugins execute the handoff.</h2>
+          </div>
+          <div className="rpg-plugin-grid">
+            {plugins.map(([name, line]) => (
+              <article key={name}>
+                <span>{name.slice(0, 2)}</span>
+                <h3>{name} plugin</h3>
+                <p>{line}</p>
+              </article>
+            ))}
+          </div>
         </section>
 
-        <section className="rpg-cast-section" aria-labelledby="meet-the-cast">
+        <section className="rpg-receipt-section" id="receipt" aria-labelledby="receipt-title">
+          <div className="rpg-section-heading">
+            <p>Moonrise Receipt</p>
+            <h2 id="receipt-title">The artifact is the audit trail.</h2>
+          </div>
+          <div className="rpg-receipt-layout">
+            <article className="rpg-receipt-card">
+              <div>
+                <span>Moonrise Receipt</span>
+                <strong>meowts-verdict.shipped</strong>
+              </div>
+              <ul>
+                {receiptItems.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </article>
+            <div className="rpg-receipt-notes">
+              {receiptIconMap.map((icon, index) => (
+                <article key={icon}>
+                  <SectionIcon variant={icon} />
+                  <h3>{["Mission memory", "Judge evidence", "Next fix prompt"][index]}</h3>
+                  <p>
+                    {[
+                      "Every scroll keeps its intent, requirements, and stage summaries.",
+                      "Meowts records what passed, what failed, and why the score landed.",
+                      "The receipt ends with a concrete next prompt for the next plugin or human."
+                    ][index]}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="rpg-brain-section" id="brain" aria-labelledby="brain-title">
+          <div className="rpg-section-heading">
+            <p>Project Brain</p>
+            <h2 id="brain-title">Project memory without a giant database UI.</h2>
+          </div>
+          <div className="rpg-brain-grid">
+            {brainItems.map(([title, line]) => (
+              <article key={title}>
+                <h3>{title}</h3>
+                <p>{line}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="rpg-cast-section" id="cast" aria-labelledby="cast-title">
           <div className="rpg-section-heading">
             <p>Meet the cast</p>
-            <h2 id="meet-the-cast">Six ninjas. One shipped run.</h2>
+            <h2 id="cast-title">Six ninjas keep the receipt honest.</h2>
           </div>
-          <div className="rpg-cast-grid">
+          <div className="rpg-cast-grid rpg-cast-grid--compact">
             {cast.map(([name, role, line, accent]) => (
               <CastCard
                 accent={accent}
@@ -139,53 +176,6 @@ export default function Home() {
               />
             ))}
           </div>
-        </section>
-
-        <section className="rpg-pricing-section" id="pricing" aria-labelledby="pricing-title">
-          <div className="rpg-section-heading">
-            <p>Service offers</p>
-            <h2 id="pricing-title">Request a real Dojo Run.</h2>
-          </div>
-          <div className="rpg-pricing-grid">
-            {offers.map(([title, price, line, includes]) => (
-              <article key={title}>
-                <p>{title}</p>
-                <strong>{price}</strong>
-                <span>{line}</span>
-                <ul>
-                  {includes.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section
-          className="rpg-architecture-section"
-          id="architecture"
-          aria-labelledby="architecture-title"
-        >
-          <div className="rpg-section-heading">
-            <p>How it becomes real</p>
-            <h2 id="architecture-title">A visible shipping workflow around coding agents.</h2>
-          </div>
-          <div className="rpg-architecture-flow">
-            {architecture.map(([title, line], index) => (
-              <article key={title}>
-                <i>{String(index + 1).padStart(2, "0")}</i>
-                <h3>{title}</h3>
-                <p>{line}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="rpg-request-section" id="request-run">
-          <p>Ready to turn a Moonrise preview into a shipped page?</p>
-          <h2>Drop a scroll above, copy the run brief, then request a real Dojo Run.</h2>
-          <a href="#dojo">Start in the dojo</a>
         </section>
       </section>
     </main>

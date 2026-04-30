@@ -90,12 +90,12 @@ export const ScrollComposer = forwardRef<ScrollComposerHandle, ScrollComposerPro
               <div className="scroll-composer__header">
                 <div>
                   <p>Scroll Composer</p>
-                  <h2>What do you want the dojo to build?</h2>
+                  <h2>What mission should the dojo track?</h2>
                 </div>
                 <span>Run manifest</span>
               </div>
               <textarea
-                aria-label="Describe what you want the dojo to build"
+                aria-label="Describe the shipping mission"
                 ref={textareaRef}
                 value={value}
                 onChange={(event) => onChange(event.target.value)}
@@ -103,8 +103,8 @@ export const ScrollComposer = forwardRef<ScrollComposerHandle, ScrollComposerPro
                 rows={4}
               />
               <p className="scroll-composer__helper">
-                Describe the app, page, or product run. The ninjas will plan,
-                build, attack, review, deploy, and judge it.
+                Describe the intent, constraints, and desired handoff. The dojo
+                turns it into a Run Manifest, stage trail, and Moonrise Receipt.
               </p>
               <div className="scroll-composer__examples" aria-label="Example scrolls">
                 {examples.map((example) => (

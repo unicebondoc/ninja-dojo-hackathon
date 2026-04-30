@@ -2,10 +2,10 @@
 
 ## Product
 
-Ninja Dojo is a commercial AI command center for solo builders to coordinate parallel Codex-style workflows.
+Ninja Dojo is mission control for AI shipping. It tracks every scroll from intent to plugin handoff, stage result, Meowts judgment, and Moonrise Receipt.
 
 Claim:
-One scroll in. Six ninjas ship it.
+Plugins do the work. Dojo owns mission state, Project Brain, and the receipt.
 
 ## The Cast
 
@@ -21,6 +21,29 @@ One scroll in. Six ninjas ship it.
 ## Stage Flow
 
 Scroll → Plan → Build → Attack → Review → Deploy → Judge → Moonrise
+
+## Product Ownership
+
+Dojo owns:
+
+- mission state
+- Run Manifest
+- Project Brain
+- plugin handoff prompts
+- stage tracking
+- Meowts Judge Report
+- Moonrise Receipt
+- run history
+
+Plugins do the work:
+
+- Codex
+- Claude
+- OpenClaw
+- GPT Image 2
+- Telegram
+- manual paste-result fallback
+- future content plugins
 
 ## Dojo Law
 
@@ -45,7 +68,7 @@ Every scroll follows the way of the ninja:
 - The core product must work locally before it depends on hosted services.
 - If live orchestration fails, render a replayable local run with clear failure state.
 - Keep the UI dark, sharp, and memorable.
-- Do not overbuild. Ship the scroll → live dojo → panels → moon path first.
+- Do not overbuild. Ship the scroll → mission state → plugin handoff → judge report → receipt path first.
 
 ## Fallback Constraints
 
@@ -68,6 +91,6 @@ Build me a landing page for a moonlit ramen shop with online booking, pricing, a
 ## Pitch
 
 I am a solo builder. Codex gives me parallel workers, but I needed a command center.
-Ninja Dojo is that command center: one scroll in, live ninjas out.
-Moji plans, Miji builds, Maji attacks, Meji reviews, Muji deploys, and Meowts judges.
-The scroll becomes a shipped page. The moon rises when it passes.
+Ninja Dojo is that command center: one scroll in, mission tracked.
+Moji plans, Miji builds, Maji attacks, Meji reviews, Muji deploys, and Meowts judges the receipt.
+The scroll becomes a Run Manifest, plugin handoffs, a judge report, and a Moonrise Receipt.
