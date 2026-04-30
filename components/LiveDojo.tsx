@@ -29,7 +29,6 @@ export function LiveDojo() {
   const [currentStage, setCurrentStage] = useState(0);
   const [dialogue, setDialogue] = useState<DojoDialogue[]>([]);
   const [gameReady, setGameReady] = useState(false);
-  const [runsCompleted, setRunsCompleted] = useState(0);
   const [running, setRunning] = useState(false);
 
   const handleGameReady = useCallback(() => {
@@ -72,9 +71,7 @@ export function LiveDojo() {
       setDialogue([]);
     });
 
-    const offSave = EventBus.on<{ runsCompleted: number }>("dojo-save", (save) => {
-      if (save) setRunsCompleted(save.runsCompleted);
-    });
+    const offSave = EventBus.on<{ runsCompleted: number }>("dojo-save", () => {});
 
     return () => {
       offStage();
@@ -107,9 +104,11 @@ export function LiveDojo() {
     <section className="rpg-hero" aria-label="Live Ninja Dojo RPG interface">
       <header className="rpg-hero__header">
         <div className="rpg-title-block">
-          <p>Ninja Dojo · Day {runsCompleted + 1}</p>
-          <h1>One scroll in. Five Codex worktrees out.</h1>
-          <span>Send the scroll and watch the ninjas coordinate in real time.</span>
+          <p>Ninja Dojo · Hackathon MVP</p>
+          <h1>One scroll in. Five Codex worktrees out. One shipped result.</h1>
+          <span>
+            Watch six AI ninjas plan, build, attack, review, deploy, and judge a product in real time.
+          </span>
         </div>
         <DojoProgress
           currentStage={currentStage}
@@ -131,12 +130,16 @@ export function LiveDojo() {
           />
           {process.env.NODE_ENV === "development" ? (
             <div className="phaser-dojo-debug">
-              stage={currentStage} ready={String(gameReady)} runs={runsCompleted}
+              stage={currentStage} ready={String(gameReady)}
             </div>
           ) : null}
         </div>
 
-        <MoonPanel isComplete={complete} isRunning={running} />
+        <MoonPanel
+          currentStage={currentStage}
+          isComplete={complete}
+          isRunning={running}
+        />
       </div>
 
       <div className="rpg-controls">

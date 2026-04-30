@@ -1,199 +1,119 @@
-# Ninja Dojo
+# 🥷 Ninja Dojo
 
-**One scroll in. Five Codex worktrees out. One shipped result.**
+> One scroll in. Five Codex worktrees out. One shipped result.
 
-![MIT](https://img.shields.io/badge/license-MIT-f6e7b1)
-![Next.js](https://img.shields.io/badge/Next.js-15-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![License MIT](https://img.shields.io/badge/license-MIT-f6e7b1)
+![Next.js 15](https://img.shields.io/badge/Next.js-15-black)
+![TypeScript 5](https://img.shields.io/badge/TypeScript-5-blue)
 ![Codex Skills](https://img.shields.io/badge/Codex-Skills-dc2626)
 ![Hackathon MVP](https://img.shields.io/badge/Hackathon-MVP-7f1d1d)
 
-Ninja Dojo is a visual command center for solo builders coordinating Codex-style agent workflows. A builder sends one product scroll, then watches specialized agents plan, build, attack, review, deploy, and judge the result inside a live 2D dojo simulation.
+Ninja Dojo is a live command center for solo builders coordinating Codex-style agent workflows. You hand the dojo a single scroll — a product idea written in plain English — and watch six specialized ninjas plan, build, attack, review, deploy, and judge the result inside a 2D dojo simulation. When the work passes, the moon rises and the shipped page opens.
 
-Inspired by world-simulation interfaces like [WorldX](https://github.com/YGYOOO/WorldX), but built for Codex agent workflows. WorldX was used as visual inspiration only; no code, assets, images, text, or exact UI were copied.
+## What it is
 
-Phaser React architecture is inspired by the MIT-licensed [Phaser React template](https://github.com/phaserjs/template-react). Ninja Dojo assets are original/generated; no WorldX or Pokémon assets are copied.
+Ninja Dojo turns one product request into one shipped result. You write what you want. Six AI agents take it from idea to live page in front of you, each with their own job. You can see them moving, talking, and finishing their part of the work. When everyone is done and the work passes review, the moon rises and the page opens. It's built for solo founders who want the visibility of a real team without hiring one.
 
-## Screenshots / GIF
+## The Cast
 
-> Add a short capture here: homepage → Launch live dojo → agents complete → moonrise → `/demo/oracle`.
+| Ninja  | Role     | Emoji |
+| ------ | -------- | ----- |
+| Moji   | Plan     | 📜    |
+| Miji   | Build    | 🔨    |
+| Maji   | Attack   | ⚔️    |
+| Meji   | Review   | 🏯    |
+| Muji   | Deploy   | 🚀    |
+| Meowts | Judge    | 🐱    |
 
-```text
-public/demo/ninja-dojo-loop.gif
+## The Flow
+
+```
+Scroll → Plan → Build → Attack → Review → Deploy → Judge → Moonrise
 ```
 
-## What was built during the hackathon
+1. **Scroll** — you describe what you want built.
+2. **Plan** — Moji writes the spec and acceptance criteria.
+3. **Build** — Miji ships the artifact in an isolated worktree.
+4. **Attack** — Maji tries to break the plan and the build.
+5. **Review** — Meji checks architecture and maintainability.
+6. **Deploy** — Muji runs build/test checks and prepares a preview.
+7. **Judge** — Meowts decides: does the moon rise?
+8. **Moonrise** — the shipped page opens at `/demo/oracle`.
 
-Built on-site at OpenAI Codex Hackathon Sydney:
+## Built at OpenAI Codex Hackathon Sydney 2026
 
-- Cached-first Next.js demo app
-- Scroll → Panels → Moon Ninja Dojo dashboard
-- Phaser-powered live dojo simulation UI with moving workers, event log, progress rail, and moonrise status
-- `/demo/oracle` shipped page
-- `AGENTS.md` Dojo Law
-- Six Codex Skills in `.codex/skills`
-- Cached `/api/train` endpoint
-- Stage-safe fallback with no Telegram/Vercel/WebSocket dependency
+Built on-site at the OpenAI Codex Hackathon in Sydney. The stage demo runs cached-first and survives without Telegram, Vercel, Supabase, or WebSockets — so the moon always rises on stage.
 
-This MVP does not depend on Telegram, Vercel, Supabase, or WebSockets for the stage-safe demo.
+## Codex-Native Architecture
 
-## Demo Flow
+Ninja Dojo is built around the way Codex actually works:
 
-```text
-Product scroll
-  ↓
-Shoji panels open
-  ↓
-Moji plans → Miji builds → Maji attacks → Meji reviews → Muji deploys
-  ↓
-Meowts judges
-  ↓
-Moonrise: shipped
-  ↓
-/demo/oracle
-```
+- **`AGENTS.md`** — the Dojo Law and product rules in one file.
+- **`.codex/skills/`** — six Codex Skills, one per ninja:
+  - `moji-plan` — turns a scroll into a plan.
+  - `miji-build` — builds the artifact.
+  - `maji-attack` — finds weakness in plan and build.
+  - `meji-review` — reviews architecture for harmony.
+  - `muji-deploy` — runs build checks and prepares deploy.
+  - `meowts-judge` — decides whether the moon rises.
+- **Worktree story** — each ninja maps to an isolated Codex worktree. The current MVP runs them as cached events; the production direction replaces the local factory with real Codex worktree execution while preserving the `DojoRun` and `DojoRunEvent` shapes.
 
-The current local demo is cached-first and stage-safe. It does not require Telegram, Vercel, Supabase, WebSockets, auth, payments, or external services.
-
-## Features
-
-- Game-like dark dojo homepage with Scroll → Panels → Moon storytelling.
-- Phaser-powered 2D dojo board with moving chibi agents, moonlight, katana effects, stations, progress, and event log.
-- Cached-first run timeline that works without live services.
-- Six named agent roles: Moji, Miji, Maji, Meji, Muji, and Meowts.
-- Shoji status panels that show idle, working, complete, and failed states.
-- Artifact packet for plan, build notes, attack findings, review, deploy checks, and final judgment.
-- Cached `/api/train` compatibility endpoint for reliable demos.
-- `/demo/oracle` shipped-page preview for the sample scroll.
-- `AGENTS.md` Dojo Law plus six Codex Skills in `.codex/skills`.
-
-## Visual Assets
-
-The dojo background, sprites, scroll, moon, and slash effects are original generated assets for Ninja Dojo. WorldX was used only as broad inspiration for a live AI-world interface; no WorldX code, sprites, maps, filenames, layouts, images, text, or assets are copied.
-
-The Phaser/React integration follows the broad bridge pattern from the MIT-licensed Phaser React template: React owns surrounding UI state and controls, while Phaser owns the canvas scene, tweens, sprites, and in-world speech bubbles.
-
-- Local generated asset script: `scripts/generate-local-assets.mjs`
-- GPT Image 2 generation script: `scripts/generate-assets.mjs`
-- Prompt pack: `public/assets/dojo/README.md`
-- Target output folder: `public/assets/dojo/`
-- Current generated files: `dojo-background.png`, `spritesheet.png`, `scroll.png`, `moon.png`, `slash.png`
-- Fallback: CSS/SVG sprites, moon, scroll, dojo room, and slash VFX keep the app working when generated assets are unavailable.
-
-Generate local original PNG assets without an API key:
-
-```bash
-npm run generate:local-assets
-```
-
-Generate GPT Image 2 assets when `OPENAI_API_KEY` is configured:
-
-```bash
-npm run generate:assets
-```
-
-The requested spritesheet is a single transparent PNG with six chibi game sprites in one row: Moji, Miji, Maji, Meji, Muji, and Meowts.
-
-## Architecture
-
-```text
-                 ┌──────────────────────────────┐
-                 │        User product scroll    │
-                 └───────────────┬──────────────┘
-                                 │
-                                 ▼
-┌────────────────────────────────────────────────────────────┐
-│ Next.js App Router homepage                                │
-│ - Scroll input                                              │
-│ - Phaser 2D dojo game board                                 │
-│ - Shoji panels                                              │
-│ - Progress rail and event log                               │
-│ - Artifact packet                                           │
-└───────────────────────┬────────────────────────────────────┘
-                        │ POST /api/runs
-                        ▼
-┌────────────────────────────────────────────────────────────┐
-│ Local run factory                                           │
-│ Creates DojoRun, DojoAgent states, artifacts, stream path    │
-└───────────────────────┬────────────────────────────────────┘
-                        │ GET /api/runs/[runId]/events
-                        ▼
-┌────────────────────────────────────────────────────────────┐
-│ SSE event stream                                            │
-│ run_started → agent_started → agent_message                 │
-│ → agent_completed → artifact_ready → run_completed          │
-└───────────────────────┬────────────────────────────────────┘
-                        │
-                        ▼
-┌────────────────────────────────────────────────────────────┐
-│ Frontend state machine                                      │
-│ Updates living agents, dialogue, panels, Meowts, moonrise    │
-└───────────────────────┬────────────────────────────────────┘
-                        │
-                        ▼
-                 ┌──────────────────────────────┐
-                 │      /demo/oracle preview     │
-                 └──────────────────────────────┘
-```
-
-## Codex-Native Pieces
-
-- `AGENTS.md` describes the Dojo Law and product rules.
-- `.codex/skills/moji-plan/SKILL.md` turns a scroll into a plan.
-- `.codex/skills/miji-build/SKILL.md` builds the artifact.
-- `.codex/skills/maji-attack/SKILL.md` attacks the plan and build.
-- `.codex/skills/meji-review/SKILL.md` reviews architecture.
-- `.codex/skills/muji-deploy/SKILL.md` checks build and preview readiness.
-- `.codex/skills/meowts-judge/SKILL.md` decides whether the moon rises.
-
-## Product Direction
-
-Ninja Dojo is becoming a live operations layer for AI software work:
-
-- Start a run from a product scroll.
-- Stream agent dialogue and status changes into the UI.
-- Watch agents move through a 2D anime dojo with katanas, shuriken, lighting, and combat-review effects.
-- Preserve artifacts from each role: plan, build notes, attack findings, review, deploy checks, and judgment.
-- Open the shipped preview when the run passes.
-- Keep the interface memorable enough to understand at a glance, but structured enough to become a real work dashboard.
-
-## Cached-First Runtime
-
-The primary demo path runs from cached local data and browser timers, so the homepage remains stage-safe without live services. The repo also keeps lightweight Next.js route handlers for compatibility and future adapters:
-
-- `POST /api/runs` creates a local-live `DojoRun`.
-- `GET /api/runs/[runId]/events` streams run events over Server-Sent Events.
-- `GET /api/train` remains as a cached compatibility endpoint.
-
-The commercial direction can replace local/cached events with real orchestration later, while preserving the current `DojoRun` and `DojoRunEvent` shapes.
-
-## How To Run Locally
+## Run Locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`, click **Send Scroll**, and watch the ninjas walk, talk, review, deploy, and judge inside the live dojo. The shipped preview is available at `/demo/oracle` after moonrise.
+Open `http://localhost:3000`, send the scroll, and watch the dojo go to work. The shipped preview is at `/demo/oracle`.
 
-## Current Routes
+## Demo Flow
 
-- `/` live Ninja Dojo dashboard
-- `/demo/oracle` sample shipped product page
-- `/api/runs` run creation API
-- `/api/runs/[runId]/events` SSE run stream
-- `/api/train` cached compatibility API
+What a first-time visitor sees:
 
-## Commercial Roadmap
+1. The dojo loads — six ninjas at their stations under a dark sky.
+2. Send the scroll, or walk to Moji and press Space.
+3. Moji writes the plan. Miji starts building.
+4. Maji attacks the build. A katana slash flashes on screen.
+5. Meji reviews the architecture. Muji runs deploy checks.
+6. Meowts delivers the verdict from the pagoda roof.
+7. The moon rises. The shipped page opens at `/demo/oracle`.
 
-The next production adapters should preserve the current `DojoRun` and `DojoRunEvent` shape:
+The whole loop runs offline from cached data, so the demo never blocks on a network call.
 
-- Database: Postgres for runs, events, artifacts, users, and team workspaces.
-- Auth: account login, workspace membership, and run ownership.
-- Codex orchestration: replace the local event factory with real worktree execution.
-- Deployments: connect Muji to preview deploy providers.
-- Billing: add plans only after the core run loop is valuable.
-- Observability: event logs, run replay, error recovery, and agent quality metrics.
+## Tech Stack
+
+- **Next.js 15** — App Router, route handlers, SSE.
+- **TypeScript 5** — strict mode across app, components, and game code.
+- **Tailwind CSS** — dark dojo theming and the RPG hero layout.
+- **Phaser 4** — 2D dojo simulation: tile world, player movement, NPC dialogue, run timeline.
+- **OpenAI Codex** — `AGENTS.md` plus six Codex Skills shape the agent workflow.
+
+## Routes
+
+- `/` — live dojo dashboard.
+- `/demo/oracle` — sample shipped page.
+- `/api/runs` — run creation API.
+- `/api/runs/[runId]/events` — SSE run stream.
+- `/api/train` — cached compatibility API.
+
+## What's Next
+
+- Live deploy with a public URL.
+- Real Codex worktree execution behind the run factory.
+- Audio: koto loop, footsteps, scroll-receive, moonrise SFX.
+- Persistent run archive — past scrolls become collectible artifacts.
+- Account login, workspace membership, and run ownership for teams.
+- Production deploy adapter for Muji.
+- Observability: event logs, run replay, agent quality metrics.
+
+## Credits
+
+- **OpenAI APAC team** — for hosting the Codex Hackathon Sydney 2026.
+- **Gabriel Chua** — feedback and encouragement on the Codex-native angle.
+- **Thomas Jeng** — feedback and encouragement on the live dojo direction.
+- **Arafat Tehsin** — feedback and encouragement on the agent flow.
+- **Unice Bondoc** — solo builder.
 
 ## License
 

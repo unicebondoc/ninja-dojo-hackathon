@@ -7,6 +7,21 @@ Ninja Dojo is a commercial AI command center for solo builders to coordinate par
 Claim:
 One scroll in. Live ninjas out. One shipped result.
 
+## The Cast
+
+| Name   | Role     |
+| ------ | -------- |
+| Moji   | Plan     |
+| Miji   | Build    |
+| Maji   | Attack   |
+| Meji   | Review   |
+| Muji   | Deploy   |
+| Meowts | Judge    |
+
+## Stage Flow
+
+Scroll → Plan → Build → Attack → Review → Deploy → Judge → Moonrise
+
 ## Dojo Law
 
 Every scroll follows the way of the ninja:
@@ -18,16 +33,33 @@ Every scroll follows the way of the ninja:
 5. Muji deploys only when the work passes.
 6. Meowts judges the final result from the pagoda roof.
 
-## Rules
+## Vows
 
 - No ninja ships untested code.
 - No ninja merges without review.
 - No ninja builds without a scroll.
+
+## Rules
+
 - Prefer local-live reliability before external integration risk.
 - The core product must work locally before it depends on hosted services.
 - If live orchestration fails, render a replayable local run with clear failure state.
 - Keep the UI dark, sharp, and memorable.
 - Do not overbuild. Ship the scroll → live dojo → panels → moon path first.
+
+## Stage-Demo Constraints
+
+The stage-demo path is cached-first and must run without:
+
+- Telegram
+- Vercel
+- Supabase
+- WebSockets
+- Auth
+- Payments
+- Any external orchestration
+
+Live adapters may exist behind feature flags. They must never be required for the stage demo.
 
 ## Demo Scroll
 
