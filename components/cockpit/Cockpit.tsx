@@ -11,8 +11,10 @@ import { agentById, agentRegistry } from "@/lib/agent-registry";
 import { dispatchMissionEvent } from "@/lib/events/mission-events";
 import type { AgentReceipt, MissionTask } from "@/lib/adapters/types";
 import type {
+  AgentMemoryEntry,
   ApprovalGate,
   ApprovalStatus,
+  ExecutionAudit,
   MissionMemoryEntry,
   ProjectMemoryEntry,
   ReceiptMemoryEntry
@@ -21,11 +23,14 @@ import type { DojoEvent, ShrineProject } from "@/lib/mock-dojo-events";
 import { mockDojoEvents } from "@/lib/mock-dojo-events";
 import {
   getApprovals,
+  getExecutionAudits,
   getMissions,
   getProjects,
   getReceipts,
   clearLocalMemory,
+  saveAgentMemory,
   saveApproval,
+  saveExecutionAudit,
   saveMission,
   saveProject,
   saveReceipt
@@ -57,6 +62,26 @@ type PluginTerminal = {
   mode: string;
   name: string;
   status: "mock" | "handoff-only" | "planned" | "connected-later";
+};
+
+type CodexExecutionResponse = AgentReceipt & {
+  audit?: ExecutionAudit;
+  executionPlan?: string[];
+};
+
+type OrchestratorStepResult = {
+  id: "build" | "judge" | "plan" | "review";
+  label: string;
+  receipt: AgentReceipt;
+  status: string;
+};
+
+type OrchestratorResult = {
+  missionId: string;
+  receipts: AgentReceipt[];
+  steps: OrchestratorStepResult[];
+  status: "blocked" | "complete" | "needs-review";
+  summary: string;
 };
 
 const pluginTerminals: PluginTerminal[] = [
@@ -180,12 +205,19 @@ export function Cockpit() {
   const [activeHandoff, setActiveHandoff] = useState<Handoff | undefined>();
   const [activeRun, setActiveRun] = useState<RunManifest | null>(null);
   const [activeStage, setActiveStage] = useState<RunManifestStage["id"] | null>(null);
+  const [claudeReceipt, setClaudeReceipt] = useState<AgentReceipt | null>(null);
+  const [claudeState, setClaudeState] = useState<"blocked" | "complete" | "failed" | "idle" | "running">("idle");
   const [completedStages, setCompletedStages] = useState<RunManifestStage["id"][]>([]);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const [dryRun, setDryRun] = useState(true);
   const [earnedProgress, setEarnedProgress] = useState(16);
   const [eternalHealth, setEternalHealth] = useState(94);
   const [executionReceipt, setExecutionReceipt] = useState<AgentReceipt | null>(null);
-  const [executionState, setExecutionState] = useState<"blocked" | "failed" | "idle" | "running" | "complete">("idle");
+  const [executionAudits, setExecutionAudits] = useState<ExecutionAudit[]>([]);
+  const [executionPlan, setExecutionPlan] = useState<string[]>([]);
+  const [executionState, setExecutionState] = useState<
+    "blocked" | "complete" | "dry-run" | "failed" | "idle" | "preview" | "running"
+  >("idle");
   const [helpOpen, setHelpOpen] = useState(false);
   const [latestLines, setLatestLines] = useState(initialLines);
   const [logs, setLogs] = useState(initialLogs);
@@ -194,6 +226,10 @@ export function Cockpit() {
   const [memoryApprovals, setMemoryApprovals] = useState<ApprovalGate[]>([]);
   const [memoryProjects, setMemoryProjects] = useState<ProjectMemoryEntry[]>([]);
   const [memoryReceipts, setMemoryReceipts] = useState<ReceiptMemoryEntry[]>([]);
+  const [orchestratorResult, setOrchestratorResult] = useState<OrchestratorResult | null>(null);
+  const [orchestratorState, setOrchestratorState] = useState<
+    "blocked" | "complete" | "failed" | "idle" | "needs-review" | "running"
+  >("idle");
   const [runHistory, setRunHistory] = useState<RunManifest[]>([]);
   const [scrollError, setScrollError] = useState("");
   const [scrollText, setScrollText] = useState("");
@@ -323,6 +359,7 @@ export function Cockpit() {
   useEffect(() => {
     const savedRuns = loadRunManifests();
     setMemoryApprovals(getApprovals());
+    setExecutionAudits(getExecutionAudits());
     setMemoryMissions(getMissions());
     setMemoryProjects(getProjects());
     setMemoryReceipts(getReceipts());
@@ -384,6 +421,13 @@ export function Cockpit() {
 
       const payload = (await response.json()) as { run: RunManifest };
       setActiveRun(payload.run);
+      setClaudeReceipt(null);
+      setClaudeState("idle");
+      setExecutionReceipt(null);
+      setExecutionPlan([]);
+      setExecutionState("idle");
+      setOrchestratorResult(null);
+      setOrchestratorState("idle");
       setRunHistory(saveRunManifest(payload.run));
       persistMissionMemory(payload.run, "active");
       dispatchMissionEvent("mission.started", {
@@ -715,11 +759,32 @@ export function Cockpit() {
     }
   }
 
+  function handlePreviewCodexExecution() {
+    if (!activeRun) {
+      const receipt = blockedCodexReceipt("no-active-run", "No active mission is available.");
+      setExecutionReceipt(receipt);
+      setExecutionPlan([]);
+      setExecutionState("blocked");
+      return;
+    }
+
+    const task = createCodexTask(activeRun);
+    const plan = createExecutionPlan(task, dryRun);
+    setExecutionPlan(plan);
+    setExecutionReceipt(null);
+    setExecutionState("preview");
+    appendAgentLog("miji", `Codex execution preview prepared for ${task.id}.`);
+  }
+
   async function handleRunCodexWorker() {
     if (!activeRun) {
       const receipt = blockedCodexReceipt("no-active-run", "No active mission is available.");
       setExecutionReceipt(receipt);
       setExecutionState("blocked");
+      return;
+    }
+    if (executionPlan.length === 0) {
+      handlePreviewCodexExecution();
       return;
     }
 
@@ -738,6 +803,8 @@ export function Cockpit() {
       const response = await fetch("/api/agents/codex/execute", {
         body: JSON.stringify({
           approval: activeApproval,
+          confirmed: true,
+          dryRun,
           mission: {
             ...activeRun,
             approval: activeApproval
@@ -747,11 +814,15 @@ export function Cockpit() {
         headers: { "Content-Type": "application/json" },
         method: "POST"
       });
-      const receipt = (await response.json()) as AgentReceipt;
+      const receipt = (await response.json()) as CodexExecutionResponse;
       setExecutionReceipt(receipt);
+      if (receipt.executionPlan?.length) setExecutionPlan(receipt.executionPlan);
+      if (receipt.audit) setExecutionAudits(saveExecutionAudit(receipt.audit));
       setExecutionState(
         receipt.status === "blocked"
           ? "blocked"
+          : receipt.status === "dry-run"
+            ? "dry-run"
           : receipt.status === "complete"
             ? "complete"
             : "failed"
@@ -767,11 +838,134 @@ export function Cockpit() {
     }
   }
 
+  async function handleRunClaudeReview() {
+    if (!activeRun) {
+      const receipt = blockedClaudeReceipt("no-active-run", "No active mission is available.");
+      setClaudeReceipt(receipt);
+      setClaudeState("blocked");
+      return;
+    }
+
+    setClaudeState("running");
+    setClaudeReceipt({
+      agent: "claude",
+      artifacts: [],
+      insights: [],
+      logs: ["Claude review request started."],
+      recommendations: [],
+      risks: [],
+      status: "running",
+      summary: "Waiting for gated Claude analysis.",
+      taskId: claudeTaskIdFor(activeRun),
+      type: "review"
+    });
+
+    const task = createClaudeTask(activeRun);
+    try {
+      const response = await fetch("/api/agents/claude/execute", {
+        body: JSON.stringify({
+          approval: activeApproval,
+          mission: {
+            ...activeRun,
+            approval: activeApproval
+          },
+          task
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      });
+      const receipt = (await response.json()) as AgentReceipt;
+      setClaudeReceipt(receipt);
+      setClaudeState(
+        receipt.status === "blocked"
+          ? "blocked"
+          : receipt.status === "complete"
+            ? "complete"
+            : "failed"
+      );
+      appendAgentLog("meji", `Claude ${receipt.type ?? "analysis"} ${receipt.status}: ${receipt.summary}`);
+    } catch (error) {
+      const summary =
+        error instanceof Error ? error.message : "Claude analysis request could not complete.";
+      const receipt = blockedClaudeReceipt(task.id, summary);
+      setClaudeReceipt(receipt);
+      setClaudeState("failed");
+      appendAgentLog("meji", `Claude analysis failed: ${summary}`);
+    }
+  }
+
+  async function handleRunMissionOrchestrator() {
+    if (!activeRun) {
+      setOrchestratorResult({
+        missionId: "no-active-run",
+        receipts: [],
+        status: "blocked",
+        steps: [],
+        summary: "No active mission is available."
+      });
+      setOrchestratorState("blocked");
+      return;
+    }
+
+    setOrchestratorState("running");
+    setOrchestratorResult({
+      missionId: missionIdFor(activeRun),
+      receipts: [],
+      status: "needs-review",
+      steps: [
+        {
+          id: "plan",
+          label: "Claude plan",
+          receipt: runningReceipt("claude", `orchestrator-plan-${activeRun.runId}`),
+          status: "running"
+        }
+      ],
+      summary: "Mission orchestration is running."
+    });
+
+    try {
+      const response = await fetch("/api/orchestrator/run", {
+        body: JSON.stringify({
+          approval: activeApproval,
+          dryRun,
+          mission: activeRun
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      });
+      if (!response.ok) throw new Error("Mission orchestration failed.");
+      const result = (await response.json()) as OrchestratorResult;
+      setOrchestratorResult(result);
+      setOrchestratorState(result.status);
+      for (const receipt of result.receipts) {
+        saveAgentReceipt(activeRun, receipt);
+      }
+      appendAgentLog("meowts", `Mission orchestration ${result.status}: ${result.summary}`);
+    } catch (error) {
+      const summary =
+        error instanceof Error ? error.message : "Mission orchestration could not complete.";
+      setOrchestratorResult({
+        missionId: missionIdFor(activeRun),
+        receipts: [],
+        status: "needs-review",
+        steps: [],
+        summary
+      });
+      setOrchestratorState("failed");
+      appendAgentLog("meowts", `Mission orchestration failed: ${summary}`);
+    }
+  }
+
   function handleResetRun() {
     resetTransientRunState();
     setActiveRun(null);
+    setClaudeReceipt(null);
+    setClaudeState("idle");
     setExecutionReceipt(null);
+    setExecutionPlan([]);
     setExecutionState("idle");
+    setOrchestratorResult(null);
+    setOrchestratorState("idle");
     setScrollError("");
     setCopyState("idle");
   }
@@ -787,11 +981,18 @@ export function Cockpit() {
     syncedMemoryRef.current.clear();
     setActiveRun(null);
     setActiveStage(null);
+    setClaudeReceipt(null);
+    setClaudeState("idle");
     setCompletedStages([]);
     setCopyState("idle");
+    setDryRun(true);
     setEarnedProgress(16);
+    setExecutionAudits([]);
     setExecutionReceipt(null);
+    setExecutionPlan([]);
     setExecutionState("idle");
+    setOrchestratorResult(null);
+    setOrchestratorState("idle");
     setLatestLines(initialLines);
     setLogs(initialLogs);
     setMemoryApprovals([]);
@@ -842,6 +1043,10 @@ export function Cockpit() {
     return `codex-${run.runId}`;
   }
 
+  function claudeTaskIdFor(run: RunManifest) {
+    return `claude-${run.runId}`;
+  }
+
   function createCodexTask(run: RunManifest): MissionTask {
     return {
       agent: "codex",
@@ -864,14 +1069,103 @@ export function Cockpit() {
     };
   }
 
+  function createClaudeTask(run: RunManifest): MissionTask {
+    return {
+      agent: "claude",
+      context: [
+        `Run: ${run.runId}`,
+        `Scroll: ${run.scrollText}`,
+        `Product: ${run.inferredName}`,
+        `Requirements: ${run.requirements.join("; ")}`,
+        `Judge: ${run.judgeResult.verdict} (${run.judgeResult.score}/100)`,
+        `Codex result: ${executionReceipt?.summary ?? "No Codex receipt yet."}`
+      ].join("\n"),
+      department: "auditor",
+      id: claudeTaskIdFor(run),
+      prompt: [
+        `Review the current Ninja Dojo mission for ${run.inferredName}.`,
+        "Analyze the run manifest, judge result, and any Codex output.",
+        "Return insights, risks, and recommendations only. Do not edit files or execute commands."
+      ].join("\n"),
+      runId: run.runId,
+      title: `Claude review for ${run.inferredName}`
+    };
+  }
+
+  function saveAgentReceipt(run: RunManifest, receipt: AgentReceipt) {
+    const entry: AgentMemoryEntry = {
+      agent: receipt.agent as AgentMemoryEntry["agent"],
+      artifacts: receipt.artifacts,
+      createdAt: new Date().toISOString(),
+      id: `${receipt.agent}-${receipt.taskId}`,
+      logs: receipt.logs,
+      missionId: missionIdFor(run),
+      status: receipt.status,
+      summary: receipt.summary
+    };
+    saveAgentMemory(entry);
+  }
+
+  function runningReceipt(agent: string, taskId: string): AgentReceipt {
+    return {
+      agent,
+      artifacts: [],
+      logs: ["Running."],
+      status: "running",
+      summary: "Running.",
+      taskId
+    };
+  }
+
+  function createExecutionPlan(task: MissionTask, isDryRun: boolean) {
+    const scopeHints = [
+      task.prompt.toLowerCase().includes("ui") || task.prompt.toLowerCase().includes("layout")
+        ? "frontend"
+        : undefined,
+      task.prompt.toLowerCase().includes("api") ? "api route" : undefined,
+      task.prompt.toLowerCase().includes("memory") ? "local memory" : undefined,
+      task.department
+    ].filter(Boolean);
+
+    return [
+      `Check CEO approval for ${task.id}.`,
+      isDryRun ? "Use dry-run mode; do not launch codex exec." : "Launch guarded codex exec after confirmation.",
+      `Scope task: ${task.title}.`,
+      `Expected focus: ${Array.from(new Set(scopeHints)).join(", ")}.`,
+      "Capture stdout, stderr, exit code, and changed files.",
+      "Return ExecutionAudit. No commit, push, deploy, or destructive command."
+    ];
+  }
+
   function blockedCodexReceipt(taskId: string, summary: string): AgentReceipt {
     return {
       agent: "codex",
       artifacts: [],
+      exitCode: null,
       logs: [summary],
+      stderr: "",
       status: "blocked",
+      stdout: "",
       summary,
       taskId
+    };
+  }
+
+  function blockedClaudeReceipt(taskId: string, summary: string): AgentReceipt {
+    return {
+      agent: "claude",
+      artifacts: [],
+      exitCode: null,
+      insights: [],
+      logs: [summary],
+      recommendations: [],
+      risks: [],
+      stderr: "",
+      status: "blocked",
+      stdout: "",
+      summary,
+      taskId,
+      type: "analysis"
     };
   }
 
@@ -1043,6 +1337,38 @@ export function Cockpit() {
               </button>
             </div>
           </section>
+          <section className="mission-flow-panel" data-status={orchestratorState}>
+            <span>Mission Flow</span>
+            <strong>
+              {orchestratorState === "idle"
+                ? approvalStatus === "approved"
+                  ? "ready"
+                  : "blocked"
+                : orchestratorState}
+            </strong>
+            <p>
+              {orchestratorResult
+                ? orchestratorResult.summary
+                : "Run Claude plan, gated Codex build, Claude review, and Meowts judge."}
+            </p>
+            {orchestratorResult?.steps.length ? (
+              <ol>
+                {orchestratorResult.steps.map((step) => (
+                  <li key={step.id}>
+                    <b>{step.label}</b>
+                    <span>{step.status}</span>
+                  </li>
+                ))}
+              </ol>
+            ) : null}
+            <button
+              disabled={!activeRun || orchestratorState === "running"}
+              onClick={handleRunMissionOrchestrator}
+              type="button"
+            >
+              {orchestratorState === "running" ? "Running Mission" : "Run Mission"}
+            </button>
+          </section>
           <section className="codex-worker-panel" data-status={executionState}>
             <span>Codex Worker</span>
             <strong>
@@ -1055,19 +1381,115 @@ export function Cockpit() {
             <p>
               {executionReceipt
                 ? executionReceipt.summary
+                : executionState === "preview"
+                  ? "Review the execution plan, then confirm."
                 : approvalStatus === "approved"
-                  ? "Approved mission can run one manual Codex worker pass."
+                  ? "Preview required before execution."
                   : "CEO approval is required before Codex can run."}
             </p>
+            <label className="codex-worker-panel__toggle">
+              <input
+                checked={dryRun}
+                disabled={executionState === "running"}
+                onChange={(event) => {
+                  setDryRun(event.target.checked);
+                  setExecutionPlan([]);
+                  if (executionState === "preview") setExecutionState("idle");
+                }}
+                type="checkbox"
+              />
+              Dry run
+            </label>
+            {executionPlan.length ? (
+              <ol>
+                {executionPlan.slice(0, 4).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ol>
+            ) : null}
             {executionReceipt?.logs.length ? (
               <small>{executionReceipt.logs.slice(-1)[0]}</small>
             ) : null}
+            {executionAudits[0] ? (
+              <small>
+                Last audit: {executionAudits[0].status} · exit{" "}
+                {executionAudits[0].exitCode ?? "n/a"} ·{" "}
+                {executionAudits[0].filesChanged.length} files
+              </small>
+            ) : null}
+            <div className="codex-worker-panel__actions">
+              <button
+                disabled={!activeRun || executionState === "running"}
+                onClick={handlePreviewCodexExecution}
+                type="button"
+              >
+                Preview
+              </button>
+              <button
+                disabled={!activeRun || executionState === "running" || executionPlan.length === 0}
+                onClick={handleRunCodexWorker}
+                type="button"
+              >
+                {executionState === "running"
+                  ? "Running"
+                  : dryRun
+                    ? "Confirm Dry Run"
+                    : "Confirm Execute"}
+              </button>
+            </div>
+          </section>
+          <section className="claude-worker-panel" data-status={claudeState}>
+            <span>Claude Review</span>
+            <strong>
+              {claudeState === "idle"
+                ? approvalStatus === "approved"
+                  ? "ready"
+                  : "blocked"
+                : claudeState}
+            </strong>
+            <p>
+              {claudeReceipt
+                ? claudeReceipt.summary
+                : approvalStatus === "approved"
+                  ? "Run gated analysis or review. Claude does not edit files."
+                  : "CEO approval is required before Claude can analyze."}
+            </p>
+            {claudeReceipt?.insights?.length ? (
+              <div className="claude-worker-panel__grid">
+                <span>Insights</span>
+                <ul>
+                  {claudeReceipt.insights.slice(0, 2).map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {claudeReceipt?.risks?.length ? (
+              <div className="claude-worker-panel__grid">
+                <span>Risks</span>
+                <ul>
+                  {claudeReceipt.risks.slice(0, 2).map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {claudeReceipt?.recommendations?.length ? (
+              <div className="claude-worker-panel__grid">
+                <span>Recommendations</span>
+                <ul>
+                  {claudeReceipt.recommendations.slice(0, 2).map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             <button
-              disabled={!activeRun || executionState === "running"}
-              onClick={handleRunCodexWorker}
+              disabled={!activeRun || claudeState === "running"}
+              onClick={handleRunClaudeReview}
               type="button"
             >
-              {executionState === "running" ? "Running Codex" : "Run Codex Worker"}
+              {claudeState === "running" ? "Reviewing" : "Run Claude Review"}
             </button>
           </section>
           <div className="receipt-rail__actions">
@@ -1126,6 +1548,13 @@ export function Cockpit() {
                 onClick={() => {
                   resetTransientRunState();
                   setActiveRun(run);
+                  setClaudeReceipt(null);
+                  setClaudeState("idle");
+                  setExecutionReceipt(null);
+                  setExecutionPlan([]);
+                  setExecutionState("idle");
+                  setOrchestratorResult(null);
+                  setOrchestratorState("idle");
                   setScrollText(run.scrollText);
                   setActiveStage(run.status === "shipped" ? "moonrise" : null);
                   setCompletedStages(run.status === "shipped" ? stageOrder : []);

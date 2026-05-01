@@ -8594,6 +8594,7 @@ textarea {
   display: grid;
   align-content: start;
   gap: 10px;
+  overflow: auto;
   padding: 10px;
 }
 
@@ -8668,6 +8669,74 @@ textarea {
   opacity: 0.42;
 }
 
+.mission-flow-panel {
+  border-color: rgba(232, 198, 106, 0.2);
+}
+
+.mission-flow-panel[data-status="blocked"],
+.mission-flow-panel[data-status="failed"] {
+  border-color: rgba(239, 52, 52, 0.24);
+}
+
+.mission-flow-panel[data-status="complete"] {
+  border-color: rgba(120, 240, 212, 0.34);
+}
+
+.mission-flow-panel strong {
+  font-size: 20px;
+  text-transform: capitalize;
+}
+
+.mission-flow-panel ol {
+  display: grid;
+  gap: 5px;
+  margin: 9px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mission-flow-panel li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid rgba(232, 198, 106, 0.12);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  padding: 6px 8px;
+}
+
+.mission-flow-panel li b,
+.mission-flow-panel li span {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mission-flow-panel li span {
+  color: var(--cockpit-teal);
+}
+
+.mission-flow-panel button {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid rgba(232, 198, 106, 0.34);
+  border-radius: 10px;
+  background: rgba(232, 198, 106, 0.1);
+  padding: 9px 10px;
+  color: var(--cockpit-gold);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mission-flow-panel button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
 .codex-worker-panel {
   border-color: rgba(120, 240, 212, 0.18);
 }
@@ -8679,6 +8748,11 @@ textarea {
 
 .codex-worker-panel[data-status="complete"] {
   border-color: rgba(120, 240, 212, 0.38);
+}
+
+.codex-worker-panel[data-status="dry-run"],
+.codex-worker-panel[data-status="preview"] {
+  border-color: rgba(232, 198, 106, 0.34);
 }
 
 .codex-worker-panel strong {
@@ -8697,9 +8771,41 @@ textarea {
   white-space: nowrap;
 }
 
+.codex-worker-panel__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  color: rgba(244, 232, 193, 0.74);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.codex-worker-panel__toggle input {
+  accent-color: var(--cockpit-teal);
+}
+
+.codex-worker-panel ol {
+  display: grid;
+  gap: 4px;
+  margin: 9px 0 0;
+  padding-left: 18px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.codex-worker-panel__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
 .codex-worker-panel button {
   width: 100%;
-  margin-top: 10px;
   border: 1px solid rgba(120, 240, 212, 0.34);
   border-radius: 10px;
   background: rgba(120, 240, 212, 0.12);
@@ -8712,6 +8818,67 @@ textarea {
 }
 
 .codex-worker-panel button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.claude-worker-panel {
+  border-color: rgba(232, 198, 106, 0.18);
+}
+
+.claude-worker-panel[data-status="blocked"],
+.claude-worker-panel[data-status="failed"] {
+  border-color: rgba(239, 52, 52, 0.24);
+}
+
+.claude-worker-panel[data-status="complete"] {
+  border-color: rgba(120, 240, 212, 0.34);
+}
+
+.claude-worker-panel strong {
+  font-size: 20px;
+  text-transform: capitalize;
+}
+
+.claude-worker-panel__grid {
+  display: grid;
+  gap: 5px;
+  margin-top: 9px;
+}
+
+.claude-worker-panel__grid span {
+  color: var(--cockpit-gold);
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.claude-worker-panel__grid ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.claude-worker-panel button {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid rgba(232, 198, 106, 0.34);
+  border-radius: 10px;
+  background: rgba(232, 198, 106, 0.1);
+  padding: 9px 10px;
+  color: var(--cockpit-gold);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.claude-worker-panel button:disabled {
   cursor: not-allowed;
   opacity: 0.42;
 }

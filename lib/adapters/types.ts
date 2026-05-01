@@ -15,6 +15,13 @@ export type AgentReceipt = {
   logs: string[];
   artifacts: string[];
   summary: string;
+  exitCode?: number | null;
+  insights?: string[];
+  recommendations?: string[];
+  risks?: string[];
+  stderr?: string;
+  stdout?: string;
+  type?: "analysis" | "plan" | "review";
 };
 
 export interface AgentAdapter {

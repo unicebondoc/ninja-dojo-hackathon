@@ -1,11 +1,15 @@
 import type {
+  AgentMemoryEntry,
   ApprovalGate,
+  ExecutionAudit,
   MissionMemoryEntry,
   ProjectMemoryEntry,
   ReceiptMemoryEntry
 } from "@/lib/memory/types";
 
 const APPROVALS_KEY = "ninja-dojo-memory-approvals";
+const AGENT_MEMORY_KEY = "ninja-dojo-memory-agent-receipts";
+const EXECUTION_AUDITS_KEY = "ninja-dojo-memory-execution-audits";
 const PROJECTS_KEY = "ninja-dojo-memory-projects";
 const MISSIONS_KEY = "ninja-dojo-memory-missions";
 const RECEIPTS_KEY = "ninja-dojo-memory-receipts";
@@ -39,6 +43,18 @@ export function saveApproval(approval: ApprovalGate) {
   return approvals;
 }
 
+export function saveAgentMemory(entry: AgentMemoryEntry) {
+  const entries = upsert(getAgentMemory(), entry);
+  write(AGENT_MEMORY_KEY, entries);
+  return entries;
+}
+
+export function saveExecutionAudit(audit: ExecutionAudit) {
+  const audits = upsert(getExecutionAudits(), audit);
+  write(EXECUTION_AUDITS_KEY, audits);
+  return audits;
+}
+
 export function getProjects(): ProjectMemoryEntry[] {
   return read<ProjectMemoryEntry>(PROJECTS_KEY, isProject);
 }
@@ -55,9 +71,25 @@ export function getApprovals(): ApprovalGate[] {
   return read<ApprovalGate>(APPROVALS_KEY, isApproval);
 }
 
+export function getAgentMemory(): AgentMemoryEntry[] {
+  return read<AgentMemoryEntry>(AGENT_MEMORY_KEY, isAgentMemory);
+}
+
+export function getExecutionAudits(): ExecutionAudit[] {
+  return read<ExecutionAudit>(EXECUTION_AUDITS_KEY, isExecutionAudit);
+}
+
 export function clearLocalMemory() {
   if (typeof window === "undefined") return;
-  [APPROVALS_KEY, PROJECTS_KEY, MISSIONS_KEY, RECEIPTS_KEY, RUNS_KEY].forEach((key) => {
+  [
+    APPROVALS_KEY,
+    AGENT_MEMORY_KEY,
+    EXECUTION_AUDITS_KEY,
+    PROJECTS_KEY,
+    MISSIONS_KEY,
+    RECEIPTS_KEY,
+    RUNS_KEY
+  ].forEach((key) => {
     window.localStorage.removeItem(key);
   });
 }
@@ -129,6 +161,32 @@ function isApproval(value: unknown): value is ApprovalGate {
       approval.missionId &&
       approval.requestedAt &&
       ["approved", "pending", "rejected"].includes(approval.status ?? "")
+  );
+}
+
+function isAgentMemory(value: unknown): value is AgentMemoryEntry {
+  const entry = value as Partial<AgentMemoryEntry>;
+  return Boolean(
+    entry?.id &&
+      entry.agent &&
+      entry.createdAt &&
+      entry.status &&
+      Array.isArray(entry.artifacts) &&
+      Array.isArray(entry.logs)
+  );
+}
+
+function isExecutionAudit(value: unknown): value is ExecutionAudit {
+  const audit = value as Partial<ExecutionAudit>;
+  return Boolean(
+    audit?.id &&
+      audit.missionId &&
+      audit.startedAt &&
+      audit.status &&
+      audit.task &&
+      typeof audit.stdout === "string" &&
+      typeof audit.stderr === "string" &&
+      Array.isArray(audit.filesChanged)
   );
 }
 

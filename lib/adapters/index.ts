@@ -49,21 +49,37 @@ function createCodexAdapter(): AgentAdapter {
           timeout: CODEX_TIMEOUT_MS
         });
         const output = [stdout.trim(), stderr.trim()].filter(Boolean).join("\n\n");
+        const filesChanged = await getChangedFiles();
         return {
           agent: "codex",
-          artifacts: extractArtifactLines(output),
+          artifacts: uniqueStrings([...extractArtifactLines(output), ...filesChanged]),
+          exitCode: 0,
           logs: [...logs, ...splitOutput(output)],
+          stderr,
           status: "complete",
+          stdout,
           summary: summarizeOutput(output),
           taskId: task.id
         };
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Codex execution failed.";
+        const failed = error as Partial<Error> & {
+          code?: number | string;
+          stderr?: string;
+          stdout?: string;
+        };
+        const stdout = failed.stdout ?? "";
+        const stderr = failed.stderr ?? "";
+        const output = [stdout.trim(), stderr.trim()].filter(Boolean).join("\n\n");
+        const message = failed.message ?? "Codex execution failed.";
+        const filesChanged = await getChangedFiles();
         return {
           agent: "codex",
-          artifacts: [],
-          logs: [...logs, message],
+          artifacts: uniqueStrings([...extractArtifactLines(output), ...filesChanged]),
+          exitCode: typeof failed.code === "number" ? failed.code : 1,
+          logs: [...logs, ...splitOutput(output), message],
+          stderr,
           status: "failed",
+          stdout,
           summary: message,
           taskId: task.id
         };
@@ -95,11 +111,7 @@ function createPlaceholderAdapter(
 
 export const codexAdapter = createCodexAdapter();
 
-export const claudeAdapter = createPlaceholderAdapter("claude", ["auditor", "researcher"], [
-  "review",
-  "critique",
-  "analyze"
-]);
+export const claudeAdapter = createClaudeAdapter();
 
 export const notionAdapter = createPlaceholderAdapter("notion", ["scribe", "strategist"], [
   "memory",
@@ -154,6 +166,99 @@ function createCodexPrompt(task: MissionTask) {
     .join("\n");
 }
 
+function createClaudeAdapter(): AgentAdapter {
+  return {
+    canHandle(task) {
+      const prompt = `${task.title} ${task.prompt}`.toLowerCase();
+      return (
+        ["auditor", "researcher", "strategist"].includes(task.department) ||
+        ["analyze", "debug", "plan", "review", "risk", "critique"].some((term) =>
+          prompt.includes(term)
+        )
+      );
+    },
+    async execute(task) {
+      const kind = claudeTypeFor(task);
+      const insights = claudeInsights(task, kind);
+      const risks = claudeRisks(task);
+      const recommendations = claudeRecommendations(task, kind);
+      return {
+        agent: "claude",
+        artifacts: [],
+        exitCode: null,
+        insights,
+        logs: [
+          `claude adapter received approved ${kind} task ${task.id}.`,
+          "No shell commands were run.",
+          "No files were edited.",
+          "Structured review returned from local analysis layer."
+        ],
+        recommendations,
+        risks,
+        status: "complete",
+        stderr: "",
+        stdout: "",
+        summary: `${kindLabel(kind)} complete: ${recommendations[0]}`,
+        taskId: task.id,
+        type: kind
+      };
+    },
+    id: "claude"
+  };
+}
+
+function claudeTypeFor(task: MissionTask): "analysis" | "plan" | "review" {
+  const text = `${task.title} ${task.prompt}`.toLowerCase();
+  if (text.includes("plan") || task.department === "strategist") return "plan";
+  if (text.includes("review") || text.includes("audit") || task.department === "auditor") {
+    return "review";
+  }
+  return "analysis";
+}
+
+function claudeInsights(task: MissionTask, kind: "analysis" | "plan" | "review") {
+  const contextHint = task.context ? "Run context is available for comparison." : "No run context was supplied.";
+  return [
+    `${kindLabel(kind)} scope is ${task.department}: ${task.title}.`,
+    contextHint,
+    task.prompt.length > 240
+      ? "Task prompt is detailed enough to derive concrete checks."
+      : "Task prompt is short; output should be treated as a first-pass review."
+  ];
+}
+
+function claudeRisks(task: MissionTask) {
+  const text = `${task.title} ${task.prompt}`.toLowerCase();
+  return [
+    text.includes("deploy")
+      ? "Deployment claims need separate verification before release."
+      : "No deployment action should be inferred from this review.",
+    text.includes("api") || text.includes("backend")
+      ? "Backend behavior needs route-level validation and error handling checks."
+      : "Main risk is product clarity rather than backend correctness.",
+    "Approval only authorizes analysis here; it does not authorize file edits."
+  ];
+}
+
+function claudeRecommendations(task: MissionTask, kind: "analysis" | "plan" | "review") {
+  const text = `${task.title} ${task.prompt}`.toLowerCase();
+  return [
+    kind === "plan"
+      ? "Convert the scroll into small, testable implementation steps."
+      : "Compare the output against the original scroll and acceptance criteria.",
+    text.includes("codex")
+      ? "Use this review to scope the next Codex worker task, not to replace execution."
+      : "Keep this as a decision note before assigning implementation work.",
+    "Capture the result in the Moonrise Receipt before any future execution."
+  ];
+}
+
+function kindLabel(kind: "analysis" | "plan" | "review") {
+  if (kind === "plan") return "Plan";
+  if (kind === "review") return "Review";
+  return "Analysis";
+}
+
 function splitOutput(output: string) {
   if (!output.trim()) return ["Codex completed without terminal output."];
   return output
@@ -174,4 +279,25 @@ function extractArtifactLines(output: string) {
     .map((line) => line.trim())
     .filter((line) => /^(changed|created|updated|wrote|file|artifact|path):/i.test(line))
     .slice(0, 20);
+}
+
+async function getChangedFiles() {
+  try {
+    const { stdout } = await execFileAsync("git", ["diff", "--name-only"], {
+      cwd: process.cwd(),
+      maxBuffer: 1024 * 256,
+      timeout: 5000
+    });
+    return stdout
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .slice(0, 80);
+  } catch {
+    return [];
+  }
+}
+
+function uniqueStrings(values: string[]) {
+  return Array.from(new Set(values.filter(Boolean)));
 }

@@ -1,4 +1,5 @@
 import type { AgentId } from "@/lib/agent-registry";
+import type { MissionTask } from "@/lib/adapters/types";
 import type { RunManifestStatus } from "@/lib/runs/types";
 
 export type MemoryStatus = "active" | "archived" | "blocked" | "idle" | "shipped";
@@ -13,6 +14,22 @@ export type ApprovalGate = {
   notes?: string;
   requestedAt: string;
   status: ApprovalStatus;
+};
+
+export type ExecutionAuditStatus = "blocked" | "complete" | "dry-run" | "failed";
+
+export type ExecutionAudit = {
+  approved: boolean;
+  completedAt?: string;
+  exitCode: number | null;
+  filesChanged: string[];
+  id: string;
+  missionId: string;
+  startedAt: string;
+  status: ExecutionAuditStatus;
+  stderr: string;
+  stdout: string;
+  task: MissionTask;
 };
 
 export type ProjectMemoryEntry = {
