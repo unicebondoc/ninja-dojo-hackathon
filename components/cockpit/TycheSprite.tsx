@@ -1,12 +1,8 @@
 "use client";
 
 export function TycheSprite() {
-  return (
-    <div className="tyche-sprite" aria-label="Tyche is wandering the courtyard">
-      <span className="tyche-sprite__shadow" />
-      <span className="tyche-sprite__cat">
-        <i />
-      </span>
-    </div>
-  );
+  // TODO(PR 2 asset pass): restore Tyche with generated sprite assets from
+  // public/assets/dojo/tyche/. The CSS placeholder was intentionally removed
+  // because it degraded the cockpit visual quality.
+  return null;
 }
