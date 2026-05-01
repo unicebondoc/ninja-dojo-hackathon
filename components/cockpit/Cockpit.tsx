@@ -198,6 +198,7 @@ const stageOrder: RunManifestStage["id"][] = [
 ];
 
 export function Cockpit() {
+  const missionFlowTimersRef = useRef<number[]>([]);
   const requestedApprovalsRef = useRef(new Set<string>());
   const savedReceiptsRef = useRef(new Set<string>());
   const syncedMemoryRef = useRef(new Set<string>());
@@ -227,6 +228,9 @@ export function Cockpit() {
   const [memoryProjects, setMemoryProjects] = useState<ProjectMemoryEntry[]>([]);
   const [memoryReceipts, setMemoryReceipts] = useState<ReceiptMemoryEntry[]>([]);
   const [orchestratorResult, setOrchestratorResult] = useState<OrchestratorResult | null>(null);
+  const [orchestratorMapStage, setOrchestratorMapStage] = useState<
+    RunManifestStage["id"] | null
+  >(null);
   const [orchestratorState, setOrchestratorState] = useState<
     "blocked" | "complete" | "failed" | "idle" | "needs-review" | "running"
   >("idle");
@@ -344,17 +348,24 @@ export function Cockpit() {
     timersRef.current = [];
   }, []);
 
+  const clearMissionFlowTimers = useCallback(() => {
+    missionFlowTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    missionFlowTimersRef.current = [];
+  }, []);
+
   const resetTransientRunState = useCallback(() => {
     clearPlaybackTimers();
+    clearMissionFlowTimers();
     setActiveHandoff(undefined);
     setActiveStage(null);
     setCompletedStages([]);
     setEarnedProgress(16);
     setLatestLines(initialLines);
     setLogs(initialLogs);
+    setOrchestratorMapStage(null);
     setPlaybackState("idle");
     setStatuses(initialStatuses);
-  }, [clearPlaybackTimers]);
+  }, [clearMissionFlowTimers, clearPlaybackTimers]);
 
   useEffect(() => {
     const savedRuns = loadRunManifests();
@@ -385,9 +396,10 @@ export function Cockpit() {
     return () => {
       unsubscribe();
       mockDojoEvents.stop();
+      clearMissionFlowTimers();
       clearPlaybackTimers();
     };
-  }, [applyEvent, clearPlaybackTimers]);
+  }, [applyEvent, clearMissionFlowTimers, clearPlaybackTimers]);
 
   const missionState = useMemo(() => {
     if (playbackState === "complete") return "receipt ready";
@@ -907,6 +919,7 @@ export function Cockpit() {
       return;
     }
 
+    startOrchestratorMapSequence(activeRun);
     setOrchestratorState("running");
     setOrchestratorResult({
       missionId: missionIdFor(activeRun),
@@ -937,6 +950,7 @@ export function Cockpit() {
       const result = (await response.json()) as OrchestratorResult;
       setOrchestratorResult(result);
       setOrchestratorState(result.status);
+      applyOrchestratorMapOutcome(result);
       for (const receipt of result.receipts) {
         saveAgentReceipt(activeRun, receipt);
       }
@@ -952,7 +966,115 @@ export function Cockpit() {
         summary
       });
       setOrchestratorState("failed");
+      setStatuses((current) => ({ ...current, miji: "stuck" }));
       appendAgentLog("meowts", `Mission orchestration failed: ${summary}`);
+    }
+  }
+
+  function startOrchestratorMapSequence(run: RunManifest) {
+    clearMissionFlowTimers();
+    const sequence: Array<{
+      agent: AgentId;
+      at: number;
+      line: string;
+      stage: RunManifestStage["id"];
+    }> = [
+      {
+        agent: "moji",
+        at: 0,
+        line: "Moji moves to Strategy to shape the mission plan.",
+        stage: "plan"
+      },
+      {
+        agent: "miji",
+        at: 900,
+        line: "Miji moves to Build for the gated handoff.",
+        stage: "build"
+      },
+      {
+        agent: "meji",
+        at: 1800,
+        line: "Meji returns to Strategy for the review pass.",
+        stage: "review"
+      },
+      {
+        agent: "meowts",
+        at: 2700,
+        line: "Meowts takes the center for final judgment.",
+        stage: "judge"
+      }
+    ];
+
+    sequence.forEach((step, index) => {
+      const startTimer = window.setTimeout(() => {
+        const completedBefore = sequence.slice(0, index).map((item) => item.stage);
+        setOrchestratorMapStage(step.stage);
+        setActiveStage(step.stage);
+        setCompletedStages((current) => uniqueStages([...current, ...completedBefore]));
+        setStatuses((current) => {
+          const next = { ...current };
+          sequence.slice(0, index).forEach((item) => {
+            next[item.agent] = "complete";
+          });
+          next[step.agent] = "working";
+          return next;
+        });
+        appendAgentLog(step.agent, step.line);
+        dispatchMissionEvent("mission.stage_changed", {
+          missionName: run.inferredName,
+          runId: run.runId,
+          stage: step.stage,
+          status: "working",
+          summary: step.line
+        });
+      }, step.at);
+
+      const completeTimer = window.setTimeout(() => {
+        setCompletedStages((current) => uniqueStages([...current, step.stage]));
+        setStatuses((current) => ({ ...current, [step.agent]: "complete" }));
+      }, step.at + 720);
+
+      missionFlowTimersRef.current.push(startTimer, completeTimer);
+    });
+  }
+
+  function applyOrchestratorMapOutcome(result: OrchestratorResult) {
+    const stageByStep: Record<OrchestratorStepResult["id"], RunManifestStage["id"]> = {
+      build: "build",
+      judge: "judge",
+      plan: "plan",
+      review: "review"
+    };
+    const agentByStep: Record<OrchestratorStepResult["id"], AgentId> = {
+      build: "miji",
+      judge: "meowts",
+      plan: "moji",
+      review: "meji"
+    };
+    const completed = result.steps
+      .filter((step) => step.status === "complete")
+      .map((step) => stageByStep[step.id]);
+    const blocked = result.steps.find((step) => step.status === "blocked" || step.status === "failed");
+
+    setCompletedStages((current) => uniqueStages([...current, ...completed]));
+    setStatuses((current) => {
+      const next = { ...current };
+      result.steps.forEach((step) => {
+        next[agentByStep[step.id]] =
+          step.status === "blocked" || step.status === "failed" ? "stuck" : "complete";
+      });
+      return next;
+    });
+
+    if (blocked) {
+      setOrchestratorMapStage(stageByStep[blocked.id]);
+      setActiveStage(stageByStep[blocked.id]);
+      return;
+    }
+
+    if (result.status === "complete") {
+      setOrchestratorMapStage("judge");
+      setActiveStage("judge");
     }
   }
 
@@ -965,6 +1087,7 @@ export function Cockpit() {
     setExecutionPlan([]);
     setExecutionState("idle");
     setOrchestratorResult(null);
+    setOrchestratorMapStage(null);
     setOrchestratorState("idle");
     setScrollError("");
     setCopyState("idle");
@@ -975,6 +1098,7 @@ export function Cockpit() {
     const confirmed = window.confirm("Clear local Ninja Dojo runs and memory?");
     if (!confirmed) return;
     clearPlaybackTimers();
+    clearMissionFlowTimers();
     clearLocalMemory();
     requestedApprovalsRef.current.clear();
     savedReceiptsRef.current.clear();
@@ -992,6 +1116,7 @@ export function Cockpit() {
     setExecutionPlan([]);
     setExecutionState("idle");
     setOrchestratorResult(null);
+    setOrchestratorMapStage(null);
     setOrchestratorState("idle");
     setLatestLines(initialLines);
     setLogs(initialLogs);
@@ -1277,6 +1402,7 @@ export function Cockpit() {
             completedStages={completedStages}
             latestLines={latestLines}
             onOpenAgent={setSelectedAgent}
+            orchestratorStage={orchestratorMapStage}
             statuses={statuses}
           />
         </section>
