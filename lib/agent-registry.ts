@@ -1,4 +1,4 @@
-export type AgentStatus = "idle" | "working" | "waiting" | "stuck";
+export type AgentStatus = "complete" | "idle" | "working" | "waiting" | "stuck";
 
 export type AgentId = "moji" | "miji" | "maji" | "meji" | "muji" | "meowts";
 

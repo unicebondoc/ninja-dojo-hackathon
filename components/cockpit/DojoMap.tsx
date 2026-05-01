@@ -4,18 +4,33 @@ import { AgentRoom } from "@/components/cockpit/AgentRoom";
 import { TycheSprite } from "@/components/cockpit/TycheSprite";
 import type { AgentId, AgentStatus } from "@/lib/agent-registry";
 import { agentRegistry } from "@/lib/agent-registry";
+import type { RunManifestStage } from "@/lib/runs/types";
 
 type DojoMapProps = {
   activeHandoff?: { from: AgentId; to: AgentId };
+  activeStage: RunManifestStage["id"] | null;
+  completedStages: RunManifestStage["id"][];
   latestLines: Record<AgentId, string>;
   onOpenAgent: (id: AgentId) => void;
   statuses: Record<AgentId, AgentStatus>;
 };
 
 const roomOrder: AgentId[] = ["moji", "miji", "maji", "meji", "muji", "meowts"];
+const stages: Array<[string, RunManifestStage["id"], string]> = [
+  ["01", "scroll", "Scroll"],
+  ["02", "plan", "Plan"],
+  ["03", "build", "Build"],
+  ["04", "attack", "Attack"],
+  ["05", "review", "Review"],
+  ["06", "deploy", "Deploy"],
+  ["07", "judge", "Judge"],
+  ["08", "moonrise", "Receipt"]
+];
 
 export function DojoMap({
   activeHandoff,
+  activeStage,
+  completedStages,
   latestLines,
   onOpenAgent,
   statuses
@@ -23,17 +38,12 @@ export function DojoMap({
   return (
     <section className="dojo-map" aria-label="Isometric dojo mission map">
       <div className="dojo-map__rail" aria-label="Mission stage rail">
-        {[
-          ["01", "Scroll"],
-          ["02", "Plan"],
-          ["03", "Build"],
-          ["04", "Attack"],
-          ["05", "Review"],
-          ["06", "Deploy"],
-          ["07", "Judge"],
-          ["08", "Receipt"]
-        ].map(([num, label], index) => (
-          <span data-active={index < 3} key={label}>
+        {stages.map(([num, id, label]) => (
+          <span
+            data-active={activeStage === id}
+            data-complete={completedStages.includes(id)}
+            key={id}
+          >
             <i>{num}</i>
             {label}
           </span>

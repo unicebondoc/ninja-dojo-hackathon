@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChatPane } from "@/components/cockpit/ChatPane";
 import { DojoMap } from "@/components/cockpit/DojoMap";
 import { MoonGauge } from "@/components/cockpit/MoonGauge";
@@ -8,8 +8,32 @@ import { ScrollFeed } from "@/components/cockpit/ScrollFeed";
 import { ShrineBar } from "@/components/cockpit/ShrineBar";
 import type { AgentId, AgentStatus } from "@/lib/agent-registry";
 import { agentById, agentRegistry } from "@/lib/agent-registry";
+import { dispatchMissionEvent } from "@/lib/events/mission-events";
+import type { AgentReceipt, MissionTask } from "@/lib/adapters/types";
+import type {
+  ApprovalGate,
+  ApprovalStatus,
+  MissionMemoryEntry,
+  ProjectMemoryEntry,
+  ReceiptMemoryEntry
+} from "@/lib/memory/types";
 import type { DojoEvent, ShrineProject } from "@/lib/mock-dojo-events";
 import { mockDojoEvents } from "@/lib/mock-dojo-events";
+import {
+  getApprovals,
+  getMissions,
+  getProjects,
+  getReceipts,
+  clearLocalMemory,
+  saveApproval,
+  saveMission,
+  saveProject,
+  saveReceipt
+} from "@/lib/memory/storage";
+import { formatRunBrief } from "@/lib/runs/formatRunBrief";
+import { createPlaybackEvents, type PlaybackEvent, type PlaybackState } from "@/lib/runs/playback";
+import { loadRunManifests, saveRunManifest } from "@/lib/runs/runStorage";
+import type { RunManifest, RunManifestStage } from "@/lib/runs/types";
 
 type ScrollItem = {
   id: string;
@@ -137,17 +161,46 @@ const initialShrines = {
   subtitle: string;
 }>;
 
+const stageOrder: RunManifestStage["id"][] = [
+  "scroll",
+  "plan",
+  "build",
+  "attack",
+  "review",
+  "deploy",
+  "judge",
+  "moonrise"
+];
+
 export function Cockpit() {
+  const requestedApprovalsRef = useRef(new Set<string>());
+  const savedReceiptsRef = useRef(new Set<string>());
+  const syncedMemoryRef = useRef(new Set<string>());
+  const timersRef = useRef<number[]>([]);
   const [activeHandoff, setActiveHandoff] = useState<Handoff | undefined>();
-  const [earnedProgress, setEarnedProgress] = useState(73);
+  const [activeRun, setActiveRun] = useState<RunManifest | null>(null);
+  const [activeStage, setActiveStage] = useState<RunManifestStage["id"] | null>(null);
+  const [completedStages, setCompletedStages] = useState<RunManifestStage["id"][]>([]);
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const [earnedProgress, setEarnedProgress] = useState(16);
   const [eternalHealth, setEternalHealth] = useState(94);
+  const [executionReceipt, setExecutionReceipt] = useState<AgentReceipt | null>(null);
+  const [executionState, setExecutionState] = useState<"blocked" | "failed" | "idle" | "running" | "complete">("idle");
   const [helpOpen, setHelpOpen] = useState(false);
   const [latestLines, setLatestLines] = useState(initialLines);
   const [logs, setLogs] = useState(initialLogs);
+  const [playbackState, setPlaybackState] = useState<PlaybackState>("idle");
+  const [memoryMissions, setMemoryMissions] = useState<MissionMemoryEntry[]>([]);
+  const [memoryApprovals, setMemoryApprovals] = useState<ApprovalGate[]>([]);
+  const [memoryProjects, setMemoryProjects] = useState<ProjectMemoryEntry[]>([]);
+  const [memoryReceipts, setMemoryReceipts] = useState<ReceiptMemoryEntry[]>([]);
+  const [runHistory, setRunHistory] = useState<RunManifest[]>([]);
+  const [scrollError, setScrollError] = useState("");
+  const [scrollText, setScrollText] = useState("");
   const [scrolls, setScrolls] = useState<ScrollItem[]>([
     {
       id: "initial-scroll",
-      preview: "Mission control online. Mock telemetry is cycling locally.",
+      preview: "Mission control online. Submit a scroll to create a local Run Manifest.",
       source: "butler-checkin",
       ts: Date.now()
     }
@@ -155,7 +208,7 @@ export function Cockpit() {
   const [selectedAgent, setSelectedAgent] = useState<AgentId | null>(null);
   const [selectedPlugin, setSelectedPlugin] = useState<PluginTerminal | null>(null);
   const [shrines, setShrines] = useState(initialShrines);
-  const [sprintLabel, setSprintLabel] = useState("Sprint 2");
+  const [sprintLabel, setSprintLabel] = useState("Local run");
   const [statuses, setStatuses] = useState(initialStatuses);
 
   const selected = selectedAgent ? agentById[selectedAgent] : null;
@@ -163,6 +216,15 @@ export function Cockpit() {
   const latestScroll = scrolls[0];
   const stuckCount = Object.values(statuses).filter((status) => status === "stuck").length;
   const workingCount = Object.values(statuses).filter((status) => status === "working").length;
+  const receiptReady = activeRun?.status === "shipped" || playbackState === "complete";
+  const activeMissionId = activeRun ? missionIdFor(activeRun) : undefined;
+  const activeApproval = activeMissionId
+    ? memoryApprovals.find((approval) => approval.missionId === activeMissionId)
+    : undefined;
+  const approvalStatus: ApprovalStatus | "blocked" = receiptReady
+    ? activeApproval?.status ?? "pending"
+    : "blocked";
+  const isDev = process.env.NODE_ENV !== "production";
 
   const applyEvent = useCallback((event: DojoEvent) => {
     if (event.type === "agent.status") {
@@ -170,9 +232,7 @@ export function Cockpit() {
         ...current,
         [event.agent]: event.status
       }));
-      if (event.task) {
-        appendAgentLog(event.agent, event.task);
-      }
+      if (event.task) appendAgentLog(event.agent, event.task);
       return;
     }
 
@@ -190,17 +250,7 @@ export function Cockpit() {
     }
 
     if (event.type === "scroll.arrived") {
-      setScrolls((current) =>
-        [
-          {
-            id: `scroll-${Date.now()}`,
-            preview: event.preview,
-            source: event.source,
-            ts: Date.now()
-          },
-          ...current
-        ].slice(0, 9)
-      );
+      addScroll(event.preview, event.source);
       return;
     }
 
@@ -239,17 +289,598 @@ export function Cockpit() {
     }));
   }
 
+  function addScroll(preview: string, source: ScrollItem["source"] = "diary") {
+    setScrolls((current) =>
+      [
+        {
+          id: `scroll-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          preview,
+          source,
+          ts: Date.now()
+        },
+        ...current
+      ].slice(0, 9)
+    );
+  }
+
+  const clearPlaybackTimers = useCallback(() => {
+    timersRef.current.forEach((timer) => window.clearTimeout(timer));
+    timersRef.current = [];
+  }, []);
+
+  const resetTransientRunState = useCallback(() => {
+    clearPlaybackTimers();
+    setActiveHandoff(undefined);
+    setActiveStage(null);
+    setCompletedStages([]);
+    setEarnedProgress(16);
+    setLatestLines(initialLines);
+    setLogs(initialLogs);
+    setPlaybackState("idle");
+    setStatuses(initialStatuses);
+  }, [clearPlaybackTimers]);
+
   useEffect(() => {
-    const unsubscribe = mockDojoEvents.subscribe(applyEvent);
+    const savedRuns = loadRunManifests();
+    setMemoryApprovals(getApprovals());
+    setMemoryMissions(getMissions());
+    setMemoryProjects(getProjects());
+    setMemoryReceipts(getReceipts());
+    setRunHistory(savedRuns);
+    if (savedRuns[0]) {
+      setActiveRun(savedRuns[0]);
+      setScrollText(savedRuns[0].scrollText);
+      setActiveStage(savedRuns[0].status === "shipped" ? "moonrise" : null);
+      setCompletedStages(savedRuns[0].status === "shipped" ? stageOrder : []);
+      setEarnedProgress(savedRuns[0].status === "shipped" ? 100 : 16);
+      setPlaybackState(savedRuns[0].status === "shipped" ? "complete" : "idle");
+      addScroll(`Restored latest run: ${savedRuns[0].scrollText}`, "diary");
+    }
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = mockDojoEvents.subscribe((event) => {
+      if (event.type === "shrine.update" || event.type === "moon.eternal") {
+        applyEvent(event);
+      }
+    });
     mockDojoEvents.start();
-    return () => unsubscribe();
-  }, [applyEvent]);
+    return () => {
+      unsubscribe();
+      mockDojoEvents.stop();
+      clearPlaybackTimers();
+    };
+  }, [applyEvent, clearPlaybackTimers]);
 
   const missionState = useMemo(() => {
+    if (playbackState === "complete") return "receipt ready";
+    if (playbackState === "running") return activeStage ? `${activeStage} active` : "running";
+    if (activeRun?.status === "shipped") return "receipt ready";
     if (stuckCount > 0) return "needs attention";
     if (workingCount > 0) return `${workingCount} active`;
-    return "watching";
-  }, [stuckCount, workingCount]);
+    return "ready";
+  }, [activeRun?.status, activeStage, playbackState, stuckCount, workingCount]);
+
+  async function handleSendScroll() {
+    const cleanScroll = scrollText.trim();
+    if (!cleanScroll) {
+      setScrollError("Write a scroll before sending.");
+      return;
+    }
+
+    setScrollError("");
+    setCopyState("idle");
+    resetTransientRunState();
+    setPlaybackState("running");
+
+    try {
+      const response = await fetch("/api/cockpit/runs", {
+        body: JSON.stringify({ scrollText: cleanScroll }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      });
+
+      if (!response.ok) throw new Error("Run creation failed");
+
+      const payload = (await response.json()) as { run: RunManifest };
+      setActiveRun(payload.run);
+      setRunHistory(saveRunManifest(payload.run));
+      persistMissionMemory(payload.run, "active");
+      dispatchMissionEvent("mission.started", {
+        missionName: payload.run.inferredName,
+        runId: payload.run.runId,
+        stage: "scroll",
+        status: payload.run.status,
+        summary: payload.run.scrollText
+      });
+      startPlayback(payload.run);
+    } catch (error) {
+      dispatchMissionEvent("mission.failed", {
+        missionName: "Local cockpit run",
+        status: "failed",
+        summary: error instanceof Error ? error.message : "The local run could not be created."
+      });
+      setPlaybackState("idle");
+      setScrollError("The local run could not be created.");
+    }
+  }
+
+  function startPlayback(run: RunManifest) {
+    clearPlaybackTimers();
+    const events = createPlaybackEvents(run);
+    for (const event of events) {
+      const timer = window.setTimeout(() => applyPlaybackEvent(event, run), event.at);
+      timersRef.current.push(timer);
+    }
+  }
+
+  function applyPlaybackEvent(event: PlaybackEvent, run: RunManifest) {
+    if (event.type === "scroll.arrived") {
+      addScroll(event.preview, "diary");
+      setActiveStage("scroll");
+      setEarnedProgress(12);
+      return;
+    }
+
+    if (event.type === "agent.started") {
+      setActiveStage(event.stage);
+      setEarnedProgress(progressForStage(event.stage));
+      setStatuses((current) => ({ ...current, [event.agent]: "working" }));
+      appendAgentLog(event.agent, event.line);
+      dispatchMissionEvent("mission.stage_changed", {
+        missionName: run.inferredName,
+        runId: run.runId,
+        stage: event.stage,
+        status: "working",
+        summary: event.line
+      });
+      return;
+    }
+
+    if (event.type === "agent.log") {
+      appendAgentLog(event.agent, event.line);
+      return;
+    }
+
+    if (event.type === "stage.completed") {
+      setCompletedStages((current) => uniqueStages([...current, event.stage]));
+      setEarnedProgress(progressForStage(event.stage));
+      if (event.agent) {
+        setStatuses((current) => ({ ...current, [event.agent!]: "complete" }));
+        appendAgentLog(event.agent, event.line);
+      }
+      return;
+    }
+
+    if (event.type === "judge.completed") {
+      setActiveStage("judge");
+      setCompletedStages((current) => uniqueStages([...current, "judge"]));
+      setStatuses((current) => ({ ...current, meowts: "working" }));
+      appendAgentLog("meowts", event.line);
+      setEarnedProgress(88);
+      return;
+    }
+
+    if (event.type === "receipt.ready") {
+      const completedRun: RunManifest = {
+        ...run,
+        logs: [
+          ...run.logs,
+          {
+            at: new Date().toISOString(),
+            department: "meowts",
+            id: `${run.runId}-receipt-ready`,
+            message: event.line,
+            stage: "moonrise"
+          }
+        ],
+        stages: run.stages.map((stage) => ({ ...stage, status: "complete" })),
+        status: "shipped"
+      };
+      setActiveRun(completedRun);
+      setRunHistory(saveRunManifest(completedRun));
+      persistReceiptMemory(completedRun);
+      setActiveStage("moonrise");
+      setCompletedStages(stageOrder);
+      setEarnedProgress(100);
+      setPlaybackState("complete");
+      setStatuses((current) => ({ ...current, meowts: "complete" }));
+      addScroll(event.line, "diary");
+      dispatchMissionEvent("mission.receipt_ready", {
+        missionName: completedRun.inferredName,
+        receiptUrl: completedRun.receiptUrl || completedRun.moonriseUrl,
+        runId: completedRun.runId,
+        stage: "moonrise",
+        status: completedRun.status,
+        summary: event.line
+      });
+      requestApproval(completedRun);
+    }
+  }
+
+  function persistMissionMemory(run: RunManifest, status: ProjectMemoryEntry["status"]) {
+    const projectId = projectIdFor(run);
+    const now = new Date().toISOString();
+    const mission: MissionMemoryEntry = {
+      createdAt: run.createdAt,
+      id: missionIdFor(run),
+      projectId,
+      runId: run.runId,
+      scrollText: run.scrollText,
+      status: run.status,
+      summary: `${run.inferredName}: ${run.requirements.slice(0, 2).join(", ")}`,
+      updatedAt: now
+    };
+    const project: ProjectMemoryEntry = {
+      createdAt: run.createdAt,
+      id: projectId,
+      lastMissionId: mission.id,
+      name: run.inferredName,
+      nextAction: "Wait for Meowts receipt.",
+      status,
+      updatedAt: now
+    };
+
+    setMemoryMissions(saveMission(mission));
+    setMemoryProjects(saveProject(project));
+    queueNotionSync({ mission, project });
+  }
+
+  function persistReceiptMemory(run: RunManifest) {
+    if (savedReceiptsRef.current.has(run.runId)) return;
+    savedReceiptsRef.current.add(run.runId);
+
+    const projectId = projectIdFor(run);
+    const missionId = missionIdFor(run);
+    const now = new Date().toISOString();
+    const receipt: ReceiptMemoryEntry = {
+      createdAt: now,
+      id: receiptIdFor(run),
+      missionId,
+      projectId,
+      receiptUrl: run.receiptUrl || run.moonriseUrl,
+      runId: run.runId,
+      score: run.judgeResult.score,
+      summary: `${run.judgeResult.verdict} for ${run.inferredName}`,
+      verdict: run.judgeResult.verdict
+    };
+    const mission: MissionMemoryEntry = {
+      createdAt: run.createdAt,
+      id: missionId,
+      projectId,
+      runId: run.runId,
+      scrollText: run.scrollText,
+      status: "shipped",
+      summary: `Receipt produced for ${run.inferredName}.`,
+      updatedAt: now
+    };
+    const project: ProjectMemoryEntry = {
+      createdAt: run.createdAt,
+      id: projectId,
+      lastMissionId: missionId,
+      lastReceiptId: receipt.id,
+      name: run.inferredName,
+      nextAction: "Open receipt or copy run brief.",
+      status: "shipped",
+      updatedAt: now
+    };
+
+    setMemoryMissions(saveMission(mission));
+    setMemoryReceipts(saveReceipt(receipt));
+    setMemoryProjects(saveProject(project));
+    queueNotionSync({ mission, project, receipt });
+  }
+
+  function requestApproval(run: RunManifest) {
+    const missionId = missionIdFor(run);
+    if (requestedApprovalsRef.current.has(missionId)) return;
+    requestedApprovalsRef.current.add(missionId);
+
+    const storedApprovals = getApprovals();
+    const existing = storedApprovals.find((approval) => approval.missionId === missionId);
+    if (existing) {
+      setMemoryApprovals(storedApprovals);
+      return;
+    }
+
+    const approval: ApprovalGate = {
+      id: approvalIdFor(run),
+      missionId,
+      notes: "Receipt ready. Future execution is blocked until CEO approval.",
+      requestedAt: new Date().toISOString(),
+      status: "pending"
+    };
+
+    setMemoryApprovals(saveApproval(approval));
+    updateProjectApprovalState(run, "pending");
+    dispatchMissionEvent("approval.requested", {
+      approvalId: approval.id,
+      missionId,
+      missionName: run.inferredName,
+      notes: approval.notes,
+      receiptUrl: run.receiptUrl || run.moonriseUrl,
+      runId: run.runId,
+      status: approval.status,
+      summary: "CEO approval required before future execution."
+    });
+  }
+
+  function decideApproval(status: Exclude<ApprovalStatus, "pending">) {
+    if (!activeRun || !receiptReady) return;
+
+    const missionId = missionIdFor(activeRun);
+    const storedApprovals = getApprovals();
+    const existing =
+      activeApproval ?? storedApprovals.find((approval) => approval.missionId === missionId);
+    const now = new Date().toISOString();
+    const approval: ApprovalGate = {
+      id: existing?.id ?? approvalIdFor(activeRun),
+      missionId,
+      notes:
+        status === "approved"
+          ? "Approved by CEO for future execution."
+          : "Rejected by CEO. Future execution remains blocked.",
+      requestedAt: existing?.requestedAt ?? now,
+      status,
+      decidedAt: now,
+      decidedBy: "CEO"
+    };
+
+    setMemoryApprovals(saveApproval(approval));
+    updateProjectApprovalState(activeRun, status);
+    dispatchMissionEvent(status === "approved" ? "approval.approved" : "approval.rejected", {
+      approvalId: approval.id,
+      missionId,
+      missionName: activeRun.inferredName,
+      notes: approval.notes,
+      receiptUrl: activeRun.receiptUrl || activeRun.moonriseUrl,
+      runId: activeRun.runId,
+      status: approval.status,
+      summary: approval.notes
+    });
+  }
+
+  function updateProjectApprovalState(run: RunManifest, status: ApprovalStatus) {
+    const projectId = projectIdFor(run);
+    const now = new Date().toISOString();
+    const project: ProjectMemoryEntry = {
+      createdAt: run.createdAt,
+      id: projectId,
+      lastMissionId: missionIdFor(run),
+      lastReceiptId: receiptIdFor(run),
+      name: run.inferredName,
+      nextAction:
+        status === "approved"
+          ? "Approved for future execution."
+          : status === "rejected"
+            ? "Rejected. Revise the scroll or receipt before execution."
+            : "CEO approval required before execution.",
+      status: status === "approved" ? "shipped" : "blocked",
+      updatedAt: now
+    };
+
+    setMemoryProjects(saveProject(project));
+    queueNotionSync({ project });
+  }
+
+  function queueNotionSync({
+    mission,
+    project,
+    receipt
+  }: {
+    mission?: MissionMemoryEntry;
+    project?: ProjectMemoryEntry;
+    receipt?: ReceiptMemoryEntry;
+  }) {
+    const payload: {
+      mission?: MissionMemoryEntry;
+      project?: ProjectMemoryEntry;
+      receipt?: ReceiptMemoryEntry;
+    } = {};
+
+    if (project && markSyncQueued("project", project.id, project.updatedAt)) {
+      payload.project = project;
+    }
+    if (mission && markSyncQueued("mission", mission.id, mission.updatedAt)) {
+      payload.mission = mission;
+    }
+    if (receipt && markSyncQueued("receipt", receipt.id, receipt.createdAt)) {
+      payload.receipt = receipt;
+    }
+    if (!payload.project && !payload.mission && !payload.receipt) return;
+
+    void fetch("/api/integrations/notion/sync", {
+      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" },
+      method: "POST"
+    }).catch((error) => {
+      console.warn("[ninja-dojo:notion] queued sync skipped", error);
+    });
+  }
+
+  function markSyncQueued(kind: string, id: string, version: string) {
+    const key = `${kind}:${id}:${version}`;
+    if (syncedMemoryRef.current.has(key)) return false;
+    syncedMemoryRef.current.add(key);
+    return true;
+  }
+
+  async function handleCopyBrief() {
+    if (!activeRun) return;
+    try {
+      await navigator.clipboard.writeText(formatRunBrief(activeRun));
+      setCopyState("copied");
+    } catch {
+      setCopyState("failed");
+    }
+  }
+
+  async function handleRunCodexWorker() {
+    if (!activeRun) {
+      const receipt = blockedCodexReceipt("no-active-run", "No active mission is available.");
+      setExecutionReceipt(receipt);
+      setExecutionState("blocked");
+      return;
+    }
+
+    setExecutionState("running");
+    setExecutionReceipt({
+      agent: "codex",
+      artifacts: [],
+      logs: ["Codex worker request started."],
+      status: "running",
+      summary: "Waiting for gated Codex execution result.",
+      taskId: codexTaskIdFor(activeRun)
+    });
+
+    const task = createCodexTask(activeRun);
+    try {
+      const response = await fetch("/api/agents/codex/execute", {
+        body: JSON.stringify({
+          approval: activeApproval,
+          mission: {
+            ...activeRun,
+            approval: activeApproval
+          },
+          task
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      });
+      const receipt = (await response.json()) as AgentReceipt;
+      setExecutionReceipt(receipt);
+      setExecutionState(
+        receipt.status === "blocked"
+          ? "blocked"
+          : receipt.status === "complete"
+            ? "complete"
+            : "failed"
+      );
+      appendAgentLog("miji", `Codex worker ${receipt.status}: ${receipt.summary}`);
+    } catch (error) {
+      const summary =
+        error instanceof Error ? error.message : "Codex worker request could not complete.";
+      const receipt = blockedCodexReceipt(task.id, summary);
+      setExecutionReceipt(receipt);
+      setExecutionState("failed");
+      appendAgentLog("miji", `Codex worker failed: ${summary}`);
+    }
+  }
+
+  function handleResetRun() {
+    resetTransientRunState();
+    setActiveRun(null);
+    setExecutionReceipt(null);
+    setExecutionState("idle");
+    setScrollError("");
+    setCopyState("idle");
+  }
+
+  function handleDevClearLocalState() {
+    if (!isDev) return;
+    const confirmed = window.confirm("Clear local Ninja Dojo runs and memory?");
+    if (!confirmed) return;
+    clearPlaybackTimers();
+    clearLocalMemory();
+    requestedApprovalsRef.current.clear();
+    savedReceiptsRef.current.clear();
+    syncedMemoryRef.current.clear();
+    setActiveRun(null);
+    setActiveStage(null);
+    setCompletedStages([]);
+    setCopyState("idle");
+    setEarnedProgress(16);
+    setExecutionReceipt(null);
+    setExecutionState("idle");
+    setLatestLines(initialLines);
+    setLogs(initialLogs);
+    setMemoryApprovals([]);
+    setMemoryMissions([]);
+    setMemoryProjects([]);
+    setMemoryReceipts([]);
+    setPlaybackState("idle");
+    setRunHistory([]);
+    setScrollError("");
+    setScrollText("");
+    setScrolls([
+      {
+        id: "cleared-scroll",
+        preview: "Local memory cleared. Submit a scroll to start a new mission.",
+        source: "diary",
+        ts: Date.now()
+      }
+    ]);
+    setStatuses(initialStatuses);
+  }
+
+  function progressForStage(stage: RunManifestStage["id"]) {
+    const index = stageOrder.indexOf(stage);
+    return Math.max(12, Math.round(((index + 1) / stageOrder.length) * 100));
+  }
+
+  function uniqueStages(stages: RunManifestStage["id"][]) {
+    return Array.from(new Set<RunManifestStage["id"]>(stages));
+  }
+
+  function projectIdFor(run: RunManifest) {
+    return slugify(run.inferredName) || run.runId;
+  }
+
+  function missionIdFor(run: RunManifest) {
+    return `mission-${run.runId}`;
+  }
+
+  function receiptIdFor(run: RunManifest) {
+    return `receipt-${run.runId}`;
+  }
+
+  function approvalIdFor(run: RunManifest) {
+    return `approval-${run.runId}`;
+  }
+
+  function codexTaskIdFor(run: RunManifest) {
+    return `codex-${run.runId}`;
+  }
+
+  function createCodexTask(run: RunManifest): MissionTask {
+    return {
+      agent: "codex",
+      context: [
+        `Run: ${run.runId}`,
+        `Scroll: ${run.scrollText}`,
+        `Product: ${run.inferredName}`,
+        `Receipt: ${run.receiptUrl || run.moonriseUrl}`,
+        `Judge: ${run.judgeResult.verdict} (${run.judgeResult.score}/100)`
+      ].join("\n"),
+      department: "builder",
+      id: codexTaskIdFor(run),
+      prompt: [
+        `Use the current Ninja Dojo repo to perform the approved implementation pass for ${run.inferredName}.`,
+        `Original scroll: ${run.scrollText}`,
+        "Keep the work scoped. Do not commit, push, deploy, or touch secrets."
+      ].join("\n"),
+      runId: run.runId,
+      title: `Approved Codex worker pass for ${run.inferredName}`
+    };
+  }
+
+  function blockedCodexReceipt(taskId: string, summary: string): AgentReceipt {
+    return {
+      agent: "codex",
+      artifacts: [],
+      logs: [summary],
+      status: "blocked",
+      summary,
+      taskId
+    };
+  }
+
+  function slugify(value: string) {
+    return value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+  }
 
   return (
     <main className="cockpit-shell">
@@ -264,7 +895,7 @@ export function Cockpit() {
           </div>
         </div>
         <div className="cockpit-topbar__status">
-          <span>Mock telemetry</span>
+          <span>{missionState}</span>
           <MoonGauge
             earnedProgress={earnedProgress}
             eternalHealth={eternalHealth}
@@ -278,6 +909,15 @@ export function Cockpit() {
           >
             ?
           </button>
+          {isDev ? (
+            <button
+              aria-label="Clear local development state"
+              onClick={handleDevClearLocalState}
+              type="button"
+            >
+              Clear
+            </button>
+          ) : null}
         </div>
       </header>
 
@@ -287,34 +927,60 @@ export function Cockpit() {
         </aside>
       ) : null}
 
+      <section className="cockpit-command-strip" aria-label="Scroll command">
+        <div>
+          <span>Scroll command</span>
+          <textarea
+            aria-label="Scroll command"
+            onChange={(event) => {
+              setScrollText(event.target.value);
+              setScrollError("");
+            }}
+            placeholder="Build me a landing page for a moonlit ramen shop with online booking, pricing, and testimonials."
+            rows={2}
+            value={scrollText}
+          />
+          {scrollError ? <p>{scrollError}</p> : null}
+        </div>
+        <button disabled={playbackState === "running"} onClick={handleSendScroll} type="button">
+          {playbackState === "running" ? "Running" : "Send Scroll"}
+        </button>
+      </section>
+
       <section className="cockpit-main" aria-label="Ninja Dojo cockpit">
-        <ScrollFeed items={scrolls} />
+        <aside className="mission-rail" aria-label="Mission state">
+          <section>
+            <span>Current mission</span>
+            <strong>{activeRun?.inferredName ?? "No active scroll"}</strong>
+            <p>{activeRun ? activeRun.scrollText : "No active run. Send a scroll to create mission memory."}</p>
+          </section>
+          <section>
+            <span>Next action</span>
+            <strong>{receiptReady ? "Open receipt" : playbackState === "running" ? "Watch stages" : "Send scroll"}</strong>
+            <p>{receiptReady ? "Moonrise Receipt is ready to inspect or copy." : "Awaiting local stage playback."}</p>
+          </section>
+          <ScrollFeed items={scrolls} />
+        </aside>
 
         <section className="cockpit-center" aria-label="Live dojo operation view">
           <div className="mission-strip">
             <div>
-              <span>Current mission</span>
-              <strong>{latestScroll.preview}</strong>
+              <span>Run Manifest</span>
+              <strong>{activeRun?.runId ?? "waiting for scroll"}</strong>
             </div>
             <div>
-              <span>State</span>
-              <strong>{missionState}</strong>
+              <span>Stage</span>
+              <strong>{activeStage ?? "standby"}</strong>
             </div>
-            <button
-              onClick={() =>
-                mockDojoEvents.emit({
-                  preview: "Manual scroll injected into the local cockpit feed.",
-                  source: "diary",
-                  type: "scroll.arrived"
-                })
-              }
-              type="button"
-            >
-              Simulate scroll
-            </button>
+            <div>
+              <span>Department</span>
+              <strong>{activeRun?.stages.find((stage) => stage.id === activeStage)?.department ?? "local"}</strong>
+            </div>
           </div>
           <DojoMap
             activeHandoff={activeHandoff}
+            activeStage={activeStage}
+            completedStages={completedStages}
             latestLines={latestLines}
             onOpenAgent={setSelectedAgent}
             statuses={statuses}
@@ -324,22 +990,107 @@ export function Cockpit() {
         <aside className="receipt-rail" aria-label="Receipt status">
           <section>
             <span>Moonrise Receipt</span>
-            <strong>{earnedProgress >= 80 ? "ready soon" : "collecting"}</strong>
-            <p>Latest scroll, handoffs, stage notes, and Meowts score will land here.</p>
+            <strong>{receiptReady ? "ready" : activeRun ? "collecting" : "standby"}</strong>
+            <p>{activeRun ? `Receipt target: ${activeRun.inferredName}` : "No receipts yet."}</p>
           </section>
           <section>
             <span>Meowts</span>
-            <strong>{stuckCount > 0 ? "64/100" : "91/100"}</strong>
-            <p>{stuckCount > 0 ? "Blocked room needs attention." : "Receipt trail looks clean."}</p>
+            <strong>{activeRun ? `${activeRun.judgeResult.score}/100` : "--/100"}</strong>
+            <p>{activeRun ? activeRun.judgeResult.verdict : "Waiting for a scroll to judge."}</p>
+          </section>
+          <section>
+            <span>Project Memory</span>
+            <strong>{memoryProjects.length}</strong>
+            <p>
+              {memoryProjects.length
+                ? `${memoryMissions.length} missions · ${memoryReceipts.length} receipts stored locally.`
+                : "No saved memory yet."}
+            </p>
+          </section>
+          <section className="approval-panel" data-status={approvalStatus}>
+            <span>CEO Approval</span>
+            <strong>
+              {approvalStatus === "blocked"
+                ? "blocked"
+                : approvalStatus === "pending"
+                  ? "pending"
+                  : approvalStatus}
+            </strong>
+            <p>
+              {approvalStatus === "approved"
+                ? "Future execution is unblocked."
+                : approvalStatus === "rejected"
+                  ? "Future execution remains blocked."
+                  : receiptReady
+                    ? "Approve before any real execution can happen."
+                    : "Receipt required before approval."}
+            </p>
+            <div className="approval-actions">
+              <button
+                disabled={!receiptReady || approvalStatus === "approved"}
+                onClick={() => decideApproval("approved")}
+                type="button"
+              >
+                Approve
+              </button>
+              <button
+                className="is-tertiary"
+                disabled={!receiptReady || approvalStatus === "rejected"}
+                onClick={() => decideApproval("rejected")}
+                type="button"
+              >
+                Reject
+              </button>
+            </div>
+          </section>
+          <section className="codex-worker-panel" data-status={executionState}>
+            <span>Codex Worker</span>
+            <strong>
+              {executionState === "idle"
+                ? approvalStatus === "approved"
+                  ? "ready"
+                  : "blocked"
+                : executionState}
+            </strong>
+            <p>
+              {executionReceipt
+                ? executionReceipt.summary
+                : approvalStatus === "approved"
+                  ? "Approved mission can run one manual Codex worker pass."
+                  : "CEO approval is required before Codex can run."}
+            </p>
+            {executionReceipt?.logs.length ? (
+              <small>{executionReceipt.logs.slice(-1)[0]}</small>
+            ) : null}
+            <button
+              disabled={!activeRun || executionState === "running"}
+              onClick={handleRunCodexWorker}
+              type="button"
+            >
+              {executionState === "running" ? "Running Codex" : "Run Codex Worker"}
+            </button>
           </section>
           <div className="receipt-rail__actions">
-            <button type="button">View receipt</button>
-            <button type="button">Copy brief</button>
+            <a
+              aria-disabled={!receiptReady || !activeRun}
+              className={!receiptReady || !activeRun ? "is-disabled" : ""}
+              href={receiptReady && activeRun ? activeRun.receiptUrl || activeRun.moonriseUrl : undefined}
+              rel="noreferrer"
+              target="_blank"
+            >
+              View Receipt
+            </a>
+            <button disabled={!activeRun} onClick={handleCopyBrief} type="button">
+              {copyState === "copied" ? "Copied" : copyState === "failed" ? "Copy failed" : "Copy Brief"}
+            </button>
+            <button className="is-tertiary" onClick={handleResetRun} type="button">
+              Reset
+            </button>
           </div>
           <section className="plugin-terminals" aria-label="Plugin terminals">
             <header>
               <span>Plugin terminals</span>
-              <strong>mock</strong>
+              <strong>local</strong>
             </header>
             <div>
               {pluginTerminals.map((plugin) => (
@@ -359,7 +1110,39 @@ export function Cockpit() {
         </aside>
       </section>
 
-      <ShrineBar shrines={shrines} />
+      <section className="run-history-strip" aria-label="Run history">
+        <header>
+          <span>History</span>
+          <strong>{runHistory.length}</strong>
+        </header>
+        <div>
+          {runHistory.length === 0 ? (
+            <p>No local runs yet.</p>
+          ) : (
+            runHistory.slice(0, 6).map((run) => (
+              <button
+                data-active={activeRun?.runId === run.runId}
+                key={run.runId}
+                onClick={() => {
+                  resetTransientRunState();
+                  setActiveRun(run);
+                  setScrollText(run.scrollText);
+                  setActiveStage(run.status === "shipped" ? "moonrise" : null);
+                  setCompletedStages(run.status === "shipped" ? stageOrder : []);
+                  setEarnedProgress(run.status === "shipped" ? 100 : 16);
+                  setPlaybackState(run.status === "shipped" ? "complete" : "idle");
+                }}
+                type="button"
+              >
+                <strong>{run.inferredName}</strong>
+                <span>{run.status}</span>
+              </button>
+            ))
+          )}
+        </div>
+      </section>
+
+      <ShrineBar projects={memoryProjects} shrines={shrines} />
 
       <ChatPane
         agent={selected}
@@ -398,7 +1181,7 @@ export function Cockpit() {
               </div>
               <div>
                 <dt>Execution</dt>
-                <dd>Mock only. Real handoff lands in a later PR.</dd>
+                <dd>Local handoff only. Real plugin execution lands later.</dd>
               </div>
             </dl>
           </aside>

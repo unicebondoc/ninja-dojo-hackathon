@@ -7,7 +7,10 @@ import {
 } from "@/lib/runs/generatePreview";
 import { judgeRun } from "@/lib/runs/judgeRun";
 import type {
+  RunDepartment,
   RunManifest,
+  RunManifestAgent,
+  RunManifestLog,
   RunManifestStage,
   RunManifestStatus,
   RunStageStatus
@@ -52,6 +55,17 @@ const roleByStage: Record<RunManifestStage["id"], string> = {
   scroll: "Intake"
 };
 
+const departmentByStage: Record<RunManifestStage["id"], RunDepartment> = {
+  attack: "researcher",
+  build: "builder",
+  deploy: "marketer",
+  judge: "meowts",
+  moonrise: "creator",
+  plan: "strategist",
+  review: "auditor",
+  scroll: "scribe"
+};
+
 export function createRunManifest(
   scrollText: string,
   options: CreateRunManifestOptions = {}
@@ -62,18 +76,24 @@ export function createRunManifest(
   const status = options.status ?? "running";
   const generatedPreview = generatePreview(cleanScroll);
   const judgeResult = judgeRun(cleanScroll, generatedPreview);
+  const receiptUrl = moonriseUrlFor(cleanScroll, runId);
+  const stages = createStages(status);
 
   return {
+    agents: createAgents(),
     createdAt,
     generatedPreview,
+    id: runId,
     inferredName: generatedPreview.brandName,
     judgeResult,
-    moonriseUrl: moonriseUrlFor(cleanScroll, runId),
+    logs: createInitialLogs(runId, createdAt, cleanScroll),
+    moonriseUrl: receiptUrl,
     productType: inferProductType(cleanScroll.toLowerCase()),
+    receiptUrl,
     requirements: inferRequirements(cleanScroll),
     runId,
     scrollText: cleanScroll,
-    stages: createStages(status),
+    stages,
     status
   };
 }
@@ -82,6 +102,16 @@ export function completeRunManifest(run: RunManifest): RunManifest {
   return {
     ...run,
     judgeResult: judgeRun(run.scrollText, run.generatedPreview),
+    logs: [
+      ...run.logs,
+      {
+        at: new Date().toISOString(),
+        department: "meowts",
+        id: `${run.runId}-receipt-ready`,
+        message: `Moonrise Receipt ready for ${run.inferredName}.`,
+        stage: "moonrise"
+      }
+    ],
     stages: createStages("shipped"),
     status: "shipped"
   };
@@ -108,6 +138,7 @@ function createStages(status: RunManifestStatus): RunManifestStage[] {
   ];
 
   return ids.map((id) => ({
+    department: departmentByStage[id],
     id,
     label: stageLabels[id],
     ninja: ninjaByStage[id],
@@ -115,6 +146,79 @@ function createStages(status: RunManifestStatus): RunManifestStage[] {
     status: stageStatusFor(id, status),
     summary: stageSummary(id)
   }));
+}
+
+function createAgents(): RunManifestAgent[] {
+  return [
+    {
+      department: "scribe",
+      id: "dojo",
+      name: "Dojo",
+      role: "Scroll intake",
+      summary: "Captures intent and starts the mission trail."
+    },
+    {
+      department: "strategist",
+      id: "moji",
+      name: "Moji",
+      role: "Plan",
+      summary: "Turns the scroll into a mission manifest."
+    },
+    {
+      department: "builder",
+      id: "miji",
+      name: "Miji",
+      role: "Build",
+      summary: "Packages the build handoff."
+    },
+    {
+      department: "researcher",
+      id: "maji",
+      name: "Maji",
+      role: "Attack",
+      summary: "Checks weak spots before the receipt is trusted."
+    },
+    {
+      department: "auditor",
+      id: "meji",
+      name: "Meji",
+      role: "Review",
+      summary: "Reviews quality, structure, and constraints."
+    },
+    {
+      department: "marketer",
+      id: "muji",
+      name: "Muji",
+      role: "Deploy",
+      summary: "Checks launch readiness and conversion path."
+    },
+    {
+      department: "meowts",
+      id: "meowts",
+      name: "Meowts",
+      role: "Judge",
+      summary: "Scores the receipt and calls Moonrise."
+    },
+    {
+      department: "creator",
+      id: "moonrise",
+      name: "Dojo",
+      role: "Moonrise",
+      summary: "Produces the final Moonrise Receipt."
+    }
+  ];
+}
+
+function createInitialLogs(runId: string, createdAt: string, scrollText: string): RunManifestLog[] {
+  return [
+    {
+      at: createdAt,
+      department: "scribe",
+      id: `${runId}-scroll`,
+      message: `Scroll captured: ${scrollText}`,
+      stage: "scroll"
+    }
+  ];
 }
 
 function stageStatusFor(id: RunManifestStage["id"], status: RunManifestStatus): RunStageStatus {
