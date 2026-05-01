@@ -79,7 +79,7 @@ export function ChatPane({ agent, logs, onClose, status }: ChatPaneProps) {
               <button disabled type="button">
                 Send
               </button>
-              <small>Real Butler connection coming in PR 4.</small>
+              <small>Real plugin connection coming in a later PR.</small>
             </footer>
           </>
         ) : null}

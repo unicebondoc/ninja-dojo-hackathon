@@ -40,7 +40,7 @@ export function DojoMap({
         ))}
       </div>
       <div className="dojo-map__stage">
-        <div className="dojo-map__floor" aria-hidden="true" />
+        <div className="dojo-map__art" aria-hidden="true" />
         <div className="dojo-map__handoff" data-active={Boolean(activeHandoff)} />
         <TycheSprite />
         {roomOrder.map((id) => {
