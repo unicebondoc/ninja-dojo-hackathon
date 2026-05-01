@@ -25,6 +25,61 @@ type Handoff = {
   ts: number;
 };
 
+type PluginId = "openclaw" | "codex" | "claude" | "gpt-image-2" | "manual" | "telegram";
+
+type PluginTerminal = {
+  id: PluginId;
+  latestActivity: string;
+  mode: string;
+  name: string;
+  status: "mock" | "handoff-only" | "planned" | "connected-later";
+};
+
+const pluginTerminals: PluginTerminal[] = [
+  {
+    id: "openclaw",
+    latestActivity: "Local action gateway prompt staged.",
+    mode: "Gateway later",
+    name: "OpenClaw",
+    status: "planned"
+  },
+  {
+    id: "codex",
+    latestActivity: "Build handoff prompt ready.",
+    mode: "Worktree handoff",
+    name: "Codex",
+    status: "handoff-only"
+  },
+  {
+    id: "claude",
+    latestActivity: "Review brief prepared for deep critique.",
+    mode: "Review handoff",
+    name: "Claude",
+    status: "handoff-only"
+  },
+  {
+    id: "gpt-image-2",
+    latestActivity: "Asset prompt archive available.",
+    mode: "Asset generation later",
+    name: "GPT Image 2",
+    status: "planned"
+  },
+  {
+    id: "manual",
+    latestActivity: "Paste-result fallback connected.",
+    mode: "Human-in-loop",
+    name: "Manual",
+    status: "mock"
+  },
+  {
+    id: "telegram",
+    latestActivity: "Scroll capture route planned.",
+    mode: "Check-ins later",
+    name: "Telegram",
+    status: "connected-later"
+  }
+];
+
 const initialStatuses = Object.fromEntries(
   agentRegistry.map((agent) => [agent.id, "idle"])
 ) as Record<AgentId, AgentStatus>;
@@ -98,6 +153,7 @@ export function Cockpit() {
     }
   ]);
   const [selectedAgent, setSelectedAgent] = useState<AgentId | null>(null);
+  const [selectedPlugin, setSelectedPlugin] = useState<PluginTerminal | null>(null);
   const [shrines, setShrines] = useState(initialShrines);
   const [sprintLabel, setSprintLabel] = useState("Sprint 2");
   const [statuses, setStatuses] = useState(initialStatuses);
@@ -280,6 +336,26 @@ export function Cockpit() {
             <button type="button">View receipt</button>
             <button type="button">Copy brief</button>
           </div>
+          <section className="plugin-terminals" aria-label="Plugin terminals">
+            <header>
+              <span>Plugin terminals</span>
+              <strong>mock</strong>
+            </header>
+            <div>
+              {pluginTerminals.map((plugin) => (
+                <button
+                  data-status={plugin.status}
+                  key={plugin.id}
+                  onClick={() => setSelectedPlugin(plugin)}
+                  type="button"
+                >
+                  <strong>{plugin.name}</strong>
+                  <em>{plugin.mode}</em>
+                  <span>{plugin.latestActivity}</span>
+                </button>
+              ))}
+            </div>
+          </section>
         </aside>
       </section>
 
@@ -291,6 +367,43 @@ export function Cockpit() {
         onClose={() => setSelectedAgent(null)}
         status={selectedStatus}
       />
+
+      {selectedPlugin ? (
+        <>
+          <button
+            aria-label="Close plugin terminal"
+            className="plugin-terminal-drawer__scrim"
+            onClick={() => setSelectedPlugin(null)}
+            type="button"
+          />
+          <aside className="plugin-terminal-drawer" aria-label={`${selectedPlugin.name} terminal`}>
+            <header>
+              <div>
+                <span>Plugin terminal</span>
+                <h2>{selectedPlugin.name}</h2>
+              </div>
+              <i>{selectedPlugin.status}</i>
+              <button onClick={() => setSelectedPlugin(null)} type="button">
+                X
+              </button>
+            </header>
+            <dl>
+              <div>
+                <dt>Mode</dt>
+                <dd>{selectedPlugin.mode}</dd>
+              </div>
+              <div>
+                <dt>Latest activity</dt>
+                <dd>{selectedPlugin.latestActivity}</dd>
+              </div>
+              <div>
+                <dt>Execution</dt>
+                <dd>Mock only. Real handoff lands in a later PR.</dd>
+              </div>
+            </dl>
+          </aside>
+        </>
+      ) : null}
     </main>
   );
 }

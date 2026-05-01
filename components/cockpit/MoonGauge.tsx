@@ -13,7 +13,7 @@ export function MoonGauge({
 }: MoonGaugeProps) {
   return (
     <div className="moon-gauges" aria-label="Twin moon status gauges">
-      <div className="moon-gauge" title={`Butler VPS · ${eternalHealth}%`}>
+      <div className="moon-gauge" title={`Eternal Moon health · ${eternalHealth}%`}>
         <span
           className="moon-gauge__orb moon-gauge__orb--eternal"
           style={{ opacity: 0.35 + eternalHealth / 160 }}
